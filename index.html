@@ -355,6 +355,12 @@
         <label>Horas Totales (Cálculo Automático):</label>
         <input type="number" id="edit-sum" placeholder="Calculado automáticamente" readonly style="background-color: #f1f5f9; cursor: not-allowed; font-weight: bold; color: #475569;">
       </div>
+      
+      <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-top: 15px; margin-bottom: 15px; background: #f0f9ff; padding: 10px; border-radius: 6px; border: 1px solid #bae6fd;">
+        <input type="checkbox" id="edit-is-basic" style="width: 18px; height: 18px; cursor: pointer;">
+        <label for="edit-is-basic" style="margin: 0; cursor: pointer; color: #0369a1; font-weight: 700; font-size: 0.9em;">¿Es materia de Ciencias Básicas?</label>
+      </div>
+
       <div class="form-group" id="level-select-group">
         <label>Nivel / Semestre:</label>
         <select id="edit-level">
@@ -383,7 +389,7 @@
   </footer>
 
   <script>
-    const NUM_COLUMNS = 8; // Ahora soporta 8 columnas de ancho
+    const NUM_COLUMNS = 8; // Soporta 8 columnas de ancho
 
     // Plantilla en blanco universal con 10 semestres
     const initialData = {
@@ -467,12 +473,20 @@
 
     function isBasicMathSubject(name) {
       const n = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      const keywords = ["calculo", "fisica", "algebra", "estadistica", "ecuaciones", "matematicas", "evaluacion"];
+      const keywords = ["calculo", "fisica", "algebra", "estadistica", "ecuaciones", "matematicas", "quimica"];
       return keywords.some(kw => n.includes(kw));
     }
 
+    // Función auxiliar para determinar si una materia es de Ciencias Básicas
+    function checkIsBasic(subj) {
+      if (subj.isBasic !== undefined) {
+        return subj.isBasic;
+      }
+      return isBasicMathSubject(subj.name);
+    }
+
     function updateCreditsSummary() {
-      const basicSubjects = state.subjects.filter(s => isBasicMathSubject(s.name));
+      const basicSubjects = state.subjects.filter(s => checkIsBasic(s));
       const totalBasicCredits = basicSubjects.reduce((acc, curr) => acc + calculateCredits(curr), 0);
       const basicSummaryEl = document.getElementById('basic-credits-summary');
       if (basicSummaryEl) {
@@ -486,7 +500,7 @@
 
       const totalSummaryEl = document.getElementById('total-credits-summary');
       if (totalSummaryEl) {
-        if(state.subjects.length > 0){
+        if (state.subjects.length > 0) {
           totalSummaryEl.innerHTML = `🎓 Total Créditos Malla: <b>${grandTotalCredits}</b> <span style="font-size:0.85em; font-weight:normal; opacity:0.85;">(incluye 5 CR Prácticas Preprofesionales)</span>`;
         } else {
           totalSummaryEl.innerHTML = `🎓 Total Créditos Malla: <b>0</b>`;
@@ -500,7 +514,7 @@
       window.addEventListener('resize', drawConnections);
       updateUndoRedoButtons();
 
-      // Cálculo automático de las "Horas Totales" al escribir en el campo de componentes
+      // Cálculo automático de las "Horas Totales" al escribir componentes
       document.getElementById('edit-components').addEventListener('input', function(e) {
         const value = e.target.value;
         const parts = value.split('/');
@@ -590,7 +604,7 @@
 
     function createSubjectCard(subj) {
       const card = document.createElement('div');
-      const isBasic = isBasicMathSubject(subj.name);
+      const isBasic = checkIsBasic(subj);
       const isPinned = (pinnedSubjectId === subj.id);
       
       card.className = `subject-card ${isBasic ? 'basic-math' : ''} ${isPinned ? 'pinned' : ''}`;
@@ -857,6 +871,7 @@
       document.getElementById('edit-code').value = '';
       document.getElementById('edit-components').value = '3/1/5';
       document.getElementById('edit-sum').value = 9; // Por defecto
+      document.getElementById('edit-is-basic').checked = false;
       document.getElementById('level-select-group').style.display = 'block';
       document.getElementById('btn-delete').style.display = 'none';
       document.getElementById('modal-overlay').style.display = 'flex';
@@ -873,6 +888,7 @@
       document.getElementById('edit-code').value = subj.code;
       document.getElementById('edit-components').value = subj.components;
       document.getElementById('edit-sum').value = subj.sum;
+      document.getElementById('edit-is-basic').checked = checkIsBasic(subj);
       document.getElementById('level-select-group').style.display = 'none';
       document.getElementById('btn-delete').style.display = 'block';
       document.getElementById('modal-overlay').style.display = 'flex';
@@ -886,6 +902,7 @@
       const code = document.getElementById('edit-code').value.trim();
       const components = document.getElementById('edit-components').value.trim();
       const sum = parseFloat(document.getElementById('edit-sum').value) || 0;
+      const isBasic = document.getElementById('edit-is-basic').checked;
 
       if (!name || !code) { alert('Por favor ingresa un nombre y código válidos.'); return; }
 
@@ -893,7 +910,13 @@
 
       if (id) {
         const subj = state.subjects.find(s => s.id === id);
-        if (subj) { subj.name = name; subj.code = code; subj.components = components; subj.sum = sum; }
+        if (subj) { 
+          subj.name = name; 
+          subj.code = code; 
+          subj.components = components; 
+          subj.sum = sum; 
+          subj.isBasic = isBasic;
+        }
       } else {
         const levelId = document.getElementById('edit-level').value;
         const newId = 'CUSTOM_' + Date.now();
@@ -902,7 +925,7 @@
         for (let i = 0; i < NUM_COLUMNS; i++) {
           if (!usedCols.includes(i)) { freeCol = i; break; }
         }
-        state.subjects.push({ id: newId, code: code, name: name, components: components, sum: sum, level: levelId, col: freeCol });
+        state.subjects.push({ id: newId, code: code, name: name, components: components, sum: sum, level: levelId, col: freeCol, isBasic: isBasic });
       }
 
       closeModal();
