@@ -398,6 +398,10 @@
     <div id="ocr-status-text">Analizando imagen y procesando materias con OCR...</div>
   </div>
 
+  <footer style="text-align: center; font-size: 0.8em; color: #64748b; margin-top: 20px;">
+    Desarrollado por <strong>Christopher Vaccaro C.</strong> — Licencia CC BY-NC 4.0 (Uso No Comercial)
+  </footer>
+
   <script>
     const NUM_COLUMNS = 7;
 
@@ -922,9 +926,14 @@
       }
     }
 
-    // EXTRAE CÓDIGOS, COMPONENTES Y NOMBRES DE FORMA FLEXIBLE Y TOLERANTE
+    // EXTRAE CÓDIGOS, COMPONENTES Y NOMBRES BORRANDO LA MALLA ANTERIOR
     function parseAndAddSubjectsFromOCR(text) {
-      saveStateToHistory();
+      saveStateToHistory(); // Guardar copia para Ctrl+Z antes de limpiar
+
+      // BORRAR TODO LO ANTERIOR AL CARGAR O PEGAR UNA NUEVA IMAGEN
+      state.subjects = [];
+      state.connections = [];
+      pinnedSubjectId = null;
 
       const lines = text.split('\n');
       let subjectsAdded = 0;
@@ -934,12 +943,9 @@
         const trimmed = line.trim();
         if (trimmed.length < 3) return;
 
-        // Búsqueda de Código (ej. MATG1045) o intento flexible
         const codeMatch = trimmed.match(/[A-Z]{3,4}\d{3,4}/i);
-        // Búsqueda de Componentes (ej. 3/2/4 o 3/1/5)
         const compMatch = trimmed.match(/\d\/\d\/\d/);
 
-        // Si la línea contiene código O componentes O texto significativo en mayúsculas
         if (codeMatch || compMatch || (trimmed.length > 5 && trimmed === trimmed.toUpperCase())) {
           let code = codeMatch ? codeMatch[0].toUpperCase() : `AUTO_${autoIdCounter++}`;
           let components = compMatch ? compMatch[0] : "3/1/5";
@@ -953,7 +959,6 @@
 
           if (name.length < 2) name = `MATERIA ${code}`;
 
-          // Evitar duplicar códigos
           if (!state.subjects.some(s => s.code === code || s.id === code)) {
             let targetLevel = "L100-1";
             let targetCol = 0;
@@ -987,9 +992,9 @@
       });
 
       if (subjectsAdded > 0) {
-        alert(`¡Se detectaron e integraron ${subjectsAdded} materias de la imagen!`);
+        alert(`¡Malla limpia! Se detectaron e integraron ${subjectsAdded} materias de la nueva imagen.`);
       } else {
-        alert("No se lograron reconocer materias claras. Intenta con una imagen más nítida.");
+        alert("No se lograron reconocer materias claras en la imagen. Se limpió el tablero.");
       }
 
       renderBoard();
@@ -1126,7 +1131,4 @@
     window.onload = init;
   </script>
 </body>
-<footer style="text-align: center; font-size: 0.8em; color: #64748b; margin-top: 20px;">
-  Desarrollado por <strong>Christopher Vaccaro C.</strong> — Licencia CC BY-NC 4.0 (Uso No Comercial)
-</footer> 
 </html>
