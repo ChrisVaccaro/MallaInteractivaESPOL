@@ -99,12 +99,6 @@
     .btn-add { background-color: #10b981; color: white; border-color: #10b981; }
     .btn-add:hover { background-color: #059669; }
 
-    .btn-svg { background-color: #8b5cf6; color: white; border-color: #8b5cf6; }
-    .btn-svg:hover { background-color: #7c3aed; }
-
-    .btn-url { background-color: #0284c7; color: white; border-color: #0284c7; }
-    .btn-url:hover { background-color: #0369a1; }
-
     /* CONTENEDOR PRINCIPAL */
     .board-container {
       position: relative;
@@ -299,7 +293,7 @@
       opacity: 1 !important;
     }
 
-    /* Modales */
+    /* Modal */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(15, 23, 42, 0.5); display: none;
@@ -311,23 +305,6 @@
     .form-group label { display: block; font-size: 0.85em; font-weight: 600; margin-bottom: 4px; }
     .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box; }
     .modal-actions { display: flex; justify-content: space-between; margin-top: 20px; }
-
-    /* Loader Overlay */
-    .loader-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(15, 23, 42, 0.7); display: none;
-      flex-direction: column; justify-content: center; align-items: center;
-      color: white; z-index: 300; font-weight: 600;
-    }
-
-    .spinner {
-      border: 4px solid rgba(255,255,255,0.2);
-      border-left-color: #3b82f6;
-      border-radius: 50%; width: 40px; height: 40px;
-      animation: spin 1s linear infinite; margin-bottom: 15px;
-    }
-
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -353,9 +330,6 @@
     <button id="btn-undo" onclick="undo()" title="Deshacer (Ctrl+Z)">↩️ Deshacer</button>
     <button id="btn-redo" onclick="redo()" title="Rehacer (Ctrl+Y)">↪️ Rehacer</button>
     <button class="btn-add" onclick="openModalForCreate()">➕ Nueva Materia</button>
-    <button class="btn-svg" onclick="triggerImportSVG()">📄 Cargar Archivo SVG</button>
-    <input type="file" id="import-svg-input" accept=".svg,.txt,image/svg+xml" style="display: none;" onchange="importSVGFile(event)">
-    <button class="btn-url" onclick="openUrlModal()">🌐 Cargar Malla desde URL</button>
     <button onclick="exportJSON()">💾 Guardar / Exportar JSON</button>
     <button onclick="triggerImportJSON()">📂 Cargar JSON</button>
     <input type="file" id="import-file-input" accept=".json" style="display: none;" onchange="importJSON(event)">
@@ -394,28 +368,6 @@
         <button onclick="saveSubjectFromModal()" style="background-color: var(--accent-color); color: white;">Guardar</button>
       </div>
     </div>
-  </div>
-
-  <div class="modal-overlay" id="url-modal-overlay">
-    <div class="modal">
-      <h2>🌐 Cargar Malla desde URL (SVG)</h2>
-      <div class="form-group">
-        <label>Pegue la URL del archivo SVG de la malla:</label>
-        <input type="url" id="svg-url-input" placeholder="Ej: https://www.academico.espol.edu.ec/imgMallas/CI030v1.svg">
-      </div>
-      <div style="font-size:0.8em; color:#64748b; margin-bottom: 15px;">
-        ⚠️ Nota: Al cargar una nueva malla se limpiará el tablero actual. Podrás presionar <b>Ctrl+Z</b> para deshacer si es necesario.
-      </div>
-      <div class="modal-actions">
-        <button onclick="closeUrlModal()">Cancelar</button>
-        <button onclick="loadMallaFromUrlInput()" style="background-color: var(--accent-color); color: white;">Cargar Malla</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="loader-overlay" id="loader-overlay">
-    <div class="spinner"></div>
-    <div id="loader-status-text">Procesando elementos...</div>
   </div>
 
   <footer style="text-align: center; font-size: 0.8em; color: #64748b; margin-top: 20px;">
@@ -889,233 +841,6 @@
       document.querySelectorAll('path.connection').forEach(path => {
         path.classList.remove('highlight-req', 'highlight-next');
       });
-    }
-
-    /* CARGA DESDE ARCHIVO SVG LOCAL */
-    function triggerImportSVG() {
-      document.getElementById('import-svg-input').click();
-    }
-
-    function importSVGFile(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const svgText = e.target.result;
-          parseAndAddSubjectsFromSVG(svgText);
-        } catch (err) {
-          alert("Ocurrió un error al leer el archivo SVG: " + err.message);
-        }
-      };
-      reader.readAsText(file);
-      event.target.value = '';
-    }
-
-    /* CARGA DE MALLA DESDE URL SVG */
-    function openUrlModal() {
-      document.getElementById('svg-url-input').value = 'https://www.academico.espol.edu.ec/imgMallas/CI030v1.svg';
-      document.getElementById('url-modal-overlay').style.display = 'flex';
-    }
-
-    function closeUrlModal() {
-      document.getElementById('url-modal-overlay').style.display = 'none';
-    }
-
-    async function loadMallaFromUrlInput() {
-      const url = document.getElementById('svg-url-input').value.trim();
-      if (!url) {
-        alert('Por favor, ingresa una URL válida.');
-        return;
-      }
-
-      closeUrlModal();
-
-      const loader = document.getElementById('loader-overlay');
-      const statusText = document.getElementById('loader-status-text');
-      loader.style.display = 'flex';
-      statusText.innerText = "Descargando archivo SVG mediante proxy...";
-
-      try {
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-        const response = await fetch(proxyUrl);
-        if (!response.ok) throw new Error("No se pudo obtener el archivo desde la URL especificada.");
-
-        const svgText = await response.text();
-        statusText.innerText = "Procesando estructura vectorial del SVG...";
-
-        parseAndAddSubjectsFromSVG(svgText);
-      } catch (err) {
-        alert("Ocurrió un error al cargar la URL. Puedes descargar el archivo .svg a tu computadora y usar la opción '📄 Cargar Archivo SVG'.");
-      } finally {
-        loader.style.display = 'none';
-      }
-    }
-
-    /* ALGORITMO INFALIBLE BASADO EN RECORRIDO COMPLETO DE TEXTOS ESPOL */
-    function parseAndAddSubjectsFromSVG(svgRaw) {
-      saveStateToHistory();
-
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(svgRaw, "image/svg+xml");
-
-      // 1. Extraer TODOS los nodos de texto del documento sin importar su etiqueta padre
-      const allTextNodes = Array.from(doc.querySelectorAll('*')).map(node => {
-        // Solo nodos con texto plano directo o hijos de texto
-        if (node.children && node.children.length > 0 && !node.tagName.toLowerCase().includes('tspan')) return null;
-        const text = node.textContent ? node.textContent.trim() : "";
-        if (!text) return null;
-
-        let y = parseFloat(node.getAttribute('y')) || 0;
-        let x = parseFloat(node.getAttribute('x')) || 0;
-
-        let parent = node.parentElement;
-        while (parent && parent.tagName !== 'svg') {
-          const transform = parent.getAttribute('transform');
-          if (transform && transform.includes('translate')) {
-            const match = transform.match(/translate\(([^,\s]+)[,\s]+([^,\s]+)\)/);
-            if (match) {
-              x += parseFloat(match[1]) || 0;
-              y += parseFloat(match[2]) || 0;
-            }
-          }
-          parent = parent.parentElement;
-        }
-
-        return { text, x, y };
-      }).filter(item => item !== null);
-
-      if (allTextNodes.length === 0) {
-        alert("El archivo SVG no contiene etiquetas de texto accesibles.");
-        return;
-      }
-
-      // 2. Expresión regular flexible para detectar códigos institucionales (ej: INDG1801, MATG 1045, MATG-1803)
-      const codeRegex = /^[A-Z]{3,4}\s*\d{4}$/i;
-      const candidates = allTextNodes.filter(item => codeRegex.test(item.text));
-
-      let extractedSubjects = [];
-
-      candidates.forEach(mainItem => {
-        const mainCode = mainItem.text.replace(/\s+/g, '').toUpperCase();
-        if (extractedSubjects.some(s => s.code === mainCode)) return;
-
-        // 3. Buscar textos vecinos en la misma coordenada geométrica del recuadro
-        // Rango ampliado y tolerante: DX < 90px, DY entre -35px y +50px
-        const nearby = allTextNodes.filter(item => {
-          const dx = Math.abs(item.x - mainItem.x);
-          const dy = item.y - mainItem.y;
-          return dx < 90 && dy >= -35 && dy <= 50;
-        });
-
-        let compStr = "3/1/5";
-        let nameParts = [];
-
-        nearby.forEach(item => {
-          const t = item.text;
-          const cleanT = t.replace(/\s+/g, '').toUpperCase();
-          if (cleanT === mainCode) return;
-
-          // Detectar tripleta de créditos
-          if (/^\d\/\d\/\d$/.test(t)) {
-            compStr = t;
-            return;
-          }
-
-          // Filtro estricto: Descartar prerrequisitos (otros códigos institucionales situados abajo)
-          if (codeRegex.test(t)) {
-            return; 
-          }
-
-          // Ignorar números sueltos, créditos, metadatos y letras de categoría ("B")
-          if (
-            /^\d+$/.test(t) ||
-            /^\d+\s*CR$/i.test(t) ||
-            t === "B" ||
-            t === "&6" ||
-            t === "&20" ||
-            t === "&39" ||
-            /NIVEL|CREDITOS|CRÉDITOS/i.test(t)
-          ) {
-            return;
-          }
-
-          if (!nameParts.includes(t)) {
-            nameParts.push(t);
-          }
-        });
-
-        let name = nameParts.join(' ').replace(/\s+/g, ' ').trim();
-        if (name.length < 2) name = `MATERIA ${mainCode}`;
-
-        extractedSubjects.push({
-          code: mainCode,
-          name: name.toUpperCase(),
-          components: compStr,
-          x: mainItem.x,
-          y: mainItem.y
-        });
-      });
-
-      if (extractedSubjects.length === 0) {
-        alert("No se lograron detectar códigos institucionales en este archivo SVG.");
-        return;
-      }
-
-      // LIMPIAR TABLERO PREVIO
-      state.subjects = [];
-      state.connections = [];
-      pinnedSubjectId = null;
-
-      // Agrupar en 8 semestres por coordenada vertical (Y)
-      let clusters = [];
-      extractedSubjects.forEach(item => {
-        let cluster = clusters.find(c => Math.abs(c.y - item.y) < 60);
-        if (cluster) {
-          cluster.items.push(item);
-        } else {
-          clusters.push({ y: item.y, items: [item] });
-        }
-      });
-
-      clusters.sort((a, b) => a.y - b.y);
-
-      let subjectsAdded = 0;
-
-      clusters.forEach((cluster, levelIdx) => {
-        const levelId = state.levels[levelIdx] ? state.levels[levelIdx].id : state.levels[state.levels.length - 1].id;
-        cluster.items.sort((a, b) => a.x - b.x);
-
-        cluster.items.forEach((item, colIdx) => {
-          if (colIdx >= NUM_COLUMNS) return;
-
-          const hours = parseHoursComponents(item.components);
-          const sum = hours.acd + hours.ape + (parseFloat(item.components.split('/')[2]) || 0) || 9;
-
-          if (!state.subjects.some(s => s.code === item.code)) {
-            state.subjects.push({
-              id: item.code,
-              code: item.code,
-              name: item.name,
-              components: item.components,
-              sum: sum,
-              level: levelId,
-              col: colIdx
-            });
-            subjectsAdded++;
-          }
-        });
-      });
-
-      if (subjectsAdded > 0) {
-        alert(`¡Malla SVG cargada con éxito! Se importaron ${subjectsAdded} materias limpias.`);
-      } else {
-        alert("No se agregaron materias nuevas.");
-      }
-
-      renderBoard();
-      drawConnections();
     }
 
     /* EXPORTACIÓN E IMPORTACIÓN JSON */
