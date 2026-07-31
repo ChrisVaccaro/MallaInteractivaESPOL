@@ -1,3 +1,10 @@
+# 🎓 Malla Curricular Interactiva - ESPOL
+
+¡Bienvenido! Esta es una herramienta web interactiva diseñada para visualizar, planificar y personalizar la malla curricular con gestión dinámica de créditos, correquisitos, horas ACD/APE y ciencias básicas.
+
+**[👉 Haz clic aquí para abrir la Malla Curricular Interactiva en vivo](https://tu-usuario.github.io/nombre-del-repo/)**
+
+---
 ## Autoría y Licencia
 
 Este proyecto fue ideado, diseñado y coordinado por **Christopher Vaccaro**, contando con la asistencia de Inteligencia Artificial como herramienta de co-creación y desarrollo de código.
