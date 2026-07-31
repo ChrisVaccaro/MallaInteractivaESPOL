@@ -799,6 +799,20 @@
         try {
           const importedData = JSON.parse(e.target.result);
           if (importedData.levels && importedData.subjects && importedData.connections) {
+            // Forzar siempre los 10 semestres universales para compatibilidad con JSON viejos
+            importedData.levels = [
+              { "id": "L100-1", "name": "NIVEL 100 - I" },
+              { "id": "L100-2", "name": "NIVEL 100 - II" },
+              { "id": "L200-1", "name": "NIVEL 200 - I" },
+              { "id": "L200-2", "name": "NIVEL 200 - II" },
+              { "id": "L300-1", "name": "NIVEL 300 - I" },
+              { "id": "L300-2", "name": "NIVEL 300 - II" },
+              { "id": "L400-1", "name": "NIVEL 400 - I" },
+              { "id": "L400-2", "name": "NIVEL 400 - II" },
+              { "id": "L500-1", "name": "NIVEL 500 - I" },
+              { "id": "L500-2", "name": "NIVEL 500 - II" }
+            ];
+
             saveStateToHistory();
             state = importedData;
             pinnedSubjectId = null;
