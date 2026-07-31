@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Malla Curricular Interactiva - ESPOL</title>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
   <style>
     :root {
@@ -100,8 +99,8 @@
     .btn-add { background-color: #10b981; color: white; border-color: #10b981; }
     .btn-add:hover { background-color: #059669; }
 
-    .btn-ocr { background-color: #8b5cf6; color: white; border-color: #8b5cf6; }
-    .btn-ocr:hover { background-color: #7c3aed; }
+    .btn-svg { background-color: #8b5cf6; color: white; border-color: #8b5cf6; }
+    .btn-svg:hover { background-color: #7c3aed; }
 
     .btn-url { background-color: #0284c7; color: white; border-color: #0284c7; }
     .btn-url:hover { background-color: #0369a1; }
@@ -313,8 +312,8 @@
     .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box; }
     .modal-actions { display: flex; justify-content: space-between; margin-top: 20px; }
 
-    /* Indicador de Carga (OCR / URL Loading) */
-    .ocr-loader-overlay {
+    /* Loader Overlay */
+    .loader-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(15, 23, 42, 0.7); display: none;
       flex-direction: column; justify-content: center; align-items: center;
@@ -354,9 +353,9 @@
     <button id="btn-undo" onclick="undo()" title="Deshacer (Ctrl+Z)">↩️ Deshacer</button>
     <button id="btn-redo" onclick="redo()" title="Rehacer (Ctrl+Y)">↪️ Rehacer</button>
     <button class="btn-add" onclick="openModalForCreate()">➕ Nueva Materia</button>
+    <button class="btn-svg" onclick="triggerImportSVG()">📄 Cargar Archivo SVG</button>
+    <input type="file" id="import-svg-input" accept=".svg,image/svg+xml" style="display: none;" onchange="importSVGFile(event)">
     <button class="btn-url" onclick="openUrlModal()">🌐 Cargar Malla desde URL</button>
-    <button class="btn-ocr" onclick="triggerImportImage()" title="Puedes subir un archivo o presionar Ctrl+V para pegar una imagen">📷 Cargar / Pegar Imagen (Ctrl+V)</button>
-    <input type="file" id="import-image-input" accept="image/*" style="display: none;" onchange="importImageFile(event)">
     <button onclick="exportJSON()">💾 Guardar / Exportar JSON</button>
     <button onclick="triggerImportJSON()">📂 Cargar JSON</button>
     <input type="file" id="import-file-input" accept=".json" style="display: none;" onchange="importJSON(event)">
@@ -414,9 +413,9 @@
     </div>
   </div>
 
-  <div class="ocr-loader-overlay" id="ocr-loader">
+  <div class="loader-overlay" id="loader-overlay">
     <div class="spinner"></div>
-    <div id="ocr-status-text">Analizando y procesando elementos...</div>
+    <div id="loader-status-text">Procesando elementos...</div>
   </div>
 
   <footer style="text-align: center; font-size: 0.8em; color: #64748b; margin-top: 20px;">
@@ -566,22 +565,6 @@
         if (e.shiftKey) { redo(); } else { undo(); }
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
         redo();
-      }
-    });
-
-    document.addEventListener('paste', async (e) => {
-      const items = e.clipboardData?.items;
-      if (!items) return;
-
-      for (const item of items) {
-        if (item.type.indexOf('image') !== -1) {
-          const blob = item.getAsFile();
-          if (blob) {
-            e.preventDefault();
-            await processOCRImageBlob(blob);
-            break;
-          }
-        }
       }
     });
 
@@ -908,6 +891,28 @@
       });
     }
 
+    /* CARGA DESDE ARCHIVO SVG LOCAL */
+    function triggerImportSVG() {
+      document.getElementById('import-svg-input').click();
+    }
+
+    function importSVGFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const svgText = e.target.result;
+          parseAndAddSubjectsFromSVG(svgText);
+        } catch (err) {
+          alert("Ocurrió un error al leer el archivo SVG: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
     /* CARGA DE MALLA DESDE URL SVG */
     function openUrlModal() {
       document.getElementById('svg-url-input').value = 'https://www.academico.espol.edu.ec/imgMallas/CI030v1.svg';
@@ -927,13 +932,12 @@
 
       closeUrlModal();
 
-      const loader = document.getElementById('ocr-loader');
-      const statusText = document.getElementById('ocr-status-text');
+      const loader = document.getElementById('loader-overlay');
+      const statusText = document.getElementById('loader-status-text');
       loader.style.display = 'flex';
       statusText.innerText = "Descargando archivo SVG mediante proxy...";
 
       try {
-        // Usar proxy CORS allorigins para evitar restricciones del navegador
         const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
         const response = await fetch(proxyUrl);
         if (!response.ok) throw new Error("No se pudo obtener el archivo desde la URL especificada.");
@@ -943,7 +947,7 @@
 
         parseAndAddSubjectsFromSVG(svgText);
       } catch (err) {
-        alert("Ocurrió un error al cargar el archivo SVG: " + err.message);
+        alert("Ocurrió un error al cargar la URL. Puedes descargar el archivo .svg a tu computadora y usar la opción '📄 Cargar Archivo SVG'.");
       } finally {
         loader.style.display = 'none';
       }
@@ -998,9 +1002,7 @@
       });
 
       if (foundCodes.length === 0) {
-        // Fallback si no encuentra nodos estructurados
-        const fullText = textElements.map(e => e.textContent.trim()).join('\n');
-        parseAndAddSubjectsFromOCR(fullText);
+        alert("No se encontraron códigos de materias estructurados dentro del archivo SVG.");
         return;
       }
 
@@ -1065,116 +1067,6 @@
         alert(`¡Malla SVG cargada con éxito! Se limpió el tablero e importaron ${subjectsAdded} materias.`);
       } else {
         alert("No se pudieron reconstruir las materias desde el archivo SVG.");
-      }
-
-      renderBoard();
-      drawConnections();
-    }
-
-    /* CARGA CON OCR Y PORTAPAPELES */
-    function triggerImportImage() {
-      document.getElementById('import-image-input').click();
-    }
-
-    function importImageFile(event) {
-      const file = event.target.files[0];
-      if (file) {
-        processOCRImageBlob(file);
-        event.target.value = '';
-      }
-    }
-
-    async function processOCRImageBlob(blob) {
-      const loader = document.getElementById('ocr-loader');
-      const statusText = document.getElementById('ocr-status-text');
-      loader.style.display = 'flex';
-      statusText.innerText = "Inicializando motor OCR de Tesseract...";
-
-      try {
-        const worker = await Tesseract.createWorker('spa');
-        statusText.innerText = "Analizando imagen y extrayendo elementos...";
-
-        const ret = await worker.recognize(blob);
-        await worker.terminate();
-
-        const extractedText = ret.data.text;
-        statusText.innerText = "Reconstruyendo materias detectadas...";
-
-        parseAndAddSubjectsFromOCR(extractedText);
-      } catch (err) {
-        alert('Ocurrió un error al procesar la imagen con OCR: ' + err.message);
-      } finally {
-        loader.style.display = 'none';
-      }
-    }
-
-    function parseAndAddSubjectsFromOCR(text) {
-      saveStateToHistory();
-
-      state.subjects = [];
-      state.connections = [];
-      pinnedSubjectId = null;
-
-      const lines = text.split('\n');
-      let subjectsAdded = 0;
-      let autoIdCounter = 1;
-
-      lines.forEach((line) => {
-        const trimmed = line.trim();
-        if (trimmed.length < 3) return;
-
-        const codeMatch = trimmed.match(/[A-Z]{3,4}\d{3,4}/i);
-        const compMatch = trimmed.match(/\d\/\d\/\d/);
-
-        if (codeMatch || compMatch || (trimmed.length > 5 && trimmed === trimmed.toUpperCase())) {
-          let code = codeMatch ? codeMatch[0].toUpperCase() : `AUTO_${autoIdCounter++}`;
-          let components = compMatch ? compMatch[0] : "3/1/5";
-          const hours = parseHoursComponents(components);
-          const sum = hours.acd + hours.ape + (parseFloat(components.split('/')[2]) || 0) || 9;
-
-          let name = trimmed;
-          if (codeMatch) name = name.replace(codeMatch[0], '');
-          if (compMatch) name = name.replace(compMatch[0], '');
-          name = name.replace(/[^\w\sÁÉÍÓÚáéíóúÑñ&]/gi, '').trim();
-
-          if (name.length < 2) name = `MATERIA ${code}`;
-
-          if (!state.subjects.some(s => s.code === code || s.id === code)) {
-            let targetLevel = "L100-1";
-            let targetCol = 0;
-
-            for (const lvl of state.levels) {
-              const usedCols = state.subjects.filter(s => s.level === lvl.id).map(s => s.col);
-              let foundCol = -1;
-              for (let i = 0; i < NUM_COLUMNS; i++) {
-                if (!usedCols.includes(i)) { foundCol = i; break; }
-              }
-              if (foundCol !== -1) {
-                targetLevel = lvl.id;
-                targetCol = foundCol;
-                break;
-              }
-            }
-
-            state.subjects.push({
-              id: code,
-              code: code,
-              name: name.toUpperCase(),
-              components: components,
-              sum: sum,
-              level: targetLevel,
-              col: targetCol
-            });
-
-            subjectsAdded++;
-          }
-        }
-      });
-
-      if (subjectsAdded > 0) {
-        alert(`¡Malla limpia! Se detectaron e integraron ${subjectsAdded} materias de la nueva imagen.`);
-      } else {
-        alert("No se lograron reconocer materias claras en la imagen. Se limpió el tablero.");
       }
 
       renderBoard();
