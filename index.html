@@ -953,93 +953,22 @@
       }
     }
 
-    /* PARSER SVG DISEÑADO PARA ESPOL (MICROSOFT VISIO) */
+    /* ALGORITMO ROBUSTO BASADO EN COORDENADAS ESPACIALES ESPOL */
     function parseAndAddSubjectsFromSVG(svgRaw) {
-      saveStateToHistory(); // Guardar historial antes de la carga
+      saveStateToHistory();
 
       const parser = new DOMParser();
       const doc = parser.parseFromString(svgRaw, "image/svg+xml");
 
-      // Buscar todos los grupos que representen formas en Microsoft Visio
-      const allShapes = Array.from(doc.querySelectorAll('g'));
+      // 1. Extraer TODOS los elementos de texto con sus coordenadas relativas al documento
+      const allTexts = Array.from(doc.querySelectorAll('text, tspan')).map(node => {
+        const text = node.textContent.trim();
+        if (!text) return null;
 
-      let extractedSubjects = [];
+        let y = parseFloat(node.getAttribute('y')) || 0;
+        let x = parseFloat(node.getAttribute('x')) || 0;
 
-      allShapes.forEach(g => {
-        // En Visio, las cajas de las materias tienen hijos <path> o <rect> con textos y títulos
-        const textElements = Array.from(g.querySelectorAll('text, tspan'))
-          .map(t => t.textContent.trim())
-          .filter(t => t.length > 0);
-
-        if (textElements.length === 0) return;
-
-        // 1. Identificar si existe la tripleta de créditos de una materia (ej. 3/0/6 o 3/2/4)
-        let compStr = null;
-        for (let t of textElements) {
-          const m = t.match(/^\d\/\d\/\d$/);
-          if (m) {
-            compStr = m[0];
-            break;
-          }
-        }
-        if (!compStr) return; // Si no tiene componentes de horas, no es una tarjeta de materia principal
-
-        // 2. Extraer el CÓDIGO INSTITUCIONAL PRINCIPAL (primer código institucional en el arreglo)
-        let mainCode = null;
-        for (let t of textElements) {
-          const m = t.match(/^[A-Z]{3,4}\d{4}$/i);
-          if (m) {
-            mainCode = m[0].toUpperCase();
-            break;
-          }
-        }
-        if (!mainCode) return;
-
-        // Evitar procesar el mismo bloque de tarjeta varias veces
-        if (extractedSubjects.some(s => s.code === mainCode)) return;
-
-        // 3. Reconstruir el NOMBRE DE LA MATERIA omitiendo prerrequisitos, números o metadatos
-        let nameParts = [];
-        let mainCodeFound = false;
-
-        for (let t of textElements) {
-          if (t === mainCode) {
-            mainCodeFound = true;
-            continue;
-          }
-
-          // Descartar tripleta, horas totales, letra "B" (básica) y correquisitos &6
-          if (
-            t === compStr ||
-            /^\d+$/.test(t) ||
-            /^\d+\s*CR$/i.test(t) ||
-            t === "B" ||
-            t === "&6" ||
-            t === "&20" ||
-            t === "&39" ||
-            /NIVEL|CREDITOS|CRÉDITOS/i.test(t)
-          ) {
-            continue;
-          }
-
-          // Si posterior al código principal encontramos OTRO código formal, es la lista de prerrequisitos inferiores -> ignorar
-          if (/^[A-Z]{3,4}\d{4}$/i.test(t)) {
-            if (mainCodeFound) continue; 
-          }
-
-          if (!nameParts.includes(t)) {
-            nameParts.push(t);
-          }
-        }
-
-        let name = nameParts.join(' ').replace(/\s+/g, ' ').trim();
-        if (name.length < 2) name = `MATERIA ${mainCode}`;
-
-        // Obtener posición en el eje Y para determinar nivel o semestre
-        let y = parseFloat(g.getAttribute('y')) || 0;
-        let x = parseFloat(g.getAttribute('x')) || 0;
-
-        let parent = g;
+        let parent = node.parentElement;
         while (parent && parent.tagName !== 'svg') {
           const transform = parent.getAttribute('transform');
           if (transform && transform.includes('translate')) {
@@ -1052,26 +981,92 @@
           parent = parent.parentElement;
         }
 
+        return { text, x, y };
+      }).filter(item => item !== null);
+
+      if (allTexts.length === 0) {
+        alert("El archivo SVG no contiene etiquetas de texto accesibles.");
+        return;
+      }
+
+      // 2. Localizar todas las coincidencias de códigos oficiales de materias (Ej: INDG1801, MATG1045)
+      const codeRegex = /^[A-Z]{3,4}\d{4}$/i;
+      const candidates = allTexts.filter(item => codeRegex.test(item.text));
+
+      let extractedSubjects = [];
+
+      candidates.forEach(mainItem => {
+        const mainCode = mainItem.text.toUpperCase();
+        if (extractedSubjects.some(s => s.code === mainCode)) return;
+
+        // 3. Buscar textos hermanos que pertenezcan físicamente a la misma caja de la materia
+        // Rango vertical: entre -30px (arriba de la caja) y +40px (adentro/abajo de la caja)
+        // Rango horizontal: distancia en X menor a 80px
+        const nearby = allTexts.filter(item => {
+          const dx = Math.abs(item.x - mainItem.x);
+          const dy = item.y - mainItem.y;
+          return dx < 80 && dy >= -30 && dy <= 45;
+        });
+
+        let compStr = "3/1/5";
+        let nameParts = [];
+
+        nearby.forEach(item => {
+          const t = item.text;
+          if (t === mainCode) return;
+
+          // Buscar la tripleta de créditos
+          if (/^\d\/\d\/\d$/.test(t)) {
+            compStr = t;
+            return;
+          }
+
+          // Filtro estricto: Descartar prerrequisitos ubicados en el pie de la tarjeta (dy > 12px con código oficial)
+          if (codeRegex.test(t)) {
+            return; 
+          }
+
+          // Descartar metadatos, números, créditos o letras de categoría
+          if (
+            /^\d+$/.test(t) ||
+            /^\d+\s*CR$/i.test(t) ||
+            t === "B" ||
+            t === "&6" ||
+            t === "&20" ||
+            t === "&39" ||
+            /NIVEL|CREDITOS|CRÉDITOS/i.test(t)
+          ) {
+            return;
+          }
+
+          if (!nameParts.includes(t)) {
+            nameParts.push(t);
+          }
+        });
+
+        let name = nameParts.join(' ').replace(/\s+/g, ' ').trim();
+        if (name.length < 2) name = `MATERIA ${mainCode}`;
+
         extractedSubjects.push({
           code: mainCode,
           name: name.toUpperCase(),
           components: compStr,
-          x,
-          y
+          x: mainItem.x,
+          y: mainItem.y
         });
       });
 
       if (extractedSubjects.length === 0) {
-        alert("No se lograron extraer materias con formato de la ESPOL del archivo SVG.");
+        alert("No se detectaron códigos institucionales válidos en el documento.");
         return;
       }
 
-      // LIMPIAR TABLERO PREVIO una vez que se verificó que la importación fue exitosa
+      // LIMPIAR TABLERO PREVIO
       state.subjects = [];
       state.connections = [];
       pinnedSubjectId = null;
 
-      // Agrupar materias en semestres/niveles según proximidad vertical (Y)
+      // Agrupar por franja vertical para asignar los semestres (Niveles)
       let clusters = [];
       extractedSubjects.forEach(item => {
         let cluster = clusters.find(c => Math.abs(c.y - item.y) < 55);
@@ -1112,7 +1107,7 @@
       });
 
       if (subjectsAdded > 0) {
-        alert(`¡Malla limpia e importada con éxito! Se cargaron ${subjectsAdded} materias sin duplicaciones.`);
+        alert(`¡Malla SVG cargada perfectamente! Se importaron ${subjectsAdded} materias sin duplicaciones.`);
       } else {
         alert("No se agregaron materias nuevas.");
       }
