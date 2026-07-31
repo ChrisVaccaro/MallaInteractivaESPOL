@@ -351,8 +351,8 @@
     <button id="btn-undo" onclick="undo()" title="Deshacer (Ctrl+Z)">↩️ Deshacer</button>
     <button id="btn-redo" onclick="redo()" title="Rehacer (Ctrl+Y)">↪️ Rehacer</button>
     <button class="btn-add" onclick="openModalForCreate()">➕ Nueva Materia</button>
-    <button class="btn-ocr" onclick="triggerImportImage()">📷 Cargar Imagen de Malla</button>
-    <input type="file" id="import-image-input" accept="image/*" style="display: none;" onchange="importImageOCR(event)">
+    <button class="btn-ocr" onclick="triggerImportImage()" title="Puedes subir un archivo o presionar Ctrl+V para pegar una imagen">📷 Cargar / Pegar Imagen (Ctrl+V)</button>
+    <input type="file" id="import-image-input" accept="image/*" style="display: none;" onchange="importImageFile(event)">
     <button onclick="exportJSON()">💾 Guardar / Exportar JSON</button>
     <button onclick="triggerImportJSON()">📂 Cargar JSON</button>
     <input type="file" id="import-file-input" accept=".json" style="display: none;" onchange="importJSON(event)">
@@ -536,11 +536,29 @@
       document.getElementById('btn-redo').disabled = (redoStack.length === 0);
     }
 
+    // TECLAS DE ACCESO RÁPIDO (CTRL+Z, CTRL+Y)
     document.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
         if (e.shiftKey) { redo(); } else { undo(); }
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
         redo();
+      }
+    });
+
+    // PEGAR IMAGEN DESDE EL PORTAPAPELES (CTRL + V)
+    document.addEventListener('paste', async (e) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (const item of items) {
+        if (item.type.indexOf('image') !== -1) {
+          const blob = item.getAsFile();
+          if (blob) {
+            e.preventDefault();
+            await processOCRImageBlob(blob);
+            break;
+          }
+        }
       }
     });
 
@@ -867,15 +885,20 @@
       });
     }
 
-    /* CARGA E IMPORTACIÓN CON OCR (TESSERACT.JS) */
+    /* CARGA E IMPORTACIÓN CON OCR (TESSERACT.JS + PEGAR PORTAPAPELES) */
     function triggerImportImage() {
       document.getElementById('import-image-input').click();
     }
 
-    async function importImageOCR(event) {
+    function importImageFile(event) {
       const file = event.target.files[0];
-      if (!file) return;
+      if (file) {
+        processOCRImageBlob(file);
+        event.target.value = '';
+      }
+    }
 
+    async function processOCRImageBlob(blob) {
       const loader = document.getElementById('ocr-loader');
       const statusText = document.getElementById('ocr-status-text');
       loader.style.display = 'flex';
@@ -883,54 +906,55 @@
 
       try {
         const worker = await Tesseract.createWorker('spa');
-        statusText.innerText = "Analizando imagen y reconociendo materias...";
+        statusText.innerText = "Analizando imagen y extrayendo elementos...";
 
-        const ret = await worker.recognize(file);
+        const ret = await worker.recognize(blob);
         await worker.terminate();
 
         const extractedText = ret.data.text;
-        statusText.innerText = "Procesando materias e integrando a la malla...";
+        statusText.innerText = "Reconstruyendo materias detectadas...";
 
         parseAndAddSubjectsFromOCR(extractedText);
-
-        alert('¡Procesamiento de imagen completado con éxito!');
       } catch (err) {
         alert('Ocurrió un error al procesar la imagen con OCR: ' + err.message);
       } finally {
         loader.style.display = 'none';
-        event.target.value = '';
       }
     }
 
-    // EXTRAE CÓDIGOS, COMPONENTES Y NOMBRES DEL TEXTO OCR
+    // EXTRAE CÓDIGOS, COMPONENTES Y NOMBRES DE FORMA FLEXIBLE Y TOLERANTE
     function parseAndAddSubjectsFromOCR(text) {
-      saveStateToHistory(); // Guardar historial antes de la carga
+      saveStateToHistory();
 
       const lines = text.split('\n');
       let subjectsAdded = 0;
+      let autoIdCounter = 1;
 
       lines.forEach((line) => {
         const trimmed = line.trim();
-        if (trimmed.length < 5) return;
+        if (trimmed.length < 3) return;
 
-        // Patrón Código: 3-4 Letras + 4 Números (ej. MATG1045, CCPG1043)
-        const codeMatch = trimmed.match(/[A-Z]{3,4}\d{4}/i);
-        // Patrón Componentes: Digito/Digito/Digito (ej. 3/2/4, 3/1/5)
+        // Búsqueda de Código (ej. MATG1045) o intento flexible
+        const codeMatch = trimmed.match(/[A-Z]{3,4}\d{3,4}/i);
+        // Búsqueda de Componentes (ej. 3/2/4 o 3/1/5)
         const compMatch = trimmed.match(/\d\/\d\/\d/);
 
-        if (codeMatch) {
-          const code = codeMatch[0].toUpperCase();
-          const components = compMatch ? compMatch[0] : "3/1/5";
+        // Si la línea contiene código O componentes O texto significativo en mayúsculas
+        if (codeMatch || compMatch || (trimmed.length > 5 && trimmed === trimmed.toUpperCase())) {
+          let code = codeMatch ? codeMatch[0].toUpperCase() : `AUTO_${autoIdCounter++}`;
+          let components = compMatch ? compMatch[0] : "3/1/5";
           const hours = parseHoursComponents(components);
           const sum = hours.acd + hours.ape + (parseFloat(components.split('/')[2]) || 0) || 9;
 
-          // Limpiar nombre quitando el código y componentes
-          let name = trimmed.replace(codeMatch[0], '').replace(compMatch ? compMatch[0] : '', '').replace(/[^\w\sÁÉÍÓÚáéíóúÑñ&]/gi, '').trim();
-          if (name.length < 3) name = `MATERIA ${code}`;
+          let name = trimmed;
+          if (codeMatch) name = name.replace(codeMatch[0], '');
+          if (compMatch) name = name.replace(compMatch[0], '');
+          name = name.replace(/[^\w\sÁÉÍÓÚáéíóúÑñ&]/gi, '').trim();
 
-          // Evitar duplicar códigos existentes
-          if (!state.subjects.some(s => s.code === code)) {
-            // Asignar al primer nivel con espacio libre
+          if (name.length < 2) name = `MATERIA ${code}`;
+
+          // Evitar duplicar códigos
+          if (!state.subjects.some(s => s.code === code || s.id === code)) {
             let targetLevel = "L100-1";
             let targetCol = 0;
 
@@ -962,8 +986,10 @@
         }
       });
 
-      if (subjectsAdded === 0) {
-        alert("No se detectaron códigos de materias claros en la imagen. Intenta con una imagen más nítida.");
+      if (subjectsAdded > 0) {
+        alert(`¡Se detectaron e integraron ${subjectsAdded} materias de la imagen!`);
+      } else {
+        alert("No se lograron reconocer materias claras. Intenta con una imagen más nítida.");
       }
 
       renderBoard();
@@ -1101,6 +1127,6 @@
   </script>
 </body>
 <footer style="text-align: center; font-size: 0.8em; color: #64748b; margin-top: 20px;">
-  Desarrollado por <strong>Christopher Vaccaro</strong> — Licencia CC BY-NC 4.0 (Uso No Comercial)
-</footer>
+  Desarrollado por <strong>Christopher Vaccaro C.</strong> — Licencia CC BY-NC 4.0 (Uso No Comercial)
+</footer> 
 </html>
