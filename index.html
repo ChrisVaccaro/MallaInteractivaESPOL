@@ -953,27 +953,41 @@
       }
     }
 
+    /* PARSER SVG ESTRUCTURADO Y MEJORADO PARA EVITAR DUPLICADOS */
     function parseAndAddSubjectsFromSVG(svgRaw) {
-      saveStateToHistory(); // Guardar en historial antes de borrar
+      saveStateToHistory(); // Guardar copia de seguridad para Ctrl+Z
 
-      // LIMPIAR MALLA ANTERIOR
+      // LIMPIAR TABLERO PREVIO
       state.subjects = [];
       state.connections = [];
       pinnedSubjectId = null;
 
       const parser = new DOMParser();
       const doc = parser.parseFromString(svgRaw, "image/svg+xml");
-      const textElements = Array.from(doc.querySelectorAll('text, tspan'));
 
-      let items = [];
-      textElements.forEach(el => {
-        const text = el.textContent.trim();
-        if (!text) return;
+      // Buscar contenedores de tarjetas o recuadros (<g> o <rect>)
+      const groupElements = Array.from(doc.querySelectorAll('g, rect')).filter(el => {
+        const textContent = el.textContent || "";
+        return /[A-Z]{3,4}\d{3,4}/i.test(textContent);
+      });
 
-        let y = parseFloat(el.getAttribute('y')) || 0;
-        let x = parseFloat(el.getAttribute('x')) || 0;
+      let extractedBlocks = [];
 
-        let parent = el.parentElement;
+      groupElements.forEach(g => {
+        const textContent = g.textContent.trim();
+        const codeMatch = textContent.match(/[A-Z]{3,4}\d{3,4}/i);
+        if (!codeMatch) return;
+
+        const code = codeMatch[0].toUpperCase();
+
+        // Evitar procesar el mismo bloque de grupo múltiples veces
+        if (extractedBlocks.some(b => b.code === code)) return;
+
+        // Calcular posición Y para orden semestral
+        let y = parseFloat(g.getAttribute('y')) || 0;
+        let x = parseFloat(g.getAttribute('x')) || 0;
+
+        let parent = g;
         while (parent && parent.tagName !== 'svg') {
           const transform = parent.getAttribute('transform');
           if (transform && transform.includes('translate')) {
@@ -986,30 +1000,39 @@
           parent = parent.parentElement;
         }
 
-        items.push({ text, x, y });
+        // Buscar componentes de horas
+        const compMatch = textContent.match(/\d\/\d\/\d/);
+        const compStr = compMatch ? compMatch[0] : "3/1/5";
+
+        // Formar el nombre removiendo el código y los componentes
+        let nameStr = textContent
+          .replace(codeMatch[0], '')
+          .replace(compMatch ? compMatch[0] : '', '')
+          .replace(/NIVEL|CREDITOS|CRÉDITOS/gi, '')
+          .replace(/[^\w\sÁÉÍÓÚáéíóúÑñ&]/gi, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+
+        if (nameStr.length < 2) nameStr = `MATERIA ${code}`;
+
+        extractedBlocks.push({
+          code,
+          name: nameStr,
+          components: compStr,
+          x,
+          y
+        });
       });
 
-      let foundCodes = [];
-      items.forEach(item => {
-        const codeMatch = item.text.match(/[A-Z]{3,4}\d{3,4}/i);
-        if (codeMatch) {
-          foundCodes.push({
-            code: codeMatch[0].toUpperCase(),
-            x: item.x,
-            y: item.y
-          });
-        }
-      });
-
-      if (foundCodes.length === 0) {
-        alert("No se encontraron códigos de materias estructurados dentro del archivo SVG.");
+      if (extractedBlocks.length === 0) {
+        alert("No se lograron extraer materias con códigos institucionales del SVG.");
         return;
       }
 
-      // Agrupar elementos por posición Y (Niveles)
+      // Agrupar materias en niveles/semestres según posición vertical (Y)
       let clusters = [];
-      foundCodes.forEach(item => {
-        let cluster = clusters.find(c => Math.abs(c.y - item.y) < 50);
+      extractedBlocks.forEach(item => {
+        let cluster = clusters.find(c => Math.abs(c.y - item.y) < 60);
         if (cluster) {
           cluster.items.push(item);
         } else {
@@ -1028,32 +1051,15 @@
         cluster.items.forEach((item, colIdx) => {
           if (colIdx >= NUM_COLUMNS) return;
 
-          const nearby = items.filter(i => Math.abs(i.x - item.x) < 120 && Math.abs(i.y - item.y) < 100);
-          let compStr = "3/1/5";
-          let nameStr = "";
-
-          nearby.forEach(n => {
-            const compMatch = n.text.match(/\d\/\d\/\d/);
-            if (compMatch) compStr = compMatch[0];
-
-            if (n.text !== item.code && !n.text.match(/\d\/\d\/\d/) && n.text.length > 2 && !n.text.match(/NIVEL|CREDITOS|CRÉDITOS/i)) {
-              if (!nameStr.includes(n.text)) {
-                nameStr += (nameStr ? " " : "") + n.text;
-              }
-            }
-          });
-
-          if (!nameStr) nameStr = `MATERIA ${item.code}`;
-
-          const hours = parseHoursComponents(compStr);
-          const sum = hours.acd + hours.ape + (parseFloat(compStr.split('/')[2]) || 0) || 9;
+          const hours = parseHoursComponents(item.components);
+          const sum = hours.acd + hours.ape + (parseFloat(item.components.split('/')[2]) || 0) || 9;
 
           if (!state.subjects.some(s => s.code === item.code)) {
             state.subjects.push({
               id: item.code,
               code: item.code,
-              name: nameStr.toUpperCase(),
-              components: compStr,
+              name: item.name.toUpperCase(),
+              components: item.components,
               sum: sum,
               level: levelId,
               col: colIdx
@@ -1064,9 +1070,9 @@
       });
 
       if (subjectsAdded > 0) {
-        alert(`¡Malla SVG cargada con éxito! Se limpió el tablero e importaron ${subjectsAdded} materias.`);
+        alert(`¡Malla limpia y reconstruida! Se importaron ${subjectsAdded} materias sin duplicados.`);
       } else {
-        alert("No se pudieron reconstruir las materias desde el archivo SVG.");
+        alert("No se agregaron materias nuevas.");
       }
 
       renderBoard();
