@@ -122,7 +122,7 @@
       display: flex;
       flex-direction: column;
       gap: 32px;
-      min-width: 1450px; /* Un poco más ancho para las 8 columnas */
+      min-width: 1450px; /* Ancho para 8 columnas */
       position: relative;
     }
 
@@ -175,7 +175,7 @@
     .level-content-grid {
       flex: 1;
       display: grid;
-      grid-template-columns: repeat(8, 1fr); /* Ahora son 8 columnas */
+      grid-template-columns: repeat(8, 1fr);
       gap: 14px;
       padding: 16px;
       background-color: #fafafa;
@@ -347,8 +347,14 @@
       <input type="hidden" id="edit-id">
       <div class="form-group"><label>Nombre de la Materia:</label><input type="text" id="edit-name" placeholder="Ej: CÁLCULO VECTORIAL"></div>
       <div class="form-group"><label>Código:</label><input type="text" id="edit-code" placeholder="Ej: MATG1046"></div>
-      <div class="form-group"><label>Componentes (Horas CD/CP/AA):</label><input type="text" id="edit-components" placeholder="Ej: 3/2/4"></div>
-      <div class="form-group"><label>Horas Totales (Suma):</label><input type="number" id="edit-sum" placeholder="Ej: 9"></div>
+      <div class="form-group">
+        <label>Componentes (Horas CD/CP/AA):</label>
+        <input type="text" id="edit-components" placeholder="Ej: 3/2/4">
+      </div>
+      <div class="form-group">
+        <label>Horas Totales (Cálculo Automático):</label>
+        <input type="number" id="edit-sum" placeholder="Calculado automáticamente" readonly style="background-color: #f1f5f9; cursor: not-allowed; font-weight: bold; color: #475569;">
+      </div>
       <div class="form-group" id="level-select-group">
         <label>Nivel / Semestre:</label>
         <select id="edit-level">
@@ -379,7 +385,7 @@
   <script>
     const NUM_COLUMNS = 8; // Ahora soporta 8 columnas de ancho
 
-    // Plantilla en blanco universal con hasta 10 semestres
+    // Plantilla en blanco universal con 10 semestres
     const initialData = {
       "levels": [
         { "id": "L100-1", "name": "NIVEL 100 - I" },
@@ -436,6 +442,7 @@
       document.getElementById('btn-redo').disabled = (redoStack.length === 0);
     }
 
+    // Teclas de acceso rápido (Deshacer/Rehacer)
     document.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
         if (e.shiftKey) { redo(); } else { undo(); }
@@ -492,6 +499,17 @@
       setTimeout(drawConnections, 100);
       window.addEventListener('resize', drawConnections);
       updateUndoRedoButtons();
+
+      // Cálculo automático de las "Horas Totales" al escribir en el campo de componentes
+      document.getElementById('edit-components').addEventListener('input', function(e) {
+        const value = e.target.value;
+        const parts = value.split('/');
+        let sum = 0;
+        parts.forEach(p => {
+          sum += parseFloat(p) || 0;
+        });
+        document.getElementById('edit-sum').value = sum;
+      });
 
       document.body.addEventListener('click', (e) => {
         if (!e.target.closest('.subject-card') && !e.target.closest('.toolbar') && !e.target.closest('.modal')) {
@@ -799,6 +817,7 @@
         try {
           const importedData = JSON.parse(e.target.result);
           if (importedData.levels && importedData.subjects && importedData.connections) {
+            
             // Forzar siempre los 10 semestres universales para compatibilidad con JSON viejos
             importedData.levels = [
               { "id": "L100-1", "name": "NIVEL 100 - I" },
@@ -837,7 +856,7 @@
       document.getElementById('edit-name').value = '';
       document.getElementById('edit-code').value = '';
       document.getElementById('edit-components').value = '3/1/5';
-      document.getElementById('edit-sum').value = 9;
+      document.getElementById('edit-sum').value = 9; // Por defecto
       document.getElementById('level-select-group').style.display = 'block';
       document.getElementById('btn-delete').style.display = 'none';
       document.getElementById('modal-overlay').style.display = 'flex';
