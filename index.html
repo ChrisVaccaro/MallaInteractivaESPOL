@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Malla Curricular Interactiva - Telemática</title>
+  <title>Malla Curricular Interactiva - ESPOL</title>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
   <style>
     :root {
       --bg-color: #f8fafc;
@@ -97,6 +99,9 @@
 
     .btn-add { background-color: #10b981; color: white; border-color: #10b981; }
     .btn-add:hover { background-color: #059669; }
+
+    .btn-ocr { background-color: #8b5cf6; color: white; border-color: #8b5cf6; }
+    .btn-ocr:hover { background-color: #7c3aed; }
 
     /* CONTENEDOR PRINCIPAL */
     .board-container {
@@ -304,12 +309,29 @@
     .form-group label { display: block; font-size: 0.85em; font-weight: 600; margin-bottom: 4px; }
     .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box; }
     .modal-actions { display: flex; justify-content: space-between; margin-top: 20px; }
+
+    /* Indicador de Carga (OCR Loading) */
+    .ocr-loader-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.7); display: none;
+      flex-direction: column; justify-content: center; align-items: center;
+      color: white; z-index: 300; font-weight: 600;
+    }
+
+    .spinner {
+      border: 4px solid rgba(255,255,255,0.2);
+      border-left-color: #3b82f6;
+      border-radius: 50%; width: 40px; height: 40px;
+      animation: spin 1s linear infinite; margin-bottom: 15px;
+    }
+
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
 
-  <h1>Malla Curricular Interactiva - Telemática</h1>
-  <div class="subtitle">Gestión telemática de créditos, correquisitos y ciencias básicas</div>
+  <h1>Malla Curricular Interactiva - ESPOL</h1>
+  <div class="subtitle">Gestión interactiva de créditos, correquisitos y ciencias básicas</div>
 
   <div class="legend-bar">
     <div class="legend-item"><span class="legend-line legend-prereq"></span><span>Prerrequisito</span></div>
@@ -329,6 +351,8 @@
     <button id="btn-undo" onclick="undo()" title="Deshacer (Ctrl+Z)">↩️ Deshacer</button>
     <button id="btn-redo" onclick="redo()" title="Rehacer (Ctrl+Y)">↪️ Rehacer</button>
     <button class="btn-add" onclick="openModalForCreate()">➕ Nueva Materia</button>
+    <button class="btn-ocr" onclick="triggerImportImage()">📷 Cargar Imagen de Malla</button>
+    <input type="file" id="import-image-input" accept="image/*" style="display: none;" onchange="importImageOCR(event)">
     <button onclick="exportJSON()">💾 Guardar / Exportar JSON</button>
     <button onclick="triggerImportJSON()">📂 Cargar JSON</button>
     <input type="file" id="import-file-input" accept=".json" style="display: none;" onchange="importJSON(event)">
@@ -367,6 +391,11 @@
         <button onclick="saveSubjectFromModal()" style="background-color: var(--accent-color); color: white;">Guardar</button>
       </div>
     </div>
+  </div>
+
+  <div class="ocr-loader-overlay" id="ocr-loader">
+    <div class="spinner"></div>
+    <div id="ocr-status-text">Analizando imagen y procesando materias con OCR...</div>
   </div>
 
   <script>
@@ -424,7 +453,7 @@
         { "id": "TLMG1027", "code": "TLMG1027", "name": "COMUNICACIÓN DIGITAL DE DATOS", "components": "2/1/3", "sum": 6, "level": "L400-1", "col": 1 },
         { "id": "CCPG1055", "code": "CCPG1055", "name": "SISTEMAS DISTRIBUIDOS Y COMPUTACIÓN EN LA NUBE", "components": "3/1/5", "sum": 9, "level": "L400-1", "col": 2 },
         { "id": "TLMG1025", "code": "TLMG1025", "name": "CALIDAD DE SERVICIO Y REDES MULTIMEDIA", "components": "2/1/3", "sum": 6, "level": "L400-1", "col": 3 },
-        { "id": "TLMG1029", "code": "TLMG1029", name: "GESTIÓN DE INFRAESTRUCTURA Y SERVICIOS TI", "components": "2/1/3", "sum": 6, "level": "L400-1", "col": 4 },
+        { "id": "TLMG1029", "code": "TLMG1029", "name": "GESTIÓN DE INFRAESTRUCTURA Y SERVICIOS TI", "components": "2/1/3", "sum": 6, "level": "L400-1", "col": 4 },
         { "id": "ITIN1", "code": "ITINERARIO 1", "name": "ITINERARIO I", "components": "3/0/6", "sum": 9, "level": "L400-1", "col": 5 },
         { "id": "TLMG1031", "code": "TLMG1031", "name": "MATERIA INTEGRADORA DE TELEMÁTICA &39", "components": "3/0/6", "sum": 9, "level": "L400-2", "col": 4, "isIntegradora": true },
         { "id": "ITIN2", "code": "ITINERARIO 2", "name": "ITINERARIO II", "components": "3/0/6", "sum": 9, "level": "L400-2", "col": 5 }
@@ -471,15 +500,14 @@
     let state = JSON.parse(JSON.stringify(initialData));
     let currentMode = 'drag';
     let selectedSourceId = null;
-    let pinnedSubjectId = null; // Materia fijada por clic
+    let pinnedSubjectId = null;
 
-    // SISTEMA DE HISTORIAL DESHACER / REHACER
     let historyStack = [];
     let redoStack = [];
 
     function saveStateToHistory() {
       historyStack.push(JSON.stringify(state));
-      redoStack = []; // Limpiar rehacer al realizar una nueva acción
+      redoStack = [];
       updateUndoRedoButtons();
     }
 
@@ -508,27 +536,18 @@
       document.getElementById('btn-redo').disabled = (redoStack.length === 0);
     }
 
-    // TECLAS DE ACCESO RÁPIDO (CTRL+Z y CTRL+Y)
     document.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-        if (e.shiftKey) {
-          redo();
-        } else {
-          undo();
-        }
+        if (e.shiftKey) { redo(); } else { undo(); }
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
         redo();
       }
     });
 
-    // PARSEO DE COMPONENTES DE HORAS (ACD / APE)
     function parseHoursComponents(componentsStr) {
       if (!componentsStr) return { acd: 0, ape: 0 };
       const parts = componentsStr.split('/').map(p => parseFloat(p) || 0);
-      return {
-        acd: parts[0] || 0, // Primer número: ACD
-        ape: parts[1] || 0  // Segundo número: APE
-      };
+      return { acd: parts[0] || 0, ape: parts[1] || 0 };
     }
 
     function calculateCredits(subj) {
@@ -539,14 +558,12 @@
       return baseCredits;
     }
 
-    // FILTRO DE CIENCIAS BÁSICAS (INCLUYE EVALUACIÓN)
     function isBasicMathSubject(name) {
       const n = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       const keywords = ["calculo", "fisica", "algebra", "estadistica", "ecuaciones", "matematicas", "evaluacion"];
       return keywords.some(kw => n.includes(kw));
     }
 
-    // RESUMEN DE CRÉDITOS Y PRÁCTICAS PREPROFESIONALES (+5 CR)
     function updateCreditsSummary() {
       const basicSubjects = state.subjects.filter(s => isBasicMathSubject(s.name));
       const totalBasicCredits = basicSubjects.reduce((acc, curr) => acc + calculateCredits(curr), 0);
@@ -555,7 +572,6 @@
         basicSummaryEl.innerHTML = `📐 Créditos Ciencias Básicas: <b>${totalBasicCredits}</b>`;
       }
 
-      // Suma total de créditos + 5 de Prácticas Preprofesionales
       const grandTotalCredits = state.subjects.reduce((acc, curr) => acc + calculateCredits(curr), 0) + 5;
       const totalSummaryEl = document.getElementById('total-credits-summary');
       if (totalSummaryEl) {
@@ -569,7 +585,6 @@
       window.addEventListener('resize', drawConnections);
       updateUndoRedoButtons();
 
-      // Clic en el fondo desactiva el resaltado fijado
       document.body.addEventListener('click', (e) => {
         if (!e.target.closest('.subject-card') && !e.target.closest('.toolbar') && !e.target.closest('.modal')) {
           pinnedSubjectId = null;
@@ -601,7 +616,6 @@
         const subjectsInLevel = state.subjects.filter(s => s.level === level.id);
         const totalCredits = subjectsInLevel.reduce((acc, curr) => acc + calculateCredits(curr), 0);
 
-        // Sumar horas ACD y APE
         let totalACD = 0;
         let totalAPE = 0;
         subjectsInLevel.forEach(subj => {
@@ -679,17 +693,8 @@
         handleCardClick(subj.id);
       };
 
-      card.onmouseenter = () => {
-        if (!pinnedSubjectId) {
-          highlightConnections(subj.id);
-        }
-      };
-
-      card.onmouseleave = () => {
-        if (!pinnedSubjectId) {
-          clearHighlights();
-        }
-      };
+      card.onmouseenter = () => { if (!pinnedSubjectId) highlightConnections(subj.id); };
+      card.onmouseleave = () => { if (!pinnedSubjectId) clearHighlights(); };
 
       return card;
     }
@@ -703,7 +708,7 @@
       const occupied = state.subjects.find(s => s.level === targetLevelId && s.col === targetCol && s.id !== subjectId);
 
       if (subject && !occupied && (subject.level !== targetLevelId || subject.col !== targetCol)) {
-        saveStateToHistory(); // Guardar en historial para Undo
+        saveStateToHistory();
         subject.level = targetLevelId;
         subject.col = targetCol;
         renderBoard();
@@ -712,10 +717,8 @@
       }
     }
 
-    // MANEJO DE CLIC EN MATERIAS (FIJADO DE RESALTADO Y MODO REQUISITOS)
     function handleCardClick(id) {
       if (currentMode === 'connect') {
-        // MODO REQUISITOS
         if (!selectedSourceId) {
           selectedSourceId = id;
           document.getElementById(`card-${id}`).classList.add('connecting-source');
@@ -723,7 +726,6 @@
           document.getElementById(`card-${id}`).classList.remove('connecting-source');
           selectedSourceId = null;
         } else {
-          // ORDEN INTELIGENTE SEGÚN NIVEL SEMESTRAL
           const subj1 = state.subjects.find(s => s.id === selectedSourceId);
           const subj2 = state.subjects.find(s => s.id === id);
 
@@ -733,27 +735,23 @@
           let prereqId, targetId;
 
           if (levelIdx1 < levelIdx2) {
-            prereqId = selectedSourceId;
-            targetId = id;
+            prereqId = selectedSourceId; targetId = id;
           } else if (levelIdx2 < levelIdx1) {
-            prereqId = id;
-            targetId = selectedSourceId;
+            prereqId = id; targetId = selectedSourceId;
           } else {
-            // MISMO NIVEL (CORREQUISITO)
-            prereqId = selectedSourceId;
-            targetId = id;
+            prereqId = selectedSourceId; targetId = id;
           }
 
-          saveStateToHistory(); // Guardar para Undo
+          saveStateToHistory();
 
           const existingIdx = state.connections.findIndex(
             c => (c.from === prereqId && c.to === targetId) || (c.from === targetId && c.to === prereqId)
           );
 
           if (existingIdx >= 0) {
-            state.connections.splice(existingIdx, 1); // Alternar / Eliminar
+            state.connections.splice(existingIdx, 1);
           } else {
-            state.connections.push({ from: prereqId, to: targetId }); // Crear
+            state.connections.push({ from: prereqId, to: targetId });
           }
 
           document.getElementById(`card-${selectedSourceId}`).classList.remove('connecting-source');
@@ -761,7 +759,6 @@
           drawConnections();
         }
       } else {
-        // MODO MOVER / FIJADO DE RESALTADO
         if (pinnedSubjectId === id) {
           pinnedSubjectId = null;
           clearHighlights();
@@ -836,7 +833,6 @@
         svg.appendChild(path);
       });
 
-      // Si hay una materia fijada, mantener sus líneas resaltadas
       if (pinnedSubjectId) {
         highlightConnections(pinnedSubjectId);
       }
@@ -871,12 +867,115 @@
       });
     }
 
+    /* CARGA E IMPORTACIÓN CON OCR (TESSERACT.JS) */
+    function triggerImportImage() {
+      document.getElementById('import-image-input').click();
+    }
+
+    async function importImageOCR(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const loader = document.getElementById('ocr-loader');
+      const statusText = document.getElementById('ocr-status-text');
+      loader.style.display = 'flex';
+      statusText.innerText = "Inicializando motor OCR de Tesseract...";
+
+      try {
+        const worker = await Tesseract.createWorker('spa');
+        statusText.innerText = "Analizando imagen y reconociendo materias...";
+
+        const ret = await worker.recognize(file);
+        await worker.terminate();
+
+        const extractedText = ret.data.text;
+        statusText.innerText = "Procesando materias e integrando a la malla...";
+
+        parseAndAddSubjectsFromOCR(extractedText);
+
+        alert('¡Procesamiento de imagen completado con éxito!');
+      } catch (err) {
+        alert('Ocurrió un error al procesar la imagen con OCR: ' + err.message);
+      } finally {
+        loader.style.display = 'none';
+        event.target.value = '';
+      }
+    }
+
+    // EXTRAE CÓDIGOS, COMPONENTES Y NOMBRES DEL TEXTO OCR
+    function parseAndAddSubjectsFromOCR(text) {
+      saveStateToHistory(); // Guardar historial antes de la carga
+
+      const lines = text.split('\n');
+      let subjectsAdded = 0;
+
+      lines.forEach((line) => {
+        const trimmed = line.trim();
+        if (trimmed.length < 5) return;
+
+        // Patrón Código: 3-4 Letras + 4 Números (ej. MATG1045, CCPG1043)
+        const codeMatch = trimmed.match(/[A-Z]{3,4}\d{4}/i);
+        // Patrón Componentes: Digito/Digito/Digito (ej. 3/2/4, 3/1/5)
+        const compMatch = trimmed.match(/\d\/\d\/\d/);
+
+        if (codeMatch) {
+          const code = codeMatch[0].toUpperCase();
+          const components = compMatch ? compMatch[0] : "3/1/5";
+          const hours = parseHoursComponents(components);
+          const sum = hours.acd + hours.ape + (parseFloat(components.split('/')[2]) || 0) || 9;
+
+          // Limpiar nombre quitando el código y componentes
+          let name = trimmed.replace(codeMatch[0], '').replace(compMatch ? compMatch[0] : '', '').replace(/[^\w\sÁÉÍÓÚáéíóúÑñ&]/gi, '').trim();
+          if (name.length < 3) name = `MATERIA ${code}`;
+
+          // Evitar duplicar códigos existentes
+          if (!state.subjects.some(s => s.code === code)) {
+            // Asignar al primer nivel con espacio libre
+            let targetLevel = "L100-1";
+            let targetCol = 0;
+
+            for (const lvl of state.levels) {
+              const usedCols = state.subjects.filter(s => s.level === lvl.id).map(s => s.col);
+              let foundCol = -1;
+              for (let i = 0; i < NUM_COLUMNS; i++) {
+                if (!usedCols.includes(i)) { foundCol = i; break; }
+              }
+              if (foundCol !== -1) {
+                targetLevel = lvl.id;
+                targetCol = foundCol;
+                break;
+              }
+            }
+
+            state.subjects.push({
+              id: code,
+              code: code,
+              name: name.toUpperCase(),
+              components: components,
+              sum: sum,
+              level: targetLevel,
+              col: targetCol
+            });
+
+            subjectsAdded++;
+          }
+        }
+      });
+
+      if (subjectsAdded === 0) {
+        alert("No se detectaron códigos de materias claros en la imagen. Intenta con una imagen más nítida.");
+      }
+
+      renderBoard();
+      drawConnections();
+    }
+
     /* EXPORTACIÓN E IMPORTACIÓN JSON */
     function exportJSON() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", "malla_telematica_personalizada.json");
+      downloadAnchor.setAttribute("download", "malla_espol_personalizada.json");
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
@@ -952,7 +1051,7 @@
 
       if (!name || !code) { alert('Por favor ingresa un nombre y código válidos.'); return; }
 
-      saveStateToHistory(); // Guardar en historial
+      saveStateToHistory();
 
       if (id) {
         const subj = state.subjects.find(s => s.id === id);
@@ -978,7 +1077,7 @@
       if (!id) return;
 
       if (confirm('¿Seguro que deseas eliminar esta materia?')) {
-        saveStateToHistory(); // Guardar en historial
+        saveStateToHistory();
         state.subjects = state.subjects.filter(s => s.id !== id);
         state.connections = state.connections.filter(c => c.from !== id && c.to !== id);
         pinnedSubjectId = null;
@@ -1001,4 +1100,7 @@
     window.onload = init;
   </script>
 </body>
+<footer style="text-align: center; font-size: 0.8em; color: #64748b; margin-top: 20px;">
+  Desarrollado por <strong>Christopher Vaccaro</strong> — Licencia CC BY-NC 4.0 (Uso No Comercial)
+</footer>
 </html>
