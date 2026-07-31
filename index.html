@@ -953,56 +953,52 @@
       }
     }
 
-    /* ALGORITMO DE PARSER SVG EXACTO DE LA ESPOL (VISIO) */
+    /* PARSER SVG DISEÑADO PARA ESPOL (MICROSOFT VISIO) */
     function parseAndAddSubjectsFromSVG(svgRaw) {
-      saveStateToHistory(); // Guardar copia de seguridad para Ctrl+Z
-
-      // LIMPIAR TABLERO PREVIO
-      state.subjects = [];
-      state.connections = [];
-      pinnedSubjectId = null;
+      saveStateToHistory(); // Guardar historial antes de la carga
 
       const parser = new DOMParser();
       const doc = parser.parseFromString(svgRaw, "image/svg+xml");
 
-      // Buscar todos los grupos <g> que contienen un componente de horas (ej. 3/0/6, 3/2/4)
-      // Cada tarjeta de materia en el SVG de la ESPOL es un grupo <g> que contiene su tripleta de créditos
-      const allGroups = Array.from(doc.querySelectorAll('g'));
+      // Buscar todos los grupos que representen formas en Microsoft Visio
+      const allShapes = Array.from(doc.querySelectorAll('g'));
 
       let extractedSubjects = [];
 
-      allGroups.forEach(g => {
-        const fullText = g.textContent.trim();
-
-        // Verificar si este contenedor contiene una tripleta de créditos (ej. 3/0/6, 3/2/4)
-        const compMatch = fullText.match(/\b\d\/\d\/\d\b/);
-        if (!compMatch) return;
-
-        // Extraer todos los elementos de texto ordenados por aparición
+      allShapes.forEach(g => {
+        // En Visio, las cajas de las materias tienen hijos <path> o <rect> con textos y títulos
         const textElements = Array.from(g.querySelectorAll('text, tspan'))
           .map(t => t.textContent.trim())
           .filter(t => t.length > 0);
 
         if (textElements.length === 0) return;
 
-        // 1. Extraer el CÓDIGO PRINCIPAL: Es el primer código institucional que aparece en la tarjeta
-        let mainCode = null;
+        // 1. Identificar si existe la tripleta de créditos de una materia (ej. 3/0/6 o 3/2/4)
+        let compStr = null;
         for (let t of textElements) {
-          const codeMatch = t.match(/\b[A-Z]{3,4}\d{4}\b/i);
-          if (codeMatch) {
-            mainCode = codeMatch[0].toUpperCase();
+          const m = t.match(/^\d\/\d\/\d$/);
+          if (m) {
+            compStr = m[0];
             break;
           }
         }
+        if (!compStr) return; // Si no tiene componentes de horas, no es una tarjeta de materia principal
 
+        // 2. Extraer el CÓDIGO INSTITUCIONAL PRINCIPAL (primer código institucional en el arreglo)
+        let mainCode = null;
+        for (let t of textElements) {
+          const m = t.match(/^[A-Z]{3,4}\d{4}$/i);
+          if (m) {
+            mainCode = m[0].toUpperCase();
+            break;
+          }
+        }
         if (!mainCode) return;
 
-        // Evitar procesar el mismo grupo de tarjeta si ya fue registrado
+        // Evitar procesar el mismo bloque de tarjeta varias veces
         if (extractedSubjects.some(s => s.code === mainCode)) return;
 
-        const components = compMatch[0];
-
-        // 2. Extraer NOMBRE DE LA MATERIA: Omitir componentes, horas, código principal, categoría "B" y prerrequisitos
+        // 3. Reconstruir el NOMBRE DE LA MATERIA omitiendo prerrequisitos, números o metadatos
         let nameParts = [];
         let mainCodeFound = false;
 
@@ -1012,23 +1008,23 @@
             continue;
           }
 
-          // Antes de encontrar el código principal (o si estamos en el área del nombre):
+          // Descartar tripleta, horas totales, letra "B" (básica) y correquisitos &6
           if (
-            t === components ||
+            t === compStr ||
             /^\d+$/.test(t) ||
             /^\d+\s*CR$/i.test(t) ||
             t === "B" ||
             t === "&6" ||
             t === "&20" ||
+            t === "&39" ||
             /NIVEL|CREDITOS|CRÉDITOS/i.test(t)
           ) {
             continue;
           }
 
-          // Si el texto es OTRO código de materia (prerrequisitos al pie de la tarjeta), detener la lectura del nombre
-          if (/\b[A-Z]{3,4}\d{4}\b/i.test(t)) {
-            if (mainCodeFound) break; // Todo código subsecuente es un prerrequisito
-            continue;
+          // Si posterior al código principal encontramos OTRO código formal, es la lista de prerrequisitos inferiores -> ignorar
+          if (/^[A-Z]{3,4}\d{4}$/i.test(t)) {
+            if (mainCodeFound) continue; 
           }
 
           if (!nameParts.includes(t)) {
@@ -1039,7 +1035,7 @@
         let name = nameParts.join(' ').replace(/\s+/g, ' ').trim();
         if (name.length < 2) name = `MATERIA ${mainCode}`;
 
-        // Obtener coordenadas de posición Y y X en el plano del SVG
+        // Obtener posición en el eje Y para determinar nivel o semestre
         let y = parseFloat(g.getAttribute('y')) || 0;
         let x = parseFloat(g.getAttribute('x')) || 0;
 
@@ -1059,18 +1055,23 @@
         extractedSubjects.push({
           code: mainCode,
           name: name.toUpperCase(),
-          components: components,
+          components: compStr,
           x,
           y
         });
       });
 
       if (extractedSubjects.length === 0) {
-        alert("No se lograron extraer materias con formato ESPOL del archivo SVG.");
+        alert("No se lograron extraer materias con formato de la ESPOL del archivo SVG.");
         return;
       }
 
-      // Agrupar materias en semestres/niveles según su posición vertical (Y)
+      // LIMPIAR TABLERO PREVIO una vez que se verificó que la importación fue exitosa
+      state.subjects = [];
+      state.connections = [];
+      pinnedSubjectId = null;
+
+      // Agrupar materias en semestres/niveles según proximidad vertical (Y)
       let clusters = [];
       extractedSubjects.forEach(item => {
         let cluster = clusters.find(c => Math.abs(c.y - item.y) < 55);
@@ -1111,7 +1112,7 @@
       });
 
       if (subjectsAdded > 0) {
-        alert(`¡Malla extraída con éxito! Se cargaron ${subjectsAdded} materias de forma limpia.`);
+        alert(`¡Malla limpia e importada con éxito! Se cargaron ${subjectsAdded} materias sin duplicaciones.`);
       } else {
         alert("No se agregaron materias nuevas.");
       }
