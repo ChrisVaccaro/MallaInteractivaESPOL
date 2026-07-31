@@ -354,7 +354,7 @@
     <button id="btn-redo" onclick="redo()" title="Rehacer (Ctrl+Y)">↪️ Rehacer</button>
     <button class="btn-add" onclick="openModalForCreate()">➕ Nueva Materia</button>
     <button class="btn-svg" onclick="triggerImportSVG()">📄 Cargar Archivo SVG</button>
-    <input type="file" id="import-svg-input" accept=".svg,image/svg+xml" style="display: none;" onchange="importSVGFile(event)">
+    <input type="file" id="import-svg-input" accept=".svg,.txt,image/svg+xml" style="display: none;" onchange="importSVGFile(event)">
     <button class="btn-url" onclick="openUrlModal()">🌐 Cargar Malla desde URL</button>
     <button onclick="exportJSON()">💾 Guardar / Exportar JSON</button>
     <button onclick="triggerImportJSON()">📂 Cargar JSON</button>
@@ -953,9 +953,9 @@
       }
     }
 
-    /* PARSER SVG ESTRUCTURADO Y FILTRADO RIGUROSO PARA ESPOL */
+    /* ALGORITMO DE PARSER SVG EXACTO DE LA ESPOL (VISIO) */
     function parseAndAddSubjectsFromSVG(svgRaw) {
-      saveStateToHistory();
+      saveStateToHistory(); // Guardar copia de seguridad para Ctrl+Z
 
       // LIMPIAR TABLERO PREVIO
       state.subjects = [];
@@ -965,69 +965,81 @@
       const parser = new DOMParser();
       const doc = parser.parseFromString(svgRaw, "image/svg+xml");
 
-      // Buscar grupos de materias que contengan un código institucional en la parte superior
-      const groups = Array.from(doc.querySelectorAll('g')).filter(g => {
-        const text = g.textContent.trim();
-        return /[A-Z]{3,4}\d{3,4}/i.test(text);
-      });
+      // Buscar todos los grupos <g> que contienen un componente de horas (ej. 3/0/6, 3/2/4)
+      // Cada tarjeta de materia en el SVG de la ESPOL es un grupo <g> que contiene su tripleta de créditos
+      const allGroups = Array.from(doc.querySelectorAll('g'));
 
       let extractedSubjects = [];
 
-      groups.forEach(g => {
+      allGroups.forEach(g => {
+        const fullText = g.textContent.trim();
+
+        // Verificar si este contenedor contiene una tripleta de créditos (ej. 3/0/6, 3/2/4)
+        const compMatch = fullText.match(/\b\d\/\d\/\d\b/);
+        if (!compMatch) return;
+
+        // Extraer todos los elementos de texto ordenados por aparición
         const textElements = Array.from(g.querySelectorAll('text, tspan'))
           .map(t => t.textContent.trim())
           .filter(t => t.length > 0);
 
         if (textElements.length === 0) return;
 
-        // 1. Extraer el CÓDIGO PRINCIPAL (primer código de materia que aparece en la parte alta del recuadro)
+        // 1. Extraer el CÓDIGO PRINCIPAL: Es el primer código institucional que aparece en la tarjeta
         let mainCode = null;
         for (let t of textElements) {
-          const match = t.match(/[A-Z]{3,4}\d{3,4}/i);
-          if (match) {
-            mainCode = match[0].toUpperCase();
+          const codeMatch = t.match(/\b[A-Z]{3,4}\d{4}\b/i);
+          if (codeMatch) {
+            mainCode = codeMatch[0].toUpperCase();
             break;
           }
         }
 
-        if (!mainCode || extractedSubjects.some(s => s.code === mainCode)) return;
+        if (!mainCode) return;
 
-        // 2. Extraer COMPONENTES DE HORAS (ej: 3/0/6 o 3/2/4)
-        let components = "3/1/5";
-        for (let t of textElements) {
-          const compMatch = t.match(/\d\/\d\/\d/);
-          if (compMatch) {
-            components = compMatch[0];
-            break;
-          }
-        }
+        // Evitar procesar el mismo grupo de tarjeta si ya fue registrado
+        if (extractedSubjects.some(s => s.code === mainCode)) return;
 
-        // 3. Extraer NOMBRE DE LA MATERIA (limpiando códigos secundarios y prerrequisitos)
+        const components = compMatch[0];
+
+        // 2. Extraer NOMBRE DE LA MATERIA: Omitir componentes, horas, código principal, categoría "B" y prerrequisitos
         let nameParts = [];
-        textElements.forEach(t => {
-          // Ignorar componentes, el código principal, prerrequisitos, números sueltos o la letra de categoría "B"
+        let mainCodeFound = false;
+
+        for (let t of textElements) {
+          if (t === mainCode) {
+            mainCodeFound = true;
+            continue;
+          }
+
+          // Antes de encontrar el código principal (o si estamos en el área del nombre):
           if (
-            t === mainCode ||
-            /\d\/\d\/\d/.test(t) ||
-            /^[A-Z]{3,4}\d{3,4}$/i.test(t) ||
+            t === components ||
             /^\d+$/.test(t) ||
             /^\d+\s*CR$/i.test(t) ||
             t === "B" ||
             t === "&6" ||
-            /NIVEL|CREDITOS/i.test(t)
+            t === "&20" ||
+            /NIVEL|CREDITOS|CRÉDITOS/i.test(t)
           ) {
-            return;
+            continue;
+          }
+
+          // Si el texto es OTRO código de materia (prerrequisitos al pie de la tarjeta), detener la lectura del nombre
+          if (/\b[A-Z]{3,4}\d{4}\b/i.test(t)) {
+            if (mainCodeFound) break; // Todo código subsecuente es un prerrequisito
+            continue;
           }
 
           if (!nameParts.includes(t)) {
             nameParts.push(t);
           }
-        });
+        }
 
         let name = nameParts.join(' ').replace(/\s+/g, ' ').trim();
         if (name.length < 2) name = `MATERIA ${mainCode}`;
 
-        // Obtener posición vertical (Y) para ordenar por semestre
+        // Obtener coordenadas de posición Y y X en el plano del SVG
         let y = parseFloat(g.getAttribute('y')) || 0;
         let x = parseFloat(g.getAttribute('x')) || 0;
 
@@ -1054,14 +1066,14 @@
       });
 
       if (extractedSubjects.length === 0) {
-        alert("No se pudieron extraer materias válidas del archivo SVG.");
+        alert("No se lograron extraer materias con formato ESPOL del archivo SVG.");
         return;
       }
 
-      // Agrupar materias por nivel semestral (distancia en Y)
+      // Agrupar materias en semestres/niveles según su posición vertical (Y)
       let clusters = [];
       extractedSubjects.forEach(item => {
-        let cluster = clusters.find(c => Math.abs(c.y - item.y) < 60);
+        let cluster = clusters.find(c => Math.abs(c.y - item.y) < 55);
         if (cluster) {
           cluster.items.push(item);
         } else {
@@ -1099,7 +1111,7 @@
       });
 
       if (subjectsAdded > 0) {
-        alert(`¡Malla SVG cargada perfectamente! Se importaron ${subjectsAdded} materias limpias sin duplicaciones.`);
+        alert(`¡Malla extraída con éxito! Se cargaron ${subjectsAdded} materias de forma limpia.`);
       } else {
         alert("No se agregaron materias nuevas.");
       }
