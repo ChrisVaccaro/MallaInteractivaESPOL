@@ -1,5 +1,10 @@
-## 🛠️ Autoría y Licencia
+## Autoría y Licencia
 
 Este proyecto fue ideado, diseñado y coordinado por **Christopher Vaccaro**, contando con la asistencia de Inteligencia Artificial como herramienta de co-creación y desarrollo de código.
 
-El código resultante se distribuye bajo la licencia **Creative Commons Atribución-NoComercial 4.0 Internacional (CC BY-NC 4.0)**. Queda prohibida su comercialización o venta por terceros.
+El proyecto está publicado bajo la licencia **Creative Commons Atribución-NoComercial 4.0 Internacional (CC BY-NC 4.0)**.
+
+[![CC BY-NC 4.0](https://mirrors.creativecommons.org/presskit/buttons/88x31/svg/by-nc.svg)](https://creativecommons.org/licenses/by-nc/4.0/deed.es)
+
+- **Uso permitido:** Libre uso, modificación, estudio y distribución gratuita.
+- **Restricción:** Queda estrictamente prohibida la venta, comercialización o cobro por este software o cualquiera de sus derivados.
