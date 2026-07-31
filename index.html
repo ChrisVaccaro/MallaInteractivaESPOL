@@ -953,9 +953,9 @@
       }
     }
 
-    /* PARSER SVG ESTRUCTURADO Y MEJORADO PARA EVITAR DUPLICADOS */
+    /* PARSER SVG ESTRUCTURADO Y FILTRADO RIGUROSO PARA ESPOL */
     function parseAndAddSubjectsFromSVG(svgRaw) {
-      saveStateToHistory(); // Guardar copia de seguridad para Ctrl+Z
+      saveStateToHistory();
 
       // LIMPIAR TABLERO PREVIO
       state.subjects = [];
@@ -965,25 +965,69 @@
       const parser = new DOMParser();
       const doc = parser.parseFromString(svgRaw, "image/svg+xml");
 
-      // Buscar contenedores de tarjetas o recuadros (<g> o <rect>)
-      const groupElements = Array.from(doc.querySelectorAll('g, rect')).filter(el => {
-        const textContent = el.textContent || "";
-        return /[A-Z]{3,4}\d{3,4}/i.test(textContent);
+      // Buscar grupos de materias que contengan un código institucional en la parte superior
+      const groups = Array.from(doc.querySelectorAll('g')).filter(g => {
+        const text = g.textContent.trim();
+        return /[A-Z]{3,4}\d{3,4}/i.test(text);
       });
 
-      let extractedBlocks = [];
+      let extractedSubjects = [];
 
-      groupElements.forEach(g => {
-        const textContent = g.textContent.trim();
-        const codeMatch = textContent.match(/[A-Z]{3,4}\d{3,4}/i);
-        if (!codeMatch) return;
+      groups.forEach(g => {
+        const textElements = Array.from(g.querySelectorAll('text, tspan'))
+          .map(t => t.textContent.trim())
+          .filter(t => t.length > 0);
 
-        const code = codeMatch[0].toUpperCase();
+        if (textElements.length === 0) return;
 
-        // Evitar procesar el mismo bloque de grupo múltiples veces
-        if (extractedBlocks.some(b => b.code === code)) return;
+        // 1. Extraer el CÓDIGO PRINCIPAL (primer código de materia que aparece en la parte alta del recuadro)
+        let mainCode = null;
+        for (let t of textElements) {
+          const match = t.match(/[A-Z]{3,4}\d{3,4}/i);
+          if (match) {
+            mainCode = match[0].toUpperCase();
+            break;
+          }
+        }
 
-        // Calcular posición Y para orden semestral
+        if (!mainCode || extractedSubjects.some(s => s.code === mainCode)) return;
+
+        // 2. Extraer COMPONENTES DE HORAS (ej: 3/0/6 o 3/2/4)
+        let components = "3/1/5";
+        for (let t of textElements) {
+          const compMatch = t.match(/\d\/\d\/\d/);
+          if (compMatch) {
+            components = compMatch[0];
+            break;
+          }
+        }
+
+        // 3. Extraer NOMBRE DE LA MATERIA (limpiando códigos secundarios y prerrequisitos)
+        let nameParts = [];
+        textElements.forEach(t => {
+          // Ignorar componentes, el código principal, prerrequisitos, números sueltos o la letra de categoría "B"
+          if (
+            t === mainCode ||
+            /\d\/\d\/\d/.test(t) ||
+            /^[A-Z]{3,4}\d{3,4}$/i.test(t) ||
+            /^\d+$/.test(t) ||
+            /^\d+\s*CR$/i.test(t) ||
+            t === "B" ||
+            t === "&6" ||
+            /NIVEL|CREDITOS/i.test(t)
+          ) {
+            return;
+          }
+
+          if (!nameParts.includes(t)) {
+            nameParts.push(t);
+          }
+        });
+
+        let name = nameParts.join(' ').replace(/\s+/g, ' ').trim();
+        if (name.length < 2) name = `MATERIA ${mainCode}`;
+
+        // Obtener posición vertical (Y) para ordenar por semestre
         let y = parseFloat(g.getAttribute('y')) || 0;
         let x = parseFloat(g.getAttribute('x')) || 0;
 
@@ -1000,38 +1044,23 @@
           parent = parent.parentElement;
         }
 
-        // Buscar componentes de horas
-        const compMatch = textContent.match(/\d\/\d\/\d/);
-        const compStr = compMatch ? compMatch[0] : "3/1/5";
-
-        // Formar el nombre removiendo el código y los componentes
-        let nameStr = textContent
-          .replace(codeMatch[0], '')
-          .replace(compMatch ? compMatch[0] : '', '')
-          .replace(/NIVEL|CREDITOS|CRÉDITOS/gi, '')
-          .replace(/[^\w\sÁÉÍÓÚáéíóúÑñ&]/gi, ' ')
-          .replace(/\s+/g, ' ')
-          .trim();
-
-        if (nameStr.length < 2) nameStr = `MATERIA ${code}`;
-
-        extractedBlocks.push({
-          code,
-          name: nameStr,
-          components: compStr,
+        extractedSubjects.push({
+          code: mainCode,
+          name: name.toUpperCase(),
+          components: components,
           x,
           y
         });
       });
 
-      if (extractedBlocks.length === 0) {
-        alert("No se lograron extraer materias con códigos institucionales del SVG.");
+      if (extractedSubjects.length === 0) {
+        alert("No se pudieron extraer materias válidas del archivo SVG.");
         return;
       }
 
-      // Agrupar materias en niveles/semestres según posición vertical (Y)
+      // Agrupar materias por nivel semestral (distancia en Y)
       let clusters = [];
-      extractedBlocks.forEach(item => {
+      extractedSubjects.forEach(item => {
         let cluster = clusters.find(c => Math.abs(c.y - item.y) < 60);
         if (cluster) {
           cluster.items.push(item);
@@ -1058,7 +1087,7 @@
             state.subjects.push({
               id: item.code,
               code: item.code,
-              name: item.name.toUpperCase(),
+              name: item.name,
               components: item.components,
               sum: sum,
               level: levelId,
@@ -1070,7 +1099,7 @@
       });
 
       if (subjectsAdded > 0) {
-        alert(`¡Malla limpia y reconstruida! Se importaron ${subjectsAdded} materias sin duplicados.`);
+        alert(`¡Malla SVG cargada perfectamente! Se importaron ${subjectsAdded} materias limpias sin duplicaciones.`);
       } else {
         alert("No se agregaron materias nuevas.");
       }
