@@ -327,7 +327,7 @@
   <div class="toolbar">
     <button id="btn-mode-drag" class="active" onclick="setMode('drag')">🖐️ Modo Mover / Organizar</button>
     <button id="btn-mode-connect" onclick="setMode('connect')">🔗 Modo Requisitos</button>
-    <button id="btn-toggle-lines" onclick="toggleLineType()">📐 Líneas: Rectas</button>
+    <button id="btn-toggle-lines" class="active" onclick="toggleLineType()">🌊 Líneas: Curvas</button>
     <button id="btn-undo" onclick="undo()" title="Deshacer (Ctrl+Z)">↩️ Deshacer</button>
     <button id="btn-redo" onclick="redo()" title="Rehacer (Ctrl+Y)">↪️ Rehacer</button>
     <button class="btn-add" onclick="openModalForCreate()">➕ Nueva Materia</button>
@@ -415,8 +415,8 @@
     let selectedSourceId = null;
     let pinnedSubjectId = null;
     
-    // Nueva variable para el tipo de línea
-    let lineType = 'orthogonal'; // Puede ser 'orthogonal' o 'curved'
+    // Nueva variable para el tipo de línea (curved por defecto)
+    let lineType = 'curved'; // Puede ser 'orthogonal' o 'curved'
 
     let historyStack = [];
     let redoStack = [];
@@ -752,17 +752,14 @@
         const levelDistance = Math.abs(levelToIdx - levelFromIdx);
         const isSameLevel = (levelDistance === 0);
 
-        // Desfases para evitar superposición (enchufes)
-        const xOffset1 = (index % 5) * 10 - 20; 
-        const xOffset2 = ((index + 2) % 5) * 10 - 20; 
-
-        const x1 = rectFrom.left + rectFrom.width / 2 - containerRect.left + xOffset1;
-        const x2 = rectTo.left + rectTo.width / 2 - containerRect.left + xOffset2;
+        // Centro absoluto por defecto (Ideal para líneas curvas)
+        let x1 = rectFrom.left + rectFrom.width / 2 - containerRect.left;
+        let x2 = rectTo.left + rectTo.width / 2 - containerRect.left;
 
         let pathData = "";
 
         if (lineType === 'curved') {
-          // --- MODO LÍNEAS CURVAS (BÉZIER) ---
+          // --- MODO LÍNEAS CURVAS (Nacen del mismo punto central) ---
           if (isSameLevel) {
             const y1 = rectFrom.top - containerRect.top;
             const y2 = rectTo.top - containerRect.top;
@@ -781,7 +778,13 @@
             pathData = `M ${x1} ${y1} C ${x1 + curveOffset} ${controlY1}, ${x2 + curveOffset} ${controlY2}, ${x2} ${y2}`;
           }
         } else {
-          // --- MODO LÍNEAS RECTAS / ORTOGONALES ---
+          // --- MODO LÍNEAS RECTAS (Aplicamos los desfases/enchufes) ---
+          const xOffset1 = (index % 5) * 10 - 20; 
+          const xOffset2 = ((index + 2) % 5) * 10 - 20; 
+          
+          x1 += xOffset1;
+          x2 += xOffset2;
+
           if (isSameLevel) {
             const y1 = rectFrom.top - containerRect.top;
             const y2 = rectTo.top - containerRect.top;
