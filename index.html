@@ -1,4 +1,719 @@
-function drawConnections() {
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malla Curricular Interactiva - ESPOL</title>
+
+  <style>
+    :root {
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --border-color: #cbd5e1;
+      --primary-color: #0f172a;
+      --accent-color: #2563eb;
+      --basic-math-color: #e0f2fe; /* Celeste ciencias básicas */
+      --basic-math-border: #0284c7;
+      --coreq-color: #8b5cf6;
+      --highlight-req: #ef4444;
+      --highlight-next: #10b981;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: var(--bg-color);
+      color: #334155;
+      user-select: none;
+    }
+
+    h1 { text-align: center; margin-bottom: 4px; color: var(--primary-color); }
+    .subtitle { text-align: center; font-size: 0.9em; color: #64748b; margin-bottom: 15px; }
+
+    /* Barra de Leyenda e Indicadores */
+    .legend-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 15px;
+      font-size: 0.85em;
+      font-weight: 600;
+    }
+
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+    .legend-line { width: 30px; height: 3px; display: inline-block; border-radius: 2px; }
+    .legend-prereq { background-color: #64748b; }
+    .legend-coreq { background-color: var(--coreq-color); border-bottom: 2px dashed var(--coreq-color); }
+    .legend-box-basic { width: 16px; height: 16px; background-color: var(--basic-math-color); border: 2px solid var(--basic-math-border); border-radius: 4px; }
+
+    /* Badges / Contadores de Créditos */
+    .basic-credits-badge {
+      background-color: var(--basic-math-color);
+      border: 2px solid var(--basic-math-border);
+      color: #0369a1;
+      padding: 5px 12px;
+      border-radius: 16px;
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .total-credits-badge {
+      background-color: #0f172a;
+      border: 2px solid #1e293b;
+      color: #ffffff;
+      padding: 5px 12px;
+      border-radius: 16px;
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+      background: white;
+      padding: 12px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    button {
+      padding: 8px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background-color: white;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    button:hover { background-color: #f1f5f9; }
+    button.active { background-color: var(--accent-color); color: white; border-color: var(--accent-color); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-add { background-color: #10b981; color: white; border-color: #10b981; }
+    .btn-add:hover { background-color: #059669; }
+
+    /* CONTENEDOR PRINCIPAL */
+    .board-container {
+      position: relative;
+      width: 100%;
+      overflow-x: auto;
+      padding-top: 25px;
+    }
+
+    /* CAPA INTERMEDIA: LÍNEAS SVG EN Z-INDEX: 5 */
+    svg#connections-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 5 !important;
+    }
+
+    .board {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      min-width: 1450px; /* Ancho para 8 columnas */
+      position: relative;
+    }
+
+    /* CAPA BASE: FILAS Y CELDAS */
+    .level-row {
+      display: flex;
+      background: #ffffff;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      min-height: 125px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      position: relative;
+    }
+
+    .level-header {
+      width: 160px;
+      min-width: 160px;
+      background-color: #f1f5f9;
+      border-right: 1px solid var(--border-color);
+      border-radius: 8px 0 0 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 8px;
+      font-weight: bold;
+      color: var(--primary-color);
+      font-size: 0.82em;
+      text-align: center;
+    }
+
+    .level-credits {
+      font-size: 0.85em;
+      color: #0369a1;
+      background: #e0f2fe;
+      padding: 3px 8px;
+      border-radius: 12px;
+      margin-top: 4px;
+      margin-bottom: 4px;
+    }
+
+    .level-hours {
+      font-size: 0.78em;
+      color: #475569;
+      line-height: 1.3;
+      margin-top: 2px;
+      font-weight: 600;
+    }
+
+    .level-content-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 14px;
+      padding: 16px;
+      background-color: #fafafa;
+      align-items: center;
+    }
+
+    .grid-cell {
+      border: 1px dashed #cbd5e1;
+      border-radius: 6px;
+      min-height: 90px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: rgba(255, 255, 255, 0.5);
+      transition: background-color 0.2s;
+    }
+
+    .grid-cell.drag-over { background-color: #e0f2fe; border-color: var(--accent-color); }
+
+    /* CAPA SUPERIOR: TARJETAS EN Z-INDEX: 10 */
+    .subject-card {
+      width: 100%;
+      height: 90px;
+      background-color: #ffffff !important;
+      border: 2px solid #64748b;
+      border-radius: 8px;
+      padding: 6px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: grab;
+      position: relative !important;
+      z-index: 10 !important;
+      transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .subject-card:hover {
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      transform: translateY(-2px);
+      z-index: 15 !important;
+    }
+
+    .subject-card.pinned {
+      box-shadow: 0 0 0 3px #2563eb, 0 4px 10px rgba(37,99,235,0.3) !important;
+    }
+
+    .subject-card.basic-math {
+      background-color: var(--basic-math-color) !important;
+      border-color: var(--basic-math-border) !important;
+    }
+
+    .subject-header { display: flex; justify-content: space-between; font-size: 0.7em; font-weight: bold; color: #475569; }
+    .subject-title { font-size: 0.7em; font-weight: 700; text-align: center; text-transform: uppercase; line-height: 1.1; margin: 2px 0; color: #0f172a; }
+    .subject-footer { display: flex; justify-content: space-between; font-size: 0.65em; color: #64748b; }
+
+    .edit-btn {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      font-size: 10px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      z-index: 20;
+    }
+
+    .subject-card:hover .edit-btn { display: flex; }
+
+    /* Resaltados */
+    .subject-card.highlight-req { border-color: var(--highlight-req) !important; background-color: #fef2f2 !important; color: #0f172a !important; }
+    .subject-card.highlight-req * { color: #0f172a !important; }
+
+    .subject-card.highlight-next { border-color: var(--highlight-next) !important; background-color: #ecfdf5 !important; color: #0f172a !important; }
+    .subject-card.highlight-next * { color: #0f172a !important; }
+
+    .subject-card.connecting-source { border-color: #f59e0b !important; box-shadow: 0 0 12px #f59e0b; }
+
+    /* ESTILOS DE LÍNEAS SVG */
+    path.connection {
+      fill: none;
+      stroke: #64748b;
+      stroke-width: 2.5;
+      opacity: 0.7;
+      transition: stroke 0.2s, stroke-width 0.2s, opacity 0.2s;
+    }
+
+    path.connection.corequisite {
+      stroke: var(--coreq-color);
+      stroke-width: 2.5;
+      stroke-dasharray: 5, 4;
+      opacity: 0.85;
+    }
+
+    path.connection.highlight-req {
+      stroke: var(--highlight-req) !important;
+      stroke-width: 4 !important;
+      stroke-dasharray: none !important;
+      opacity: 1 !important;
+    }
+
+    path.connection.highlight-next {
+      stroke: var(--highlight-next) !important;
+      stroke-width: 4 !important;
+      stroke-dasharray: none !important;
+      opacity: 1 !important;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.5); display: none;
+      justify-content: center; align-items: center; z-index: 200;
+    }
+    .modal { background: white; border-radius: 10px; padding: 24px; width: 420px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .modal h2 { margin-top: 0; font-size: 1.2em; color: var(--primary-color); }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 0.85em; font-weight: 600; margin-bottom: 4px; }
+    .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box; }
+    .modal-actions { display: flex; justify-content: space-between; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+  <h1>Malla Curricular Interactiva - ESPOL</h1>
+  <div class="subtitle">Gestión interactiva de créditos, correquisitos y ciencias básicas</div>
+
+  <div class="legend-bar">
+    <div class="legend-item"><span class="legend-line legend-prereq"></span><span>Prerrequisito</span></div>
+    <div class="legend-item"><span class="legend-line legend-coreq"></span><span>Correquisito (Mismo nivel)</span></div>
+    <div class="legend-item"><span class="legend-box-basic"></span><span>Ciencias Básicas</span></div>
+    <div class="basic-credits-badge" id="basic-credits-summary">
+      📐 Créditos Ciencias Básicas: 0
+    </div>
+    <div class="total-credits-badge" id="total-credits-summary">
+      🎓 Total Créditos Malla: 0
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button id="btn-mode-drag" class="active" onclick="setMode('drag')">🖐️ Modo Mover / Organizar</button>
+    <button id="btn-mode-connect" onclick="setMode('connect')">🔗 Modo Requisitos</button>
+    <button id="btn-undo" onclick="undo()" title="Deshacer (Ctrl+Z)">↩️ Deshacer</button>
+    <button id="btn-redo" onclick="redo()" title="Rehacer (Ctrl+Y)">↪️ Rehacer</button>
+    <button class="btn-add" onclick="openModalForCreate()">➕ Nueva Materia</button>
+    <button onclick="exportJSON()">💾 Guardar / Exportar JSON</button>
+    <button onclick="triggerImportJSON()">📂 Cargar JSON</button>
+    <input type="file" id="import-file-input" accept=".json" style="display: none;" onchange="importJSON(event)">
+    <button onclick="resetLayout()" style="color: #dc2626;">🔄 Reiniciar Malla</button>
+  </div>
+
+  <div class="board-container" id="board-container">
+    <svg id="connections-layer"></svg>
+    <div class="board" id="board"></div>
+  </div>
+
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <h2 id="modal-title">Agregar Nueva Materia</h2>
+      <input type="hidden" id="edit-id">
+      <div class="form-group"><label>Nombre de la Materia:</label><input type="text" id="edit-name" placeholder="Ej: CÁLCULO VECTORIAL"></div>
+      <div class="form-group"><label>Código:</label><input type="text" id="edit-code" placeholder="Ej: MATG1046"></div>
+      <div class="form-group">
+        <label>Componentes (Horas CD/CP/AA):</label>
+        <input type="text" id="edit-components" placeholder="Ej: 3/2/4">
+      </div>
+      <div class="form-group">
+        <label>Horas Totales (Cálculo Automático):</label>
+        <input type="number" id="edit-sum" placeholder="Calculado automáticamente" readonly style="background-color: #f1f5f9; cursor: not-allowed; font-weight: bold; color: #475569;">
+      </div>
+      
+      <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-top: 15px; margin-bottom: 15px; background: #f0f9ff; padding: 10px; border-radius: 6px; border: 1px solid #bae6fd;">
+        <input type="checkbox" id="edit-is-basic" style="width: 18px; height: 18px; cursor: pointer;">
+        <label for="edit-is-basic" style="margin: 0; cursor: pointer; color: #0369a1; font-weight: 700; font-size: 0.9em;">¿Es materia de Ciencias Básicas?</label>
+      </div>
+
+      <div class="form-group" id="level-select-group">
+        <label>Nivel / Semestre:</label>
+        <select id="edit-level">
+          <option value="L100-1">NIVEL 100 - I</option>
+          <option value="L100-2">NIVEL 100 - II</option>
+          <option value="L200-1">NIVEL 200 - I</option>
+          <option value="L200-2">NIVEL 200 - II</option>
+          <option value="L300-1">NIVEL 300 - I</option>
+          <option value="L300-2">NIVEL 300 - II</option>
+          <option value="L400-1">NIVEL 400 - I</option>
+          <option value="L400-2">NIVEL 400 - II</option>
+          <option value="L500-1">NIVEL 500 - I</option>
+          <option value="L500-2">NIVEL 500 - II</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button onclick="closeModal()">Cancelar</button>
+        <button id="btn-delete" onclick="deleteSubject()" style="color: #dc2626; display: none;">🗑️ Eliminar</button>
+        <button onclick="saveSubjectFromModal()" style="background-color: var(--accent-color); color: white;">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <footer style="text-align: center; font-size: 0.8em; color: #64748b; margin-top: 20px;">
+    Desarrollado por <strong>Christopher Vaccaro C.</strong> — Licencia CC BY-NC 4.0 (Uso No Comercial)
+  </footer>
+
+  <script>
+    const NUM_COLUMNS = 8; // Soporta 8 columnas de ancho
+
+    // Plantilla en blanco universal con 10 semestres
+    const initialData = {
+      "levels": [
+        { "id": "L100-1", "name": "NIVEL 100 - I" },
+        { "id": "L100-2", "name": "NIVEL 100 - II" },
+        { "id": "L200-1", "name": "NIVEL 200 - I" },
+        { "id": "L200-2", "name": "NIVEL 200 - II" },
+        { "id": "L300-1", "name": "NIVEL 300 - I" },
+        { "id": "L300-2", "name": "NIVEL 300 - II" },
+        { "id": "L400-1", "name": "NIVEL 400 - I" },
+        { "id": "L400-2", "name": "NIVEL 400 - II" },
+        { "id": "L500-1", "name": "NIVEL 500 - I" },
+        { "id": "L500-2", "name": "NIVEL 500 - II" }
+      ],
+      "subjects": [],
+      "connections": []
+    };
+
+    let state = JSON.parse(JSON.stringify(initialData));
+    let currentMode = 'drag';
+    let selectedSourceId = null;
+    let pinnedSubjectId = null;
+
+    let historyStack = [];
+    let redoStack = [];
+
+    function saveStateToHistory() {
+      historyStack.push(JSON.stringify(state));
+      redoStack = [];
+      updateUndoRedoButtons();
+    }
+
+    function undo() {
+      if (historyStack.length === 0) return;
+      redoStack.push(JSON.stringify(state));
+      state = JSON.parse(historyStack.pop());
+      pinnedSubjectId = null;
+      renderBoard();
+      drawConnections();
+      updateUndoRedoButtons();
+    }
+
+    function redo() {
+      if (redoStack.length === 0) return;
+      historyStack.push(JSON.stringify(state));
+      state = JSON.parse(redoStack.pop());
+      pinnedSubjectId = null;
+      renderBoard();
+      drawConnections();
+      updateUndoRedoButtons();
+    }
+
+    function updateUndoRedoButtons() {
+      document.getElementById('btn-undo').disabled = (historyStack.length === 0);
+      document.getElementById('btn-redo').disabled = (redoStack.length === 0);
+    }
+
+    // Teclas de acceso rápido (Deshacer/Rehacer)
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        if (e.shiftKey) { redo(); } else { undo(); }
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+        redo();
+      }
+    });
+
+    function parseHoursComponents(componentsStr) {
+      if (!componentsStr) return { acd: 0, ape: 0 };
+      const parts = componentsStr.split('/').map(p => parseFloat(p) || 0);
+      return { acd: parts[0] || 0, ape: parts[1] || 0 };
+    }
+
+    function calculateCredits(subj) {
+      const baseCredits = subj.sum / 3;
+      if (subj.isIntegradora || subj.name.toUpperCase().includes("INTEGRADORA")) {
+        return baseCredits + 5;
+      }
+      return baseCredits;
+    }
+
+    function isBasicMathSubject(name) {
+      const n = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const keywords = ["calculo", "fisica", "algebra", "estadistica", "ecuaciones", "matematicas", "quimica"];
+      return keywords.some(kw => n.includes(kw));
+    }
+
+    // Función auxiliar para determinar si una materia es de Ciencias Básicas
+    function checkIsBasic(subj) {
+      if (subj.isBasic !== undefined) {
+        return subj.isBasic;
+      }
+      return isBasicMathSubject(subj.name);
+    }
+
+    function updateCreditsSummary() {
+      const basicSubjects = state.subjects.filter(s => checkIsBasic(s));
+      const totalBasicCredits = basicSubjects.reduce((acc, curr) => acc + calculateCredits(curr), 0);
+      const basicSummaryEl = document.getElementById('basic-credits-summary');
+      if (basicSummaryEl) {
+        basicSummaryEl.innerHTML = `📐 Créditos Ciencias Básicas: <b>${totalBasicCredits}</b>`;
+      }
+
+      // Solo suma los 5 CR de prácticas si hay materias en la malla
+      const grandTotalCredits = state.subjects.length > 0 
+        ? state.subjects.reduce((acc, curr) => acc + calculateCredits(curr), 0) + 5
+        : 0;
+
+      const totalSummaryEl = document.getElementById('total-credits-summary');
+      if (totalSummaryEl) {
+        if (state.subjects.length > 0) {
+          totalSummaryEl.innerHTML = `🎓 Total Créditos Malla: <b>${grandTotalCredits}</b> <span style="font-size:0.85em; font-weight:normal; opacity:0.85;">(incluye 5 CR Prácticas Preprofesionales)</span>`;
+        } else {
+          totalSummaryEl.innerHTML = `🎓 Total Créditos Malla: <b>0</b>`;
+        }
+      }
+    }
+
+    function init() {
+      renderBoard();
+      setTimeout(drawConnections, 100);
+      window.addEventListener('resize', drawConnections);
+      updateUndoRedoButtons();
+
+      // Cálculo automático de las "Horas Totales" al escribir componentes
+      document.getElementById('edit-components').addEventListener('input', function(e) {
+        const value = e.target.value;
+        const parts = value.split('/');
+        let sum = 0;
+        parts.forEach(p => {
+          sum += parseFloat(p) || 0;
+        });
+        document.getElementById('edit-sum').value = sum;
+      });
+
+      document.body.addEventListener('click', (e) => {
+        if (!e.target.closest('.subject-card') && !e.target.closest('.toolbar') && !e.target.closest('.modal')) {
+          pinnedSubjectId = null;
+          clearHighlights();
+          document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned'));
+        }
+      });
+    }
+
+    function setMode(mode) {
+      currentMode = mode;
+      selectedSourceId = null;
+      pinnedSubjectId = null;
+      document.getElementById('btn-mode-drag').classList.toggle('active', mode === 'drag');
+      document.getElementById('btn-mode-connect').classList.toggle('active', mode === 'connect');
+      clearHighlights();
+      renderBoard();
+      drawConnections();
+    }
+
+    function renderBoard() {
+      const board = document.getElementById('board');
+      board.innerHTML = '';
+
+      state.levels.forEach(level => {
+        const row = document.createElement('div');
+        row.className = 'level-row';
+
+        const subjectsInLevel = state.subjects.filter(s => s.level === level.id);
+        const totalCredits = subjectsInLevel.reduce((acc, curr) => acc + calculateCredits(curr), 0);
+
+        let totalACD = 0;
+        let totalAPE = 0;
+        subjectsInLevel.forEach(subj => {
+          const hours = parseHoursComponents(subj.components);
+          totalACD += hours.acd;
+          totalAPE += hours.ape;
+        });
+
+        row.innerHTML = `
+          <div class="level-header">
+            <span>${level.name}</span>
+            <span class="level-credits">${totalCredits} Créditos</span>
+            <div class="level-hours">
+              <div>ACD: ${totalACD}h</div>
+              <div>APE: ${totalAPE}h</div>
+            </div>
+          </div>
+          <div class="level-content-grid" id="grid-${level.id}"></div>
+        `;
+
+        board.appendChild(row);
+
+        const gridContainer = row.querySelector('.level-content-grid');
+
+        for (let colIndex = 0; colIndex < NUM_COLUMNS; colIndex++) {
+          const cell = document.createElement('div');
+          cell.className = 'grid-cell';
+          cell.dataset.levelId = level.id;
+          cell.dataset.col = colIndex;
+
+          cell.ondragover = (e) => { e.preventDefault(); cell.classList.add('drag-over'); };
+          cell.ondragleave = () => cell.classList.remove('drag-over');
+          cell.ondrop = (e) => handleDrop(e, level.id, colIndex);
+
+          const subject = subjectsInLevel.find(s => s.col === colIndex);
+          if (subject) {
+            cell.appendChild(createSubjectCard(subject));
+          }
+
+          gridContainer.appendChild(cell);
+        }
+      });
+
+      updateCreditsSummary();
+    }
+
+    function createSubjectCard(subj) {
+      const card = document.createElement('div');
+      const isBasic = checkIsBasic(subj);
+      const isPinned = (pinnedSubjectId === subj.id);
+      
+      card.className = `subject-card ${isBasic ? 'basic-math' : ''} ${isPinned ? 'pinned' : ''}`;
+      card.id = `card-${subj.id}`;
+      card.draggable = (currentMode === 'drag');
+
+      const credits = calculateCredits(subj).toFixed(1).replace('.0', '');
+
+      card.innerHTML = `
+        <button class="edit-btn" onclick="openModalForEdit(event, '${subj.id}')">✏️</button>
+        <div class="subject-header">
+          <span>${subj.components}</span>
+          <span>${subj.sum}</span>
+        </div>
+        <div class="subject-title">${subj.name}</div>
+        <div class="subject-footer">
+          <span>${subj.code}</span>
+          <span><b>${credits} CR</b></span>
+        </div>
+      `;
+
+      card.ondragstart = (e) => { e.dataTransfer.setData('text/plain', subj.id); };
+
+      card.onclick = (e) => {
+        e.stopPropagation();
+        handleCardClick(subj.id);
+      };
+
+      card.onmouseenter = () => { if (!pinnedSubjectId) highlightConnections(subj.id); };
+      card.onmouseleave = () => { if (!pinnedSubjectId) clearHighlights(); };
+
+      return card;
+    }
+
+    function handleDrop(e, targetLevelId, targetCol) {
+      e.preventDefault();
+      document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('drag-over'));
+
+      const subjectId = e.dataTransfer.getData('text/plain');
+      const subject = state.subjects.find(s => s.id === subjectId);
+      const occupied = state.subjects.find(s => s.level === targetLevelId && s.col === targetCol && s.id !== subjectId);
+
+      if (subject && !occupied && (subject.level !== targetLevelId || subject.col !== targetCol)) {
+        saveStateToHistory();
+        subject.level = targetLevelId;
+        subject.col = targetCol;
+        renderBoard();
+        drawConnections();
+        if (pinnedSubjectId) highlightConnections(pinnedSubjectId);
+      }
+    }
+
+    function handleCardClick(id) {
+      if (currentMode === 'connect') {
+        if (!selectedSourceId) {
+          selectedSourceId = id;
+          document.getElementById(`card-${id}`).classList.add('connecting-source');
+        } else if (selectedSourceId === id) {
+          document.getElementById(`card-${id}`).classList.remove('connecting-source');
+          selectedSourceId = null;
+        } else {
+          const subj1 = state.subjects.find(s => s.id === selectedSourceId);
+          const subj2 = state.subjects.find(s => s.id === id);
+
+          const levelIdx1 = state.levels.findIndex(l => l.id === subj1.level);
+          const levelIdx2 = state.levels.findIndex(l => l.id === subj2.level);
+
+          let prereqId, targetId;
+
+          if (levelIdx1 < levelIdx2) {
+            prereqId = selectedSourceId; targetId = id;
+          } else if (levelIdx2 < levelIdx1) {
+            prereqId = id; targetId = selectedSourceId;
+          } else {
+            prereqId = selectedSourceId; targetId = id;
+          }
+
+          saveStateToHistory();
+
+          const existingIdx = state.connections.findIndex(
+            c => (c.from === prereqId && c.to === targetId) || (c.from === targetId && c.to === prereqId)
+          );
+
+          if (existingIdx >= 0) {
+            state.connections.splice(existingIdx, 1);
+          } else {
+            state.connections.push({ from: prereqId, to: targetId });
+          }
+
+          document.getElementById(`card-${selectedSourceId}`).classList.remove('connecting-source');
+          selectedSourceId = null;
+          drawConnections();
+        }
+      } else {
+        if (pinnedSubjectId === id) {
+          pinnedSubjectId = null;
+          clearHighlights();
+          document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned'));
+        } else {
+          pinnedSubjectId = id;
+          document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned'));
+          const cardEl = document.getElementById(`card-${id}`);
+          if (cardEl) cardEl.classList.add('pinned');
+          highlightConnections(id);
+        }
+      }
+    }
+
+    function drawConnections() {
       const svg = document.getElementById('connections-layer');
       svg.innerHTML = '';
 
@@ -66,3 +781,188 @@ function drawConnections() {
         highlightConnections(pinnedSubjectId);
       }
     }
+
+    function highlightConnections(id) {
+      clearHighlights();
+
+      state.connections.forEach(c => {
+        if (c.to === id) {
+          const el = document.getElementById(`card-${c.from}`);
+          if (el) el.classList.add('highlight-req');
+        }
+        if (c.from === id) {
+          const el = document.getElementById(`card-${c.to}`);
+          if (el) el.classList.add('highlight-next');
+        }
+      });
+
+      document.querySelectorAll('path.connection').forEach(path => {
+        if (path.dataset.to === id) path.classList.add('highlight-req');
+        if (path.dataset.from === id) path.classList.add('highlight-next');
+      });
+    }
+
+    function clearHighlights() {
+      document.querySelectorAll('.subject-card').forEach(el => {
+        el.classList.remove('highlight-req', 'highlight-next');
+      });
+      document.querySelectorAll('path.connection').forEach(path => {
+        path.classList.remove('highlight-req', 'highlight-next');
+      });
+    }
+
+    /* EXPORTACIÓN E IMPORTACIÓN JSON */
+    function exportJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "malla_espol_personalizada.json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function triggerImportJSON() {
+      document.getElementById('import-file-input').click();
+    }
+
+    function importJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          if (importedData.levels && importedData.subjects && importedData.connections) {
+            
+            // Forzar siempre los 10 semestres universales para compatibilidad con JSON viejos
+            importedData.levels = [
+              { "id": "L100-1", "name": "NIVEL 100 - I" },
+              { "id": "L100-2", "name": "NIVEL 100 - II" },
+              { "id": "L200-1", "name": "NIVEL 200 - I" },
+              { "id": "L200-2", "name": "NIVEL 200 - II" },
+              { "id": "L300-1", "name": "NIVEL 300 - I" },
+              { "id": "L300-2", "name": "NIVEL 300 - II" },
+              { "id": "L400-1", "name": "NIVEL 400 - I" },
+              { "id": "L400-2", "name": "NIVEL 400 - II" },
+              { "id": "L500-1", "name": "NIVEL 500 - I" },
+              { "id": "L500-2", "name": "NIVEL 500 - II" }
+            ];
+
+            saveStateToHistory();
+            state = importedData;
+            pinnedSubjectId = null;
+            renderBoard();
+            drawConnections();
+            alert('¡Malla importada y cargada con éxito desde el archivo JSON!');
+          } else {
+            alert('El archivo JSON no tiene la estructura válida de una malla.');
+          }
+        } catch (err) {
+          alert('Ocurrió un error al leer el archivo JSON.');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    /* MODAL DE EDICIÓN / CREACIÓN */
+    function openModalForCreate() {
+      document.getElementById('modal-title').innerText = 'Agregar Nueva Materia';
+      document.getElementById('edit-id').value = '';
+      document.getElementById('edit-name').value = '';
+      document.getElementById('edit-code').value = '';
+      document.getElementById('edit-components').value = '3/1/5';
+      document.getElementById('edit-sum').value = 9; // Por defecto
+      document.getElementById('edit-is-basic').checked = false;
+      document.getElementById('level-select-group').style.display = 'block';
+      document.getElementById('btn-delete').style.display = 'none';
+      document.getElementById('modal-overlay').style.display = 'flex';
+    }
+
+    function openModalForEdit(e, id) {
+      e.stopPropagation();
+      const subj = state.subjects.find(s => s.id === id);
+      if (!subj) return;
+
+      document.getElementById('modal-title').innerText = 'Editar Materia';
+      document.getElementById('edit-id').value = subj.id;
+      document.getElementById('edit-name').value = subj.name;
+      document.getElementById('edit-code').value = subj.code;
+      document.getElementById('edit-components').value = subj.components;
+      document.getElementById('edit-sum').value = subj.sum;
+      document.getElementById('edit-is-basic').checked = checkIsBasic(subj);
+      document.getElementById('level-select-group').style.display = 'none';
+      document.getElementById('btn-delete').style.display = 'block';
+      document.getElementById('modal-overlay').style.display = 'flex';
+    }
+
+    function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+
+    function saveSubjectFromModal() {
+      const id = document.getElementById('edit-id').value;
+      const name = document.getElementById('edit-name').value.trim();
+      const code = document.getElementById('edit-code').value.trim();
+      const components = document.getElementById('edit-components').value.trim();
+      const sum = parseFloat(document.getElementById('edit-sum').value) || 0;
+      const isBasic = document.getElementById('edit-is-basic').checked;
+
+      if (!name || !code) { alert('Por favor ingresa un nombre y código válidos.'); return; }
+
+      saveStateToHistory();
+
+      if (id) {
+        const subj = state.subjects.find(s => s.id === id);
+        if (subj) { 
+          subj.name = name; 
+          subj.code = code; 
+          subj.components = components; 
+          subj.sum = sum; 
+          subj.isBasic = isBasic;
+        }
+      } else {
+        const levelId = document.getElementById('edit-level').value;
+        const newId = 'CUSTOM_' + Date.now();
+        const usedCols = state.subjects.filter(s => s.level === levelId).map(s => s.col);
+        let freeCol = 0;
+        for (let i = 0; i < NUM_COLUMNS; i++) {
+          if (!usedCols.includes(i)) { freeCol = i; break; }
+        }
+        state.subjects.push({ id: newId, code: code, name: name, components: components, sum: sum, level: levelId, col: freeCol, isBasic: isBasic });
+      }
+
+      closeModal();
+      renderBoard();
+      drawConnections();
+    }
+
+    function deleteSubject() {
+      const id = document.getElementById('edit-id').value;
+      if (!id) return;
+
+      if (confirm('¿Seguro que deseas eliminar esta materia?')) {
+        saveStateToHistory();
+        state.subjects = state.subjects.filter(s => s.id !== id);
+        state.connections = state.connections.filter(c => c.from !== id && c.to !== id);
+        pinnedSubjectId = null;
+        closeModal();
+        renderBoard();
+        drawConnections();
+      }
+    }
+
+    function resetLayout() {
+      if (confirm('¿Deseas reiniciar la malla y borrar todo el contenido?')) {
+        saveStateToHistory();
+        state = JSON.parse(JSON.stringify(initialData));
+        pinnedSubjectId = null;
+        renderBoard();
+        drawConnections();
+      }
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
