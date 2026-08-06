@@ -122,7 +122,7 @@
       display: flex;
       flex-direction: column;
       gap: 32px;
-      min-width: 1450px; /* Ancho para 8 columnas */
+      min-width: 1280px; /* Ancho para 7 columnas */
       position: relative;
     }
 
@@ -175,7 +175,7 @@
     .level-content-grid {
       flex: 1;
       display: grid;
-      grid-template-columns: repeat(8, 1fr);
+      grid-template-columns: repeat(7, 1fr);
       gap: 14px;
       padding: 16px;
       background-color: #fafafa;
@@ -373,7 +373,6 @@
           <option value="L400-1">NIVEL 400 - I</option>
           <option value="L400-2">NIVEL 400 - II</option>
           <option value="L500-1">NIVEL 500 - I</option>
-          <option value="L500-2">NIVEL 500 - II</option>
         </select>
       </div>
       <div class="modal-actions">
@@ -389,9 +388,9 @@
   </footer>
 
   <script>
-    const NUM_COLUMNS = 8; // Soporta 8 columnas de ancho
+    const NUM_COLUMNS = 7; // Soporta 7 columnas de ancho
 
-    // Plantilla en blanco universal con 10 semestres
+    // Plantilla en blanco universal con 9 semestres
     const initialData = {
       "levels": [
         { "id": "L100-1", "name": "NIVEL 100 - I" },
@@ -402,8 +401,7 @@
         { "id": "L300-2", "name": "NIVEL 300 - II" },
         { "id": "L400-1", "name": "NIVEL 400 - I" },
         { "id": "L400-2", "name": "NIVEL 400 - II" },
-        { "id": "L500-1", "name": "NIVEL 500 - I" },
-        { "id": "L500-2", "name": "NIVEL 500 - II" }
+        { "id": "L500-1", "name": "NIVEL 500 - I" }
       ],
       "subjects": [],
       "connections": []
@@ -842,8 +840,7 @@
               { "id": "L300-2", "name": "NIVEL 300 - II" },
               { "id": "L400-1", "name": "NIVEL 400 - I" },
               { "id": "L400-2", "name": "NIVEL 400 - II" },
-              { "id": "L500-1", "name": "NIVEL 500 - I" },
-              { "id": "L500-2", "name": "NIVEL 500 - II" }
+              { "id": "L500-1", "name": "NIVEL 500 - I" }
             ];
 
             saveStateToHistory();
