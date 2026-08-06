@@ -327,6 +327,7 @@
   <div class="toolbar">
     <button id="btn-mode-drag" class="active" onclick="setMode('drag')">🖐️ Modo Mover / Organizar</button>
     <button id="btn-mode-connect" onclick="setMode('connect')">🔗 Modo Requisitos</button>
+    <button id="btn-toggle-lines" onclick="toggleLineType()">📐 Líneas: Rectas</button>
     <button id="btn-undo" onclick="undo()" title="Deshacer (Ctrl+Z)">↩️ Deshacer</button>
     <button id="btn-redo" onclick="redo()" title="Rehacer (Ctrl+Y)">↪️ Rehacer</button>
     <button class="btn-add" onclick="openModalForCreate()">➕ Nueva Materia</button>
@@ -413,9 +414,27 @@
     let currentMode = 'drag';
     let selectedSourceId = null;
     let pinnedSubjectId = null;
+    
+    // Nueva variable para el tipo de línea
+    let lineType = 'orthogonal'; // Puede ser 'orthogonal' o 'curved'
 
     let historyStack = [];
     let redoStack = [];
+
+    // Función para alternar el tipo de línea
+    function toggleLineType() {
+      const btn = document.getElementById('btn-toggle-lines');
+      if (lineType === 'orthogonal') {
+        lineType = 'curved';
+        btn.innerHTML = '🌊 Líneas: Curvas';
+        btn.classList.add('active');
+      } else {
+        lineType = 'orthogonal';
+        btn.innerHTML = '📐 Líneas: Rectas';
+        btn.classList.remove('active');
+      }
+      drawConnections(); 
+    }
 
     function saveStateToHistory() {
       historyStack.push(JSON.stringify(state));
@@ -477,7 +496,6 @@
       return keywords.some(kw => n.includes(kw));
     }
 
-    // Función auxiliar para determinar si una materia es de Ciencias Básicas
     function checkIsBasic(subj) {
       if (subj.isBasic !== undefined) {
         return subj.isBasic;
@@ -493,7 +511,6 @@
         basicSummaryEl.innerHTML = `📐 Créditos Ciencias Básicas: <b>${totalBasicCredits}</b>`;
       }
 
-      // Solo suma los 5 CR de prácticas si hay materias en la malla
       const grandTotalCredits = state.subjects.length > 0 
         ? state.subjects.reduce((acc, curr) => acc + calculateCredits(curr), 0) + 5
         : 0;
@@ -514,7 +531,6 @@
       window.addEventListener('resize', drawConnections);
       updateUndoRedoButtons();
 
-      // Cálculo automático de las "Horas Totales" al escribir componentes
       document.getElementById('edit-components').addEventListener('input', function(e) {
         const value = e.target.value;
         const parts = value.split('/');
@@ -731,13 +747,12 @@
         const rectFrom = fromCard.getBoundingClientRect();
         const rectTo = toCard.getBoundingClientRect();
 
-        // Calculamos cuántos niveles hay de distancia
         const levelFromIdx = state.levels.findIndex(l => l.id === subjFrom.level);
         const levelToIdx = state.levels.findIndex(l => l.id === subjTo.level);
         const levelDistance = Math.abs(levelToIdx - levelFromIdx);
         const isSameLevel = (levelDistance === 0);
 
-        // Desfases para que las flechas tengan "enchufes" separados
+        // Desfases para evitar superposición (enchufes)
         const xOffset1 = (index % 5) * 10 - 20; 
         const xOffset2 = ((index + 2) % 5) * 10 - 20; 
 
@@ -746,50 +761,54 @@
 
         let pathData = "";
 
-        if (isSameLevel) {
-          // Correquisitos: Por arriba de las tarjetas
-          const y1 = rectFrom.top - containerRect.top;
-          const y2 = rectTo.top - containerRect.top;
-          const upOffset = 15 + (index % 4) * 6; 
-          
-          pathData = `M ${x1} ${y1} V ${y1 - upOffset} H ${x2} V ${y2}`;
-          
-        } else if (levelDistance === 1) {
-          // Prerrequisitos de 1 nivel: Por el pasillo intermedio
-          const y1 = rectFrom.bottom - containerRect.top;
-          const y2 = rectTo.top - containerRect.top;
-          const midY = y1 + (y2 - y1) / 2;
-          const offset = (index % 7) * 5 - 15; 
-          
-          pathData = `M ${x1} ${y1} V ${midY + offset} H ${x2} V ${y2}`;
-          
+        if (lineType === 'curved') {
+          // --- MODO LÍNEAS CURVAS (BÉZIER) ---
+          if (isSameLevel) {
+            const y1 = rectFrom.top - containerRect.top;
+            const y2 = rectTo.top - containerRect.top;
+            const distance = Math.abs(x2 - x1);
+            const arcHeight = Math.min(Math.max(distance * 0.35, 25), 50);
+
+            pathData = `M ${x1} ${y1} C ${x1} ${y1 - arcHeight}, ${x2} ${y2 - arcHeight}, ${x2} ${y2}`;
+          } else {
+            const y1 = rectFrom.bottom - containerRect.top;
+            const y2 = rectTo.top - containerRect.top;
+            const offsetDirection = (index % 2 === 0) ? 1 : -1;
+            const curveOffset = (levelDistance > 1) ? (levelDistance * 18 * offsetDirection) : 0;
+            const controlY1 = y1 + (Math.abs(y2 - y1) * 0.45);
+            const controlY2 = y2 - (Math.abs(y2 - y1) * 0.45);
+
+            pathData = `M ${x1} ${y1} C ${x1 + curveOffset} ${controlY1}, ${x2 + curveOffset} ${controlY2}, ${x2} ${y2}`;
+          }
         } else {
-          // Prerrequisitos de >1 nivel: RUTA LARGA TIPO CIRCUITO (5 segmentos)
-          const y1 = rectFrom.bottom - containerRect.top;
-          const y2 = rectTo.top - containerRect.top;
-          
-          // 1. Bajar al primer pasillo vacío (justo debajo del origen)
-          const y_pasillo1 = y1 + 15 + (index % 4) * 5;
-          
-          // 2. Carril vertical seguro: Usamos el margen izquierdo de la tarjeta destino.
-          // Como las columnas tienen un 'gap' de 14px, al restar 7px nos metemos exactamente 
-          // en el centro de ese espacio vacío, evitando chocar con las tarjetas.
-          const laneX = rectTo.left - containerRect.left - 7 + (index % 3) * 4 - 4;
-          
-          // 3. Bajar en caída libre hasta el pasillo vacío (justo arriba del destino)
-          const y_pasillo2 = y2 - 15 - (index % 4) * 5;
-          
-          // 4. Trazar la línea SVG uniendo las coordenadas
-          pathData = `M ${x1} ${y1} V ${y_pasillo1} H ${laneX} V ${y_pasillo2} H ${x2} V ${y2}`;
+          // --- MODO LÍNEAS RECTAS / ORTOGONALES ---
+          if (isSameLevel) {
+            const y1 = rectFrom.top - containerRect.top;
+            const y2 = rectTo.top - containerRect.top;
+            const upOffset = 15 + (index % 4) * 6;
+            pathData = `M ${x1} ${y1} V ${y1 - upOffset} H ${x2} V ${y2}`;
+          } else if (levelDistance === 1) {
+            const y1 = rectFrom.bottom - containerRect.top;
+            const y2 = rectTo.top - containerRect.top;
+            const midY = y1 + (y2 - y1) / 2;
+            const offset = (index % 7) * 5 - 15;
+            pathData = `M ${x1} ${y1} V ${midY + offset} H ${x2} V ${y2}`;
+          } else {
+            // Saltos largos: Ruta de 5 segmentos para esquivar tarjetas
+            const y1 = rectFrom.bottom - containerRect.top;
+            const y2 = rectTo.top - containerRect.top;
+            const y_pasillo1 = y1 + 15 + (index % 4) * 5;
+            const laneX = rectTo.left - containerRect.left - 7 + (index % 3) * 4 - 4;
+            const y_pasillo2 = y2 - 15 - (index % 4) * 5;
+            pathData = `M ${x1} ${y1} V ${y_pasillo1} H ${laneX} V ${y_pasillo2} H ${x2} V ${y2}`;
+          }
         }
 
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         path.setAttribute('d', pathData);
         path.setAttribute('class', `connection ${isSameLevel ? 'corequisite' : ''}`);
-        
         path.style.strokeLinejoin = "round";
         path.style.strokeLinecap = "round";
-
         path.dataset.from = conn.from;
         path.dataset.to = conn.to;
 
