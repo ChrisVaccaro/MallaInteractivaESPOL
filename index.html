@@ -122,7 +122,7 @@
       display: flex;
       flex-direction: column;
       gap: 32px;
-      min-width: 1280px; /* Ancho para 7 columnas */
+      min-width: 1450px; /* Ancho para 8 columnas */
       position: relative;
     }
 
@@ -175,7 +175,7 @@
     .level-content-grid {
       flex: 1;
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
+      grid-template-columns: repeat(8, 1fr);
       gap: 14px;
       padding: 16px;
       background-color: #fafafa;
@@ -373,6 +373,7 @@
           <option value="L400-1">NIVEL 400 - I</option>
           <option value="L400-2">NIVEL 400 - II</option>
           <option value="L500-1">NIVEL 500 - I</option>
+          <option value="L500-2">NIVEL 500 - II</option>
         </select>
       </div>
       <div class="modal-actions">
@@ -388,9 +389,9 @@
   </footer>
 
   <script>
-    const NUM_COLUMNS = 7; // Soporta 7 columnas de ancho
+    const NUM_COLUMNS = 8; // Soporta 8 columnas de ancho
 
-    // Plantilla en blanco universal con 9 semestres
+    // Plantilla en blanco universal con 10 semestres
     const initialData = {
       "levels": [
         { "id": "L100-1", "name": "NIVEL 100 - I" },
@@ -401,7 +402,8 @@
         { "id": "L300-2", "name": "NIVEL 300 - II" },
         { "id": "L400-1", "name": "NIVEL 400 - I" },
         { "id": "L400-2", "name": "NIVEL 400 - II" },
-        { "id": "L500-1", "name": "NIVEL 500 - I" }
+        { "id": "L500-1", "name": "NIVEL 500 - I" },
+        { "id": "L500-2", "name": "NIVEL 500 - II" }
       ],
       "subjects": [],
       "connections": []
@@ -731,45 +733,40 @@
 
         const isSameLevel = (subjFrom && subjTo && subjFrom.level === subjTo.level);
 
+        const levelFromIdx = state.levels.findIndex(l => l.id === subjFrom.level);
+        const levelToIdx = state.levels.findIndex(l => l.id === subjTo.level);
+        const levelDistance = Math.abs(levelToIdx - levelFromIdx);
+
         let pathData = "";
 
         if (isSameLevel) {
-          // Correquisitos: Enrutamiento ortogonal por encima de la tarjeta
           const x1 = rectFrom.left + rectFrom.width / 2 - containerRect.left;
           const y1 = rectFrom.top - containerRect.top;
           const x2 = rectTo.left + rectTo.width / 2 - containerRect.left;
           const y2 = rectTo.top - containerRect.top;
 
-          // Desfase para que si hay varios correquisitos no se encimen
-          const upOffset = 15 + (index % 4) * 6; 
-          
-          // Dibuja: Sube verticalmente (V), cruza horizontalmente (H), baja verticalmente (V)
-          pathData = `M ${x1} ${y1} V ${y1 - upOffset} H ${x2} V ${y2}`;
+          const distance = Math.abs(x2 - x1);
+          const arcHeight = Math.min(Math.max(distance * 0.35, 25), 50);
+
+          pathData = `M ${x1} ${y1} C ${x1} ${y1 - arcHeight}, ${x2} ${y2 - arcHeight}, ${x2} ${y2}`;
         } else {
-          // Prerrequisitos: Enrutamiento ortogonal (tipo diagrama de flujo)
           const x1 = rectFrom.left + rectFrom.width / 2 - containerRect.left;
           const y1 = rectFrom.bottom - containerRect.top;
           const x2 = rectTo.left + rectTo.width / 2 - containerRect.left;
           const y2 = rectTo.top - containerRect.top;
 
-          // Calcula el punto medio vertical (justo en el "pasillo" entre niveles)
-          const midY = y1 + (y2 - y1) / 2;
-          
-          // Desfase para crear "carriles" paralelos y evitar que las líneas se oculten unas bajo otras
-          const offset = (index % 7) * 5 - 15; 
+          const offsetDirection = (index % 2 === 0) ? 1 : -1;
+          const curveOffset = (levelDistance > 1) ? (levelDistance * 18 * offsetDirection) : 0;
 
-          // Dibuja: Baja verticalmente (V), avanza horizontalmente por el pasillo (H), baja verticalmente (V)
-          pathData = `M ${x1} ${y1} V ${midY + offset} H ${x2} V ${y2}`;
+          const controlY1 = y1 + (Math.abs(y2 - y1) * 0.45);
+          const controlY2 = y2 - (Math.abs(y2 - y1) * 0.45);
+
+          pathData = `M ${x1} ${y1} C ${x1 + curveOffset} ${controlY1}, ${x2 + curveOffset} ${controlY2}, ${x2} ${y2}`;
         }
 
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         path.setAttribute('d', pathData);
         path.setAttribute('class', `connection ${isSameLevel ? 'corequisite' : ''}`);
-        
-        // Estilos para suavizar las esquinas de 90 grados
-        path.style.strokeLinejoin = "round";
-        path.style.strokeLinecap = "round";
-
         path.dataset.from = conn.from;
         path.dataset.to = conn.to;
 
@@ -845,7 +842,8 @@
               { "id": "L300-2", "name": "NIVEL 300 - II" },
               { "id": "L400-1", "name": "NIVEL 400 - I" },
               { "id": "L400-2", "name": "NIVEL 400 - II" },
-              { "id": "L500-1", "name": "NIVEL 500 - I" }
+              { "id": "L500-1", "name": "NIVEL 500 - I" },
+              { "id": "L500-2", "name": "NIVEL 500 - II" }
             ];
 
             saveStateToHistory();
