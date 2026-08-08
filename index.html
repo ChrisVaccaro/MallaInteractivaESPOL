@@ -70,16 +70,31 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
 
+    /* BARRA DE HERRAMIENTAS AGRUPADA */
     .toolbar {
       display: flex;
       justify-content: center;
+      align-items: center;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 12px;
       margin-bottom: 20px;
       background: white;
       padding: 12px;
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .toolbar-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .toolbar-divider {
+      width: 2px;
+      height: 24px;
+      background-color: #cbd5e1;
+      border-radius: 1px;
     }
 
     button {
@@ -90,14 +105,37 @@
       cursor: pointer;
       font-weight: 600;
       transition: all 0.2s;
+      color: #334155;
     }
 
     button:hover { background-color: #f1f5f9; }
-    button.active { background-color: var(--accent-color); color: white; border-color: var(--accent-color); }
+    button.active { 
+      background-color: var(--accent-color); 
+      color: white; 
+      border-color: var(--accent-color); 
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .btn-add { background-color: #10b981; color: white; border-color: #10b981; }
     .btn-add:hover { background-color: #059669; }
+    
+    .btn-help { 
+      background-color: #f8fafc; 
+      color: #3b82f6; 
+      border: 1px solid #93c5fd;
+      font-weight: 700;
+    }
+    .btn-help:hover { 
+      background-color: #eff6ff; 
+      color: #1d4ed8;
+      border-color: #3b82f6;
+    }
+
+    .btn-icon-only { padding: 8px; width: 36px; display: flex; justify-content: center; align-items: center; }
+
+    .btn-danger { color: #dc2626; border-color: #fca5a5; background-color: #fef2f2; }
+    .btn-danger:hover { background-color: #fee2e2; }
 
     /* CONTENEDOR PRINCIPAL */
     .board-container {
@@ -220,8 +258,10 @@
       z-index: 15 !important;
     }
 
+    /* MATERIA SELECCIONADA (AZUL) CON EL MISMO GROSOR Y SOMBRA QUE ROJA/VERDE */
     .subject-card.pinned {
-      box-shadow: 0 0 0 3px #2563eb, 0 4px 10px rgba(37,99,235,0.3) !important;
+      border: 3.5px solid var(--accent-color) !important;
+      box-shadow: 0 0 10px rgba(37, 99, 235, 0.4) !important;
     }
 
     .subject-card.basic-math {
@@ -254,11 +294,21 @@
 
     .subject-card:hover .edit-btn { display: flex; }
 
-    /* Resaltados */
-    .subject-card.highlight-req { border-color: var(--highlight-req) !important; background-color: #fef2f2 !important; color: #0f172a !important; }
+    /* RESALTADOS GRUESOS (ROJO Y VERDE VISIBLES) */
+    .subject-card.highlight-req { 
+      border: 3.5px solid var(--highlight-req) !important; 
+      background-color: #fef2f2 !important; 
+      color: #0f172a !important; 
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.4) !important;
+    }
     .subject-card.highlight-req * { color: #0f172a !important; }
 
-    .subject-card.highlight-next { border-color: var(--highlight-next) !important; background-color: #ecfdf5 !important; color: #0f172a !important; }
+    .subject-card.highlight-next { 
+      border: 3.5px solid var(--highlight-next) !important; 
+      background-color: #ecfdf5 !important; 
+      color: #0f172a !important; 
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.4) !important;
+    }
     .subject-card.highlight-next * { color: #0f172a !important; }
 
     .subject-card.connecting-source { border-color: #f59e0b !important; box-shadow: 0 0 12px #f59e0b; }
@@ -293,13 +343,26 @@
       opacity: 1 !important;
     }
 
-    /* Modal */
+    /* Modales */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(15, 23, 42, 0.5); display: none;
       justify-content: center; align-items: center; z-index: 200;
+      padding: 15px;
+      box-sizing: border-box;
     }
-    .modal { background: white; border-radius: 10px; padding: 24px; width: 420px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    
+    .modal { 
+      background: white; 
+      border-radius: 10px; 
+      padding: 24px; 
+      width: 420px; 
+      max-width: 90vw;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+    }
+
     .modal h2 { margin-top: 0; font-size: 1.2em; color: var(--primary-color); }
     .form-group { margin-bottom: 14px; }
     .form-group label { display: block; font-size: 0.85em; font-weight: 600; margin-bottom: 4px; }
@@ -325,16 +388,33 @@
   </div>
 
   <div class="toolbar">
-    <button id="btn-mode-drag" class="active" onclick="setMode('drag')">🖐️ Modo Mover / Organizar</button>
-    <button id="btn-mode-connect" onclick="setMode('connect')">🔗 Modo Requisitos</button>
-    <button id="btn-toggle-lines" class="active" onclick="toggleLineType()">🌊 Líneas: Curvas</button>
-    <button id="btn-undo" onclick="undo()" title="Deshacer (Ctrl+Z)">↩️ Deshacer</button>
-    <button id="btn-redo" onclick="redo()" title="Rehacer (Ctrl+Y)">↪️ Rehacer</button>
-    <button class="btn-add" onclick="openModalForCreate()">➕ Nueva Materia</button>
-    <button onclick="exportJSON()">💾 Guardar / Exportar JSON</button>
-    <button onclick="triggerImportJSON()">📂 Cargar JSON</button>
-    <input type="file" id="import-file-input" accept=".json" style="display: none;" onchange="importJSON(event)">
-    <button onclick="resetLayout()" style="color: #dc2626;">🔄 Reiniciar Malla</button>
+    <div class="toolbar-group">
+      <button id="btn-mode-toggle" class="active" onclick="toggleInteractionMode()">🖐️ Modo: Mover</button>
+      <button id="btn-toggle-lines" class="active" onclick="toggleLineType()">〰️ Líneas: Curvas</button>
+      <button class="btn-add" onclick="openModalForCreate()">➕ Nueva Materia</button>
+    </div>
+
+    <div class="toolbar-divider"></div>
+
+    <div class="toolbar-group">
+      <button id="btn-undo" class="btn-icon-only" onclick="undo()" title="Deshacer (Ctrl+Z)">↩️</button>
+      <button id="btn-redo" class="btn-icon-only" onclick="redo()" title="Rehacer (Ctrl+Y)">↪️</button>
+    </div>
+
+    <div class="toolbar-divider"></div>
+
+    <div class="toolbar-group">
+      <button onclick="exportJSON()">💾 Exportar JSON</button>
+      <button onclick="triggerImportJSON()">📂 Cargar JSON</button>
+      <input type="file" id="import-file-input" accept=".json" style="display: none;" onchange="importJSON(event)">
+      <button class="btn-danger" onclick="resetLayout()">🗑️ Vaciar Malla</button>
+    </div>
+
+    <div class="toolbar-divider"></div>
+
+    <div class="toolbar-group">
+      <button class="btn-help" onclick="openHelpModal()">❓ Ayuda</button>
+    </div>
   </div>
 
   <div class="board-container" id="board-container">
@@ -374,13 +454,31 @@
           <option value="L400-1">NIVEL 400 - I</option>
           <option value="L400-2">NIVEL 400 - II</option>
           <option value="L500-1">NIVEL 500 - I</option>
-          <option value="L500-2">NIVEL 500 - II</option>
         </select>
       </div>
       <div class="modal-actions">
         <button onclick="closeModal()">Cancelar</button>
         <button id="btn-delete" onclick="deleteSubject()" style="color: #dc2626; display: none;">🗑️ Eliminar</button>
         <button onclick="saveSubjectFromModal()" style="background-color: var(--accent-color); color: white;">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="help-modal-overlay">
+    <div class="modal" style="width: 580px;">
+      <h2 style="margin-top: 0; color: var(--primary-color);">Guía de Uso: Malla Curricular Interactiva</h2>
+      <ul style="padding-left: 20px; color: #475569; font-size: 0.95em; line-height: 1.6; text-align: justify;">
+        <li><b>Modos de Interacción:</b> Puedes alternar con el botón entre Mover materias (arrastrar y soltar libremente) y Modo Requisitos (hacer clic en dos materias para conectarlas).</li>
+        <li><b>Visualización de Requisitos:</b> Al pasar el cursor sobre cualquier materia, se resaltará su ruta académica en rojo (prerrequisitos) y verde (materias futuras).</li>
+        <li><b>Ciencias Básicas:</b> Se ha dado mayor interés a las asignaturas de Ciencias Básicas y Matemáticas, resaltándolas en color celeste.</li>
+        <li><b>Estilo de Conexiones:</b> Puedes alternar la visualización entre líneas curvas o rectas.</li>
+        <li><b>Atajos de Teclado:</b> Utiliza Ctrl + Z para Deshacer un cambio y Ctrl + Y para Rehacer.</li>
+        <li><b>Guardado Manual:</b> La página no guarda los cambios automáticamente. Para no perder un trabajo significativo, asegúrate de Exportar el JSON y luego usar Cargar JSON cuando necesites retomar el trabajo.</li>
+        <li><b>Prácticas Empresariales:</b> El contador total ya suma automáticamente los 5 créditos obligatorios de prácticas empresariales, por lo que no es necesario agregarlas como materia en la malla.</li>
+        <li><b>Plantillas Base:</b> Si necesitas generar la malla actual de tu carrera, puedes <a href="https://espolec.sharepoint.com/:f:/s/AjusteCurricular2027/IgCeuQkBZBv6S7KsD7vOrHULAe30C9qW5WQ3jS8-X-nCEQI?e=a8uCjb" target="_blank" style="color: var(--accent-color); font-weight: bold; text-decoration: underline;">descargar los archivos JSON base desde esta carpeta</a> y cargarlos en la plataforma.</li>
+      </ul>
+      <div class="modal-actions" style="justify-content: flex-end; margin-top: 25px;">
+        <button onclick="closeHelpModal()" style="background-color: var(--accent-color); color: white; padding: 10px 20px;">Entendido</button>
       </div>
     </div>
   </div>
@@ -392,7 +490,7 @@
   <script>
     const NUM_COLUMNS = 8; // Soporta 8 columnas de ancho
 
-    // Plantilla en blanco universal con 10 semestres
+    // Plantilla universal con 9 semestres
     const initialData = {
       "levels": [
         { "id": "L100-1", "name": "NIVEL 100 - I" },
@@ -403,8 +501,7 @@
         { "id": "L300-2", "name": "NIVEL 300 - II" },
         { "id": "L400-1", "name": "NIVEL 400 - I" },
         { "id": "L400-2", "name": "NIVEL 400 - II" },
-        { "id": "L500-1", "name": "NIVEL 500 - I" },
-        { "id": "L500-2", "name": "NIVEL 500 - II" }
+        { "id": "L500-1", "name": "NIVEL 500 - I" }
       ],
       "subjects": [],
       "connections": []
@@ -415,18 +512,56 @@
     let selectedSourceId = null;
     let pinnedSubjectId = null;
     
-    // Nueva variable para el tipo de línea (curved por defecto)
-    let lineType = 'curved'; // Puede ser 'orthogonal' o 'curved'
+    // Tipo de línea (curved por defecto)
+    let lineType = 'curved'; 
 
     let historyStack = [];
     let redoStack = [];
+
+    // Funciones del Modal de Ayuda
+    function openHelpModal() {
+      document.getElementById('help-modal-overlay').style.display = 'flex';
+    }
+    function closeHelpModal() {
+      document.getElementById('help-modal-overlay').style.display = 'none';
+    }
+
+    // Alternar entre Modo Mover y Modo Requisitos
+    function toggleInteractionMode() {
+      if (currentMode === 'drag') {
+        setMode('connect');
+      } else {
+        setMode('drag');
+      }
+    }
+
+    function setMode(mode) {
+      currentMode = mode;
+      selectedSourceId = null;
+      pinnedSubjectId = null;
+
+      const btnMode = document.getElementById('btn-mode-toggle');
+      if (btnMode) {
+        if (mode === 'drag') {
+          btnMode.innerHTML = '🖐️ Modo: Mover';
+        } else {
+          btnMode.innerHTML = '🔗 Modo: Requisitos';
+        }
+        // Ambos modos usan el mismo estilo visual unificado sin color extra
+        btnMode.className = 'active'; 
+      }
+
+      clearHighlights();
+      renderBoard();
+      drawConnections();
+    }
 
     // Función para alternar el tipo de línea
     function toggleLineType() {
       const btn = document.getElementById('btn-toggle-lines');
       if (lineType === 'orthogonal') {
         lineType = 'curved';
-        btn.innerHTML = '🌊 Líneas: Curvas';
+        btn.innerHTML = '〰️ Líneas: Curvas';
         btn.classList.add('active');
       } else {
         lineType = 'orthogonal';
@@ -518,7 +653,7 @@
       const totalSummaryEl = document.getElementById('total-credits-summary');
       if (totalSummaryEl) {
         if (state.subjects.length > 0) {
-          totalSummaryEl.innerHTML = `🎓 Total Créditos Malla: <b>${grandTotalCredits}</b> <span style="font-size:0.85em; font-weight:normal; opacity:0.85;">(incluye 5 CR Prácticas Preprofesionales)</span>`;
+          totalSummaryEl.innerHTML = `🎓 Total Créditos Malla: <b>${grandTotalCredits}</b>`;
         } else {
           totalSummaryEl.innerHTML = `🎓 Total Créditos Malla: <b>0</b>`;
         }
@@ -548,17 +683,6 @@
           document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned'));
         }
       });
-    }
-
-    function setMode(mode) {
-      currentMode = mode;
-      selectedSourceId = null;
-      pinnedSubjectId = null;
-      document.getElementById('btn-mode-drag').classList.toggle('active', mode === 'drag');
-      document.getElementById('btn-mode-connect').classList.toggle('active', mode === 'connect');
-      clearHighlights();
-      renderBoard();
-      drawConnections();
     }
 
     function renderBoard() {
@@ -752,14 +876,14 @@
         const levelDistance = Math.abs(levelToIdx - levelFromIdx);
         const isSameLevel = (levelDistance === 0);
 
-        // Centro absoluto por defecto (Ideal para líneas curvas)
+        // Centro absoluto por defecto
         let x1 = rectFrom.left + rectFrom.width / 2 - containerRect.left;
         let x2 = rectTo.left + rectTo.width / 2 - containerRect.left;
 
         let pathData = "";
 
         if (lineType === 'curved') {
-          // --- MODO LÍNEAS CURVAS (Nacen del mismo punto central) ---
+          // --- MODO LÍNEAS CURVAS ---
           if (isSameLevel) {
             const y1 = rectFrom.top - containerRect.top;
             const y2 = rectTo.top - containerRect.top;
@@ -778,7 +902,7 @@
             pathData = `M ${x1} ${y1} C ${x1 + curveOffset} ${controlY1}, ${x2 + curveOffset} ${controlY2}, ${x2} ${y2}`;
           }
         } else {
-          // --- MODO LÍNEAS RECTAS (Aplicamos los desfases/enchufes) ---
+          // --- MODO LÍNEAS RECTAS ---
           const xOffset1 = (index % 5) * 10 - 20; 
           const xOffset2 = ((index + 2) % 5) * 10 - 20; 
           
@@ -797,7 +921,6 @@
             const offset = (index % 7) * 5 - 15;
             pathData = `M ${x1} ${y1} V ${midY + offset} H ${x2} V ${y2}`;
           } else {
-            // Saltos largos: Ruta de 5 segmentos para esquivar tarjetas
             const y1 = rectFrom.bottom - containerRect.top;
             const y2 = rectTo.top - containerRect.top;
             const y_pasillo1 = y1 + 15 + (index % 4) * 5;
@@ -877,7 +1000,7 @@
           const importedData = JSON.parse(e.target.result);
           if (importedData.levels && importedData.subjects && importedData.connections) {
             
-            // Forzar siempre los 10 semestres universales para compatibilidad con JSON viejos
+            // Forzar siempre los 9 semestres para asegurar consistencia
             importedData.levels = [
               { "id": "L100-1", "name": "NIVEL 100 - I" },
               { "id": "L100-2", "name": "NIVEL 100 - II" },
@@ -887,8 +1010,7 @@
               { "id": "L300-2", "name": "NIVEL 300 - II" },
               { "id": "L400-1", "name": "NIVEL 400 - I" },
               { "id": "L400-2", "name": "NIVEL 400 - II" },
-              { "id": "L500-1", "name": "NIVEL 500 - I" },
-              { "id": "L500-2", "name": "NIVEL 500 - II" }
+              { "id": "L500-1", "name": "NIVEL 500 - I" }
             ];
 
             saveStateToHistory();
@@ -994,7 +1116,7 @@
     }
 
     function resetLayout() {
-      if (confirm('¿Deseas reiniciar la malla y borrar todo el contenido?')) {
+      if (confirm('¿Deseas vaciar la malla y borrar todo el contenido?')) {
         saveStateToHistory();
         state = JSON.parse(JSON.stringify(initialData));
         pinnedSubjectId = null;
