@@ -347,8 +347,10 @@
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(15, 23, 42, 0.5); display: none;
-      justify-content: center; align-items: center; z-index: 200;
-      padding: 15px;
+      justify-content: center; 
+      align-items: flex-start; /* Alineación superior base */
+      z-index: 200;
+      padding: 0 15px 15px 15px; /* Se elimina el padding top general */
       box-sizing: border-box;
     }
     
@@ -361,6 +363,8 @@
       max-height: 85vh;
       overflow-y: auto;
       box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+      margin-top: 30px; /* Separación por defecto de 30px del techo */
+      transition: margin-top 0.1s ease-out; /* Suave animación si cambia de altura */
     }
 
     .modal h2 { margin-top: 0; font-size: 1.2em; color: var(--primary-color); }
@@ -391,7 +395,7 @@
     <div class="toolbar-group">
       <button id="btn-mode-toggle" class="active" onclick="toggleInteractionMode()">🖐️ Modo: Mover</button>
       <button id="btn-toggle-lines" class="active" onclick="toggleLineType()">〰️ Líneas: Curvas</button>
-      <button class="btn-add" onclick="openModalForCreate()">➕ Nueva Materia</button>
+      <button class="btn-add" onclick="openModalForCreate(event)">➕ Nueva Materia</button>
     </div>
 
     <div class="toolbar-divider"></div>
@@ -423,7 +427,7 @@
   </div>
 
   <div class="modal-overlay" id="modal-overlay">
-    <div class="modal">
+    <div class="modal" id="edit-modal-box">
       <h2 id="modal-title">Agregar Nueva Materia</h2>
       <input type="hidden" id="edit-id">
       <div class="form-group"><label>Nombre de la Materia:</label><input type="text" id="edit-name" placeholder="Ej: CÁLCULO VECTORIAL"></div>
@@ -465,7 +469,7 @@
   </div>
 
   <div class="modal-overlay" id="help-modal-overlay">
-    <div class="modal" style="width: 580px;">
+    <div class="modal" id="help-modal-box" style="width: 580px;">
       <h2 style="margin-top: 0; color: var(--primary-color);">Guía de Uso: Malla Curricular Interactiva</h2>
       <ul style="padding-left: 20px; color: #475569; font-size: 0.95em; line-height: 1.6; text-align: justify;">
         <li><b>Modos de Interacción:</b> Puedes alternar con el botón entre Mover materias (arrastrar y soltar libremente) y Modo Requisitos (hacer clic en dos materias para conectarlas).</li>
@@ -518,8 +522,9 @@
     let historyStack = [];
     let redoStack = [];
 
-    // Funciones del Modal de Ayuda
+    // Funciones del Modal de Ayuda (Siempre a 30px arriba)
     function openHelpModal() {
+      document.getElementById('help-modal-box').style.marginTop = '30px';
       document.getElementById('help-modal-overlay').style.display = 'flex';
     }
     function closeHelpModal() {
@@ -547,7 +552,6 @@
         } else {
           btnMode.innerHTML = '🔗 Modo: Requisitos';
         }
-        // Ambos modos usan el mismo estilo visual unificado sin color extra
         btnMode.className = 'active'; 
       }
 
@@ -1030,8 +1034,8 @@
       event.target.value = '';
     }
 
-    /* MODAL DE EDICIÓN / CREACIÓN */
-    function openModalForCreate() {
+    /* MODAL DE EDICIÓN / CREACIÓN (DINÁMICO SEGÚN EL MOUSE) */
+    function openModalForCreate(e) {
       document.getElementById('modal-title').innerText = 'Agregar Nueva Materia';
       document.getElementById('edit-id').value = '';
       document.getElementById('edit-name').value = '';
@@ -1041,6 +1045,16 @@
       document.getElementById('edit-is-basic').checked = false;
       document.getElementById('level-select-group').style.display = 'block';
       document.getElementById('btn-delete').style.display = 'none';
+      
+      const modalBox = document.getElementById('edit-modal-box');
+      let yPos = e && e.clientY ? e.clientY - 50 : 30; // Posicionar donde esté el mouse
+      
+      // Límite inferior para que no se corte si haces clic muy abajo
+      const maxH = window.innerHeight;
+      if (yPos + 480 > maxH) { yPos = maxH - 480; }
+      if (yPos < 30) yPos = 30; // Mínimo 30px del techo
+      
+      modalBox.style.marginTop = yPos + 'px';
       document.getElementById('modal-overlay').style.display = 'flex';
     }
 
@@ -1058,6 +1072,15 @@
       document.getElementById('edit-is-basic').checked = checkIsBasic(subj);
       document.getElementById('level-select-group').style.display = 'none';
       document.getElementById('btn-delete').style.display = 'block';
+      
+      const modalBox = document.getElementById('edit-modal-box');
+      let yPos = e.clientY - 50; // Posicionar un poco más arriba de donde se hizo clic
+      
+      const maxH = window.innerHeight;
+      if (yPos + 480 > maxH) { yPos = maxH - 480; }
+      if (yPos < 30) yPos = 30;
+      
+      modalBox.style.marginTop = yPos + 'px';
       document.getElementById('modal-overlay').style.display = 'flex';
     }
 
