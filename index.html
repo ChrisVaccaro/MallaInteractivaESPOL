@@ -117,6 +117,13 @@
     }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
 
+    /* ESTILO PARA MODO CONECTAR/REQUISITOS */
+    button.btn-connect-mode {
+      background-color: #d97706 !important;
+      color: white !important;
+      border-color: #b45309 !important;
+    }
+
     .btn-add { background-color: #10b981; color: white; border-color: #10b981; }
     .btn-add:hover { background-color: #059669; }
     
@@ -137,12 +144,17 @@
     .btn-danger { color: #dc2626; border-color: #fca5a5; background-color: #fef2f2; }
     .btn-danger:hover { background-color: #fee2e2; }
 
-    /* CONTENEDOR PRINCIPAL */
+    /* CONTENEDORES PRINCIPALES (ESTRUCTURA CORREGIDA) */
     .board-container {
-      position: relative;
       width: 100%;
       overflow-x: auto;
       padding-top: 25px;
+      padding-bottom: 25px;
+    }
+
+    .board-wrapper {
+      position: relative;
+      min-width: 1450px;
     }
 
     /* CAPA INTERMEDIA: LÍNEAS SVG EN Z-INDEX: 5 */
@@ -150,8 +162,8 @@
       position: absolute;
       top: 0;
       left: 0;
-      min-width: 100%;
-      min-height: 100%;
+      width: 100%;
+      height: 100%;
       pointer-events: none;
       z-index: 5 !important;
     }
@@ -160,7 +172,6 @@
       display: flex;
       flex-direction: column;
       gap: 32px;
-      min-width: 1450px; /* Ancho para 8 columnas */
       position: relative;
     }
 
@@ -258,7 +269,7 @@
       z-index: 15 !important;
     }
 
-    /* MATERIA SELECCIONADA (AZUL) CON EL MISMO GROSOR Y SOMBRA QUE ROJA/VERDE */
+    /* MATERIA SELECCIONADA (AZUL) */
     .subject-card.pinned {
       border: 3.5px solid var(--accent-color) !important;
       box-shadow: 0 0 10px rgba(37, 99, 235, 0.4) !important;
@@ -422,8 +433,10 @@
   </div>
 
   <div class="board-container" id="board-container">
-    <svg id="connections-layer"></svg>
-    <div class="board" id="board"></div>
+    <div class="board-wrapper" id="board-wrapper">
+      <svg id="connections-layer"></svg>
+      <div class="board" id="board"></div>
+    </div>
   </div>
 
   <div class="modal-overlay" id="modal-overlay">
@@ -857,17 +870,14 @@
       }
     }
 
+    /* FUNCIÓN CORREGIDA A PRUEBA DE BALAS */
     function drawConnections() {
       const svg = document.getElementById('connections-layer');
-      const boardEl = document.getElementById('board');
+      const wrapperEl = document.getElementById('board-wrapper');
       svg.innerHTML = '';
 
-      // EL GRAN ARREGLO: Hacer que el lienzo SVG mida igual que el tablero real
-      svg.style.width = boardEl.scrollWidth + 'px';
-      svg.style.height = boardEl.scrollHeight + 'px';
-
-      // Tomamos las coordenadas del tablero que nos sirve de "Ancla Cero"
-      const boardRect = boardEl.getBoundingClientRect();
+      // El SVG mide exactamente lo mismo que el Wrapper
+      const wrapperRect = wrapperEl.getBoundingClientRect();
 
       state.connections.forEach((conn, index) => {
         const fromCard = document.getElementById(`card-${conn.from}`);
@@ -886,28 +896,24 @@
         const levelDistance = Math.abs(levelToIdx - levelFromIdx);
         const isSameLevel = (levelDistance === 0);
 
-        // CORRECCIÓN EXACTA: Calculamos el centro horizontal sumando el ancho de la propia tarjeta / 2.
-        // Y para la posición base, usamos el "left" de la tarjeta menos el "left" del tablero
-        // sumando el desplazamiento horizontal interno (scrollLeft) del tablero.
-        let scrollOffsetX = document.querySelector('.board-container').scrollLeft;
-
-        let x1 = (rectFrom.left - boardRect.left) + (rectFrom.width / 2) + scrollOffsetX;
-        let x2 = (rectTo.left - boardRect.left) + (rectTo.width / 2) + scrollOffsetX;
+        // COORDENADAS EXACTAS RELATIVAS AL WRAPPER (Adiós problema de scroll)
+        let x1 = (rectFrom.left - wrapperRect.left) + (rectFrom.width / 2);
+        let x2 = (rectTo.left - wrapperRect.left) + (rectTo.width / 2);
 
         let pathData = "";
 
         if (lineType === 'curved') {
           // --- MODO LÍNEAS CURVAS ---
           if (isSameLevel) {
-            const y1 = rectFrom.top - boardRect.top;
-            const y2 = rectTo.top - boardRect.top;
+            const y1 = rectFrom.top - wrapperRect.top;
+            const y2 = rectTo.top - wrapperRect.top;
             const distance = Math.abs(x2 - x1);
             const arcHeight = Math.min(Math.max(distance * 0.35, 25), 50);
 
             pathData = `M ${x1} ${y1} C ${x1} ${y1 - arcHeight}, ${x2} ${y2 - arcHeight}, ${x2} ${y2}`;
           } else {
-            const y1 = rectFrom.bottom - boardRect.top;
-            const y2 = rectTo.top - boardRect.top;
+            const y1 = rectFrom.bottom - wrapperRect.top;
+            const y2 = rectTo.top - wrapperRect.top;
             const offsetDirection = (index % 2 === 0) ? 1 : -1;
             const curveOffset = (levelDistance > 1) ? (levelDistance * 18 * offsetDirection) : 0;
             const controlY1 = y1 + (Math.abs(y2 - y1) * 0.45);
@@ -924,21 +930,21 @@
           x2 += xOffset2;
 
           if (isSameLevel) {
-            const y1 = rectFrom.top - boardRect.top;
-            const y2 = rectTo.top - boardRect.top;
+            const y1 = rectFrom.top - wrapperRect.top;
+            const y2 = rectTo.top - wrapperRect.top;
             const upOffset = 15 + (index % 4) * 6;
             pathData = `M ${x1} ${y1} V ${y1 - upOffset} H ${x2} V ${y2}`;
           } else if (levelDistance === 1) {
-            const y1 = rectFrom.bottom - boardRect.top;
-            const y2 = rectTo.top - boardRect.top;
+            const y1 = rectFrom.bottom - wrapperRect.top;
+            const y2 = rectTo.top - wrapperRect.top;
             const midY = y1 + (y2 - y1) / 2;
             const offset = (index % 7) * 5 - 15;
             pathData = `M ${x1} ${y1} V ${midY + offset} H ${x2} V ${y2}`;
           } else {
-            const y1 = rectFrom.bottom - boardRect.top;
-            const y2 = rectTo.top - boardRect.top;
+            const y1 = rectFrom.bottom - wrapperRect.top;
+            const y2 = rectTo.top - wrapperRect.top;
             const y_pasillo1 = y1 + 15 + (index % 4) * 5;
-            const laneX = rectTo.left - boardRect.left + scrollOffsetX - 7 + (index % 3) * 4 - 4;
+            const laneX = rectTo.left - wrapperRect.left - 7 + (index % 3) * 4 - 4;
             const y_pasillo2 = y2 - 15 - (index % 4) * 5;
             pathData = `M ${x1} ${y1} V ${y_pasillo1} H ${laneX} V ${y_pasillo2} H ${x2} V ${y2}`;
           }
