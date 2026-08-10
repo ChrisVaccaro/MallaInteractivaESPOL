@@ -862,11 +862,11 @@
       const boardEl = document.getElementById('board');
       svg.innerHTML = '';
 
-      // EL GRAN ARREGLO: Hacer que el lienzo SVG mida igual que el tablero real para que no se recorten las líneas
+      // EL GRAN ARREGLO: Hacer que el lienzo SVG mida igual que el tablero real
       svg.style.width = boardEl.scrollWidth + 'px';
       svg.style.height = boardEl.scrollHeight + 'px';
 
-      // EL GRAN ARREGLO 2: Usar el cuadro del tablero en vez del contenedor visible para ignorar el scroll
+      // Tomamos las coordenadas del tablero que nos sirve de "Ancla Cero"
       const boardRect = boardEl.getBoundingClientRect();
 
       state.connections.forEach((conn, index) => {
@@ -886,9 +886,13 @@
         const levelDistance = Math.abs(levelToIdx - levelFromIdx);
         const isSameLevel = (levelDistance === 0);
 
-        // Centro absoluto relativo al TABLERO, no a la pantalla visible
-        let x1 = rectFrom.left + rectFrom.width / 2 - boardRect.left;
-        let x2 = rectTo.left + rectTo.width / 2 - boardRect.left;
+        // CORRECCIÓN EXACTA: Calculamos el centro horizontal sumando el ancho de la propia tarjeta / 2.
+        // Y para la posición base, usamos el "left" de la tarjeta menos el "left" del tablero
+        // sumando el desplazamiento horizontal interno (scrollLeft) del tablero.
+        let scrollOffsetX = document.querySelector('.board-container').scrollLeft;
+
+        let x1 = (rectFrom.left - boardRect.left) + (rectFrom.width / 2) + scrollOffsetX;
+        let x2 = (rectTo.left - boardRect.left) + (rectTo.width / 2) + scrollOffsetX;
 
         let pathData = "";
 
@@ -934,7 +938,7 @@
             const y1 = rectFrom.bottom - boardRect.top;
             const y2 = rectTo.top - boardRect.top;
             const y_pasillo1 = y1 + 15 + (index % 4) * 5;
-            const laneX = rectTo.left - boardRect.left - 7 + (index % 3) * 4 - 4;
+            const laneX = rectTo.left - boardRect.left + scrollOffsetX - 7 + (index % 3) * 4 - 4;
             const y_pasillo2 = y2 - 15 - (index % 4) * 5;
             pathData = `M ${x1} ${y1} V ${y_pasillo1} H ${laneX} V ${y_pasillo2} H ${x2} V ${y2}`;
           }
