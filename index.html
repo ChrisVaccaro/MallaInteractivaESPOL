@@ -145,7 +145,7 @@
     .btn-danger { color: #dc2626; border-color: #fca5a5; background-color: #fef2f2; }
     .btn-danger:hover { background-color: #fee2e2; }
 
-    /* --- NUEVO: ESTILOS DEL MENÚ DESPLEGABLE (DROPDOWN) --- */
+    /* ESTILOS DEL MENÚ DESPLEGABLE (DROPDOWN) */
     .dropdown {
       position: relative;
       display: inline-block;
@@ -196,7 +196,6 @@
     .dropdown-divider { height: 1px; background-color: var(--border-color); margin: 0; }
     
     .btn-primary-option { color: var(--accent-color) !important; font-weight: 700 !important; }
-    /* ---------------------------------------------------- */
 
     /* CONTENEDORES PRINCIPALES */
     .board-container {
@@ -482,14 +481,14 @@
           <div class="dropdown-divider"></div>
           
           <div class="dropdown-header">FIEC</div>
-          <a href="#" onclick="fetchAndLoadJSON('ENLACE_RAW_TELEMATICA_AQUI')">Telemática</a>
-          <a href="#" onclick="fetchAndLoadJSON('ENLACE_RAW_COMPUTACION_AQUI')">Computación</a>
-          <a href="#" onclick="fetchAndLoadJSON('ENLACE_RAW_ELECTRICIDAD_AQUI')">Electricidad</a>
+          <a href="#" onclick="fetchAndLoadJSON('./plantillas/FIEC/Telemática.json')">Telemática</a>
+          <a href="#" onclick="fetchAndLoadJSON('./plantillas/FIEC/Computación.json')">Computación</a>
+          <a href="#" onclick="fetchAndLoadJSON('./plantillas/FIEC/Electricidad.json')">Electricidad</a>
           
           <div class="dropdown-divider"></div>
           
           <div class="dropdown-header">FCNM</div>
-          <a href="#" onclick="fetchAndLoadJSON('ENLACE_RAW_MATEMATICAS_AQUI')">Matemáticas</a>
+          <a href="#" onclick="fetchAndLoadJSON('./plantillas/FCNM/Matemáticas.json')">Matemáticas</a>
         </div>
       </div>
       
@@ -564,7 +563,7 @@
         <li><b>Atajos de Teclado:</b> Utiliza Ctrl + Z para Deshacer un cambio y Ctrl + Y para Rehacer.</li>
         <li><b>Guardado Manual:</b> La página no guarda los cambios automáticamente. Para no perder un trabajo significativo, asegúrate de Exportar el JSON y luego usar Cargar JSON cuando necesites retomar el trabajo.</li>
         <li><b>Prácticas Empresariales:</b> El contador total ya suma automáticamente los 5 créditos obligatorios de prácticas empresariales, por lo que no es necesario agregarlas como materia en la malla.</li>
-        <li><b>Plantillas Base:</b> Puedes seleccionar tu carrera desde el menú "Cargar JSON", o si necesitas los archivos base, puedes <a href="https://espolec.sharepoint.com/:f:/s/AjusteCurricular2027/IgCeuQkBZBv6S7KsD7vOrHULAe30C9qW5WQ3jS8-X-nCEQI?e=a8uCjb" target="_blank" style="color: var(--accent-color); font-weight: bold; text-decoration: underline;">descargarlos desde esta carpeta</a> y cargarlos localmente.</li>
+        <li><b>Plantillas Base:</b> Ahora puedes seleccionar y cargar la malla de tu carrera directamente desde el menú desplegable "Cargar JSON".</li>
       </ul>
       <div class="modal-actions" style="justify-content: flex-end; margin-top: 25px;">
         <button onclick="closeHelpModal()" style="background-color: var(--accent-color); color: white; padding: 10px 20px;">Entendido</button>
@@ -605,8 +604,9 @@
     let historyStack = [];
     let redoStack = [];
 
-    // --- NUEVO: FUNCIONES DEL MENÚ DESPLEGABLE ---
+    // --- FUNCIONES DEL MENÚ DESPLEGABLE ---
     function toggleJSONDropdown(e) {
+      e.preventDefault();
       e.stopPropagation();
       document.getElementById("dropdown-json").classList.toggle("show");
     }
@@ -763,7 +763,7 @@
       document.body.addEventListener('click', (e) => {
         
         // Cierra el dropdown si se hace clic fuera de él
-        if (!e.target.closest('.dropbtn')) {
+        if (!e.target.closest('.dropbtn') && !e.target.closest('.dropdown-content')) {
           closeAllDropdowns();
         }
 
@@ -1064,17 +1064,18 @@
       event.target.value = '';
     }
 
-    // 2. NUEVO: Carga desde URL de la Nube (SharePoint / GitHub)
+    // 2. NUEVO: Carga desde ruta local en GitHub Pages
     async function fetchAndLoadJSON(url) {
       closeAllDropdowns();
       try {
         const response = await fetch(url);
-        if (!response.ok) throw new Error('Error en la descarga HTTP ' + response.status);
+        if (!response.ok) throw new Error('Archivo no encontrado (' + response.status + ')');
         
         const importedData = await response.json();
         loadDataIntoBoard(importedData);
+        alert('¡Malla cargada con éxito!');
       } catch (err) {
-        alert('⚠️ Error al cargar la carrera.\n\nEs probable que el enlace de SharePoint esté bloqueando la conexión (Seguridad CORS) o el enlace no devuelva un JSON directo.\n\nPor favor, descarga el archivo desde el botón "Ayuda" y usa la opción "Cargar archivo local...".\n\nDetalle técnico: ' + err.message);
+        alert('⚠️ Error al cargar la carrera.\n\nEs probable que el archivo JSON aún no se haya subido a la carpeta correcta en GitHub, o que el nombre no coincida exactamente.\n\nRuta buscada: ' + url + '\nDetalle: ' + err.message);
       }
     }
 
