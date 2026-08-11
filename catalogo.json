@@ -3,15 +3,9 @@
     {
       "nombre": "FIEC",
       "carreras": [
-        { "nombre": "Telemática", "ruta": "./plantillas/FIEC/Telematica.json" },
-        { "nombre": "Computación", "ruta": "./plantillas/FIEC/Computacion.json" },
-        { "nombre": "Electricidad", "ruta": "./plantillas/FIEC/Electricidad.json" }
-      ]
-    },
-    {
-      "nombre": "FCNM",
-      "carreras": [
-        { "nombre": "Matemáticas", "ruta": "./plantillas/FCNM/Matematicas.json" }
+        { "nombre": "Telemática", "ruta": "./plantillas/FIEC/TELEMATICA.json" },
+        { "nombre": "Computación", "ruta": "./plantillas/FIEC/COMPUTACION.json" },
+        { "nombre": "Ciencia de Datos e IA", "ruta": "./plantillas/FIEC/CIENCIA DE DATOS E IA.json" }
       ]
     }
   ]
