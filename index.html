@@ -82,6 +82,7 @@
       padding: 12px;
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      position: relative; /* Para que los dropdowns floten bien */
     }
 
     .toolbar-group {
@@ -144,7 +145,60 @@
     .btn-danger { color: #dc2626; border-color: #fca5a5; background-color: #fef2f2; }
     .btn-danger:hover { background-color: #fee2e2; }
 
-    /* CONTENEDORES PRINCIPALES (ESTRUCTURA CORREGIDA) */
+    /* --- NUEVO: ESTILOS DEL MENÚ DESPLEGABLE (DROPDOWN) --- */
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: white;
+      min-width: 220px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      z-index: 100;
+      top: 110%;
+      left: 0;
+      overflow: hidden;
+    }
+
+    .dropdown-content.show {
+      display: block;
+      animation: fadeIn 0.2s;
+    }
+
+    @keyframes fadeIn { from {opacity: 0; transform: translateY(-10px);} to {opacity: 1; transform: translateY(0);} }
+
+    .dropdown-content a {
+      color: #334155;
+      padding: 10px 16px;
+      text-decoration: none;
+      display: block;
+      font-size: 0.9em;
+      font-weight: 600;
+      transition: background-color 0.2s;
+    }
+
+    .dropdown-content a:hover { background-color: #f1f5f9; color: var(--accent-color); }
+    
+    .dropdown-header {
+      padding: 8px 16px 4px 16px;
+      font-size: 0.75em;
+      font-weight: 800;
+      color: #64748b;
+      text-transform: uppercase;
+      background-color: #f8fafc;
+    }
+
+    .dropdown-divider { height: 1px; background-color: var(--border-color); margin: 0; }
+    
+    .btn-primary-option { color: var(--accent-color) !important; font-weight: 700 !important; }
+    /* ---------------------------------------------------- */
+
+    /* CONTENEDORES PRINCIPALES */
     .board-container {
       width: 100%;
       overflow-x: auto;
@@ -361,7 +415,7 @@
       justify-content: center; 
       align-items: flex-start; /* Alineación superior base */
       z-index: 200;
-      padding: 0 15px 15px 15px; /* Se elimina el padding top general */
+      padding: 0 15px 15px 15px; 
       box-sizing: border-box;
     }
     
@@ -374,8 +428,8 @@
       max-height: 85vh;
       overflow-y: auto;
       box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
-      margin-top: 30px; /* Separación por defecto de 30px del techo */
-      transition: margin-top 0.1s ease-out; /* Suave animación si cambia de altura */
+      margin-top: 30px; 
+      transition: margin-top 0.1s ease-out; 
     }
 
     .modal h2 { margin-top: 0; font-size: 1.2em; color: var(--primary-color); }
@@ -420,8 +474,26 @@
 
     <div class="toolbar-group">
       <button onclick="exportJSON()">💾 Exportar JSON</button>
-      <button onclick="triggerImportJSON()">📂 Cargar JSON</button>
-      <input type="file" id="import-file-input" accept=".json" style="display: none;" onchange="importJSON(event)">
+      
+      <div class="dropdown">
+        <button onclick="toggleJSONDropdown(event)" class="dropbtn">📂 Cargar JSON 🔽</button>
+        <div id="dropdown-json" class="dropdown-content">
+          <a href="#" class="btn-primary-option" onclick="triggerImportJSON();">📁 Cargar archivo local...</a>
+          <div class="dropdown-divider"></div>
+          
+          <div class="dropdown-header">FIEC</div>
+          <a href="#" onclick="fetchAndLoadJSON('ENLACE_RAW_TELEMATICA_AQUI')">Telemática</a>
+          <a href="#" onclick="fetchAndLoadJSON('ENLACE_RAW_COMPUTACION_AQUI')">Computación</a>
+          <a href="#" onclick="fetchAndLoadJSON('ENLACE_RAW_ELECTRICIDAD_AQUI')">Electricidad</a>
+          
+          <div class="dropdown-divider"></div>
+          
+          <div class="dropdown-header">FCNM</div>
+          <a href="#" onclick="fetchAndLoadJSON('ENLACE_RAW_MATEMATICAS_AQUI')">Matemáticas</a>
+        </div>
+      </div>
+      
+      <input type="file" id="import-file-input" accept=".json" style="display: none;" onchange="importJSONFromFile(event)">
       <button class="btn-danger" onclick="resetLayout()">🗑️ Vaciar Malla</button>
     </div>
 
@@ -492,7 +564,7 @@
         <li><b>Atajos de Teclado:</b> Utiliza Ctrl + Z para Deshacer un cambio y Ctrl + Y para Rehacer.</li>
         <li><b>Guardado Manual:</b> La página no guarda los cambios automáticamente. Para no perder un trabajo significativo, asegúrate de Exportar el JSON y luego usar Cargar JSON cuando necesites retomar el trabajo.</li>
         <li><b>Prácticas Empresariales:</b> El contador total ya suma automáticamente los 5 créditos obligatorios de prácticas empresariales, por lo que no es necesario agregarlas como materia en la malla.</li>
-        <li><b>Plantillas Base:</b> Si necesitas generar la malla actual de tu carrera, puedes <a href="https://espolec.sharepoint.com/:f:/s/AjusteCurricular2027/IgCeuQkBZBv6S7KsD7vOrHULAe30C9qW5WQ3jS8-X-nCEQI?e=a8uCjb" target="_blank" style="color: var(--accent-color); font-weight: bold; text-decoration: underline;">descargar los archivos JSON base desde esta carpeta</a> y cargarlos en la plataforma.</li>
+        <li><b>Plantillas Base:</b> Puedes seleccionar tu carrera desde el menú "Cargar JSON", o si necesitas los archivos base, puedes <a href="https://espolec.sharepoint.com/:f:/s/AjusteCurricular2027/IgCeuQkBZBv6S7KsD7vOrHULAe30C9qW5WQ3jS8-X-nCEQI?e=a8uCjb" target="_blank" style="color: var(--accent-color); font-weight: bold; text-decoration: underline;">descargarlos desde esta carpeta</a> y cargarlos localmente.</li>
       </ul>
       <div class="modal-actions" style="justify-content: flex-end; margin-top: 25px;">
         <button onclick="closeHelpModal()" style="background-color: var(--accent-color); color: white; padding: 10px 20px;">Entendido</button>
@@ -505,7 +577,7 @@
   </footer>
 
   <script>
-    const NUM_COLUMNS = 8; // Soporta 8 columnas de ancho
+    const NUM_COLUMNS = 8;
 
     // Plantilla universal con 9 semestres
     const initialData = {
@@ -528,14 +600,27 @@
     let currentMode = 'drag';
     let selectedSourceId = null;
     let pinnedSubjectId = null;
-    
-    // Tipo de línea (curved por defecto)
     let lineType = 'curved'; 
 
     let historyStack = [];
     let redoStack = [];
 
-    // Funciones del Modal de Ayuda (Siempre a 30px arriba)
+    // --- NUEVO: FUNCIONES DEL MENÚ DESPLEGABLE ---
+    function toggleJSONDropdown(e) {
+      e.stopPropagation();
+      document.getElementById("dropdown-json").classList.toggle("show");
+    }
+
+    function closeAllDropdowns() {
+      const dropdowns = document.getElementsByClassName("dropdown-content");
+      for (let i = 0; i < dropdowns.length; i++) {
+        if (dropdowns[i].classList.contains('show')) {
+          dropdowns[i].classList.remove('show');
+        }
+      }
+    }
+
+    // Funciones del Modal de Ayuda
     function openHelpModal() {
       document.getElementById('help-modal-box').style.marginTop = '30px';
       document.getElementById('help-modal-overlay').style.display = 'flex';
@@ -544,13 +629,9 @@
       document.getElementById('help-modal-overlay').style.display = 'none';
     }
 
-    // Alternar entre Modo Mover y Modo Requisitos
+    // Alternar Modos
     function toggleInteractionMode() {
-      if (currentMode === 'drag') {
-        setMode('connect');
-      } else {
-        setMode('drag');
-      }
+      if (currentMode === 'drag') { setMode('connect'); } else { setMode('drag'); }
     }
 
     function setMode(mode) {
@@ -567,13 +648,11 @@
         }
         btnMode.className = 'active'; 
       }
-
       clearHighlights();
       renderBoard();
       drawConnections();
     }
 
-    // Función para alternar el tipo de línea
     function toggleLineType() {
       const btn = document.getElementById('btn-toggle-lines');
       if (lineType === 'orthogonal') {
@@ -619,7 +698,6 @@
       document.getElementById('btn-redo').disabled = (redoStack.length === 0);
     }
 
-    // Teclas de acceso rápido (Deshacer/Rehacer)
     document.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
         if (e.shiftKey) { redo(); } else { undo(); }
@@ -636,9 +714,7 @@
 
     function calculateCredits(subj) {
       const baseCredits = subj.sum / 3;
-      if (subj.isIntegradora || subj.name.toUpperCase().includes("INTEGRADORA")) {
-        return baseCredits + 5;
-      }
+      if (subj.isIntegradora || subj.name.toUpperCase().includes("INTEGRADORA")) { return baseCredits + 5; }
       return baseCredits;
     }
 
@@ -649,9 +725,7 @@
     }
 
     function checkIsBasic(subj) {
-      if (subj.isBasic !== undefined) {
-        return subj.isBasic;
-      }
+      if (subj.isBasic !== undefined) { return subj.isBasic; }
       return isBasicMathSubject(subj.name);
     }
 
@@ -659,21 +733,15 @@
       const basicSubjects = state.subjects.filter(s => checkIsBasic(s));
       const totalBasicCredits = basicSubjects.reduce((acc, curr) => acc + calculateCredits(curr), 0);
       const basicSummaryEl = document.getElementById('basic-credits-summary');
-      if (basicSummaryEl) {
-        basicSummaryEl.innerHTML = `📐 Créditos Ciencias Básicas: <b>${totalBasicCredits}</b>`;
-      }
+      if (basicSummaryEl) { basicSummaryEl.innerHTML = `📐 Créditos Ciencias Básicas: <b>${totalBasicCredits}</b>`; }
 
       const grandTotalCredits = state.subjects.length > 0 
         ? state.subjects.reduce((acc, curr) => acc + calculateCredits(curr), 0) + 5
         : 0;
-
       const totalSummaryEl = document.getElementById('total-credits-summary');
       if (totalSummaryEl) {
-        if (state.subjects.length > 0) {
-          totalSummaryEl.innerHTML = `🎓 Total Créditos Malla: <b>${grandTotalCredits}</b>`;
-        } else {
-          totalSummaryEl.innerHTML = `🎓 Total Créditos Malla: <b>0</b>`;
-        }
+        if (state.subjects.length > 0) { totalSummaryEl.innerHTML = `🎓 Total Créditos Malla: <b>${grandTotalCredits}</b>`; } 
+        else { totalSummaryEl.innerHTML = `🎓 Total Créditos Malla: <b>0</b>`; }
       }
     }
 
@@ -687,13 +755,18 @@
         const value = e.target.value;
         const parts = value.split('/');
         let sum = 0;
-        parts.forEach(p => {
-          sum += parseFloat(p) || 0;
-        });
+        parts.forEach(p => { sum += parseFloat(p) || 0; });
         document.getElementById('edit-sum').value = sum;
       });
 
+      // Manejador central de clics (cierra modales y dropdowns)
       document.body.addEventListener('click', (e) => {
+        
+        // Cierra el dropdown si se hace clic fuera de él
+        if (!e.target.closest('.dropbtn')) {
+          closeAllDropdowns();
+        }
+
         if (!e.target.closest('.subject-card') && !e.target.closest('.toolbar') && !e.target.closest('.modal')) {
           pinnedSubjectId = null;
           clearHighlights();
@@ -713,22 +786,17 @@
         const subjectsInLevel = state.subjects.filter(s => s.level === level.id);
         const totalCredits = subjectsInLevel.reduce((acc, curr) => acc + calculateCredits(curr), 0);
 
-        let totalACD = 0;
-        let totalAPE = 0;
+        let totalACD = 0; let totalAPE = 0;
         subjectsInLevel.forEach(subj => {
           const hours = parseHoursComponents(subj.components);
-          totalACD += hours.acd;
-          totalAPE += hours.ape;
+          totalACD += hours.acd; totalAPE += hours.ape;
         });
 
         row.innerHTML = `
           <div class="level-header">
             <span>${level.name}</span>
             <span class="level-credits">${totalCredits} Créditos</span>
-            <div class="level-hours">
-              <div>ACD: ${totalACD}h</div>
-              <div>APE: ${totalAPE}h</div>
-            </div>
+            <div class="level-hours"><div>ACD: ${totalACD}h</div><div>APE: ${totalAPE}h</div></div>
           </div>
           <div class="level-content-grid" id="grid-${level.id}"></div>
         `;
@@ -748,14 +816,11 @@
           cell.ondrop = (e) => handleDrop(e, level.id, colIndex);
 
           const subject = subjectsInLevel.find(s => s.col === colIndex);
-          if (subject) {
-            cell.appendChild(createSubjectCard(subject));
-          }
+          if (subject) { cell.appendChild(createSubjectCard(subject)); }
 
           gridContainer.appendChild(cell);
         }
       });
-
       updateCreditsSummary();
     }
 
@@ -772,24 +837,13 @@
 
       card.innerHTML = `
         <button class="edit-btn" onclick="openModalForEdit(event, '${subj.id}')">✏️</button>
-        <div class="subject-header">
-          <span>${subj.components}</span>
-          <span>${subj.sum}</span>
-        </div>
+        <div class="subject-header"><span>${subj.components}</span><span>${subj.sum}</span></div>
         <div class="subject-title">${subj.name}</div>
-        <div class="subject-footer">
-          <span>${subj.code}</span>
-          <span><b>${credits} CR</b></span>
-        </div>
+        <div class="subject-footer"><span>${subj.code}</span><span><b>${credits} CR</b></span></div>
       `;
 
       card.ondragstart = (e) => { e.dataTransfer.setData('text/plain', subj.id); };
-
-      card.onclick = (e) => {
-        e.stopPropagation();
-        handleCardClick(subj.id);
-      };
-
+      card.onclick = (e) => { e.stopPropagation(); handleCardClick(subj.id); };
       card.onmouseenter = () => { if (!pinnedSubjectId) highlightConnections(subj.id); };
       card.onmouseleave = () => { if (!pinnedSubjectId) clearHighlights(); };
 
@@ -830,14 +884,9 @@
           const levelIdx2 = state.levels.findIndex(l => l.id === subj2.level);
 
           let prereqId, targetId;
-
-          if (levelIdx1 < levelIdx2) {
-            prereqId = selectedSourceId; targetId = id;
-          } else if (levelIdx2 < levelIdx1) {
-            prereqId = id; targetId = selectedSourceId;
-          } else {
-            prereqId = selectedSourceId; targetId = id;
-          }
+          if (levelIdx1 < levelIdx2) { prereqId = selectedSourceId; targetId = id; } 
+          else if (levelIdx2 < levelIdx1) { prereqId = id; targetId = selectedSourceId; } 
+          else { prereqId = selectedSourceId; targetId = id; }
 
           saveStateToHistory();
 
@@ -845,11 +894,8 @@
             c => (c.from === prereqId && c.to === targetId) || (c.from === targetId && c.to === prereqId)
           );
 
-          if (existingIdx >= 0) {
-            state.connections.splice(existingIdx, 1);
-          } else {
-            state.connections.push({ from: prereqId, to: targetId });
-          }
+          if (existingIdx >= 0) { state.connections.splice(existingIdx, 1); } 
+          else { state.connections.push({ from: prereqId, to: targetId }); }
 
           document.getElementById(`card-${selectedSourceId}`).classList.remove('connecting-source');
           selectedSourceId = null;
@@ -870,13 +916,14 @@
       }
     }
 
-    /* FUNCIÓN CORREGIDA A PRUEBA DE BALAS */
     function drawConnections() {
       const svg = document.getElementById('connections-layer');
       const wrapperEl = document.getElementById('board-wrapper');
       svg.innerHTML = '';
 
-      // El SVG mide exactamente lo mismo que el Wrapper
+      svg.style.width = wrapperEl.scrollWidth + 'px';
+      svg.style.height = wrapperEl.scrollHeight + 'px';
+
       const wrapperRect = wrapperEl.getBoundingClientRect();
 
       state.connections.forEach((conn, index) => {
@@ -896,20 +943,17 @@
         const levelDistance = Math.abs(levelToIdx - levelFromIdx);
         const isSameLevel = (levelDistance === 0);
 
-        // COORDENADAS EXACTAS RELATIVAS AL WRAPPER (Adiós problema de scroll)
         let x1 = (rectFrom.left - wrapperRect.left) + (rectFrom.width / 2);
         let x2 = (rectTo.left - wrapperRect.left) + (rectTo.width / 2);
 
         let pathData = "";
 
         if (lineType === 'curved') {
-          // --- MODO LÍNEAS CURVAS ---
           if (isSameLevel) {
             const y1 = rectFrom.top - wrapperRect.top;
             const y2 = rectTo.top - wrapperRect.top;
             const distance = Math.abs(x2 - x1);
             const arcHeight = Math.min(Math.max(distance * 0.35, 25), 50);
-
             pathData = `M ${x1} ${y1} C ${x1} ${y1 - arcHeight}, ${x2} ${y2 - arcHeight}, ${x2} ${y2}`;
           } else {
             const y1 = rectFrom.bottom - wrapperRect.top;
@@ -918,16 +962,12 @@
             const curveOffset = (levelDistance > 1) ? (levelDistance * 18 * offsetDirection) : 0;
             const controlY1 = y1 + (Math.abs(y2 - y1) * 0.45);
             const controlY2 = y2 - (Math.abs(y2 - y1) * 0.45);
-
             pathData = `M ${x1} ${y1} C ${x1 + curveOffset} ${controlY1}, ${x2 + curveOffset} ${controlY2}, ${x2} ${y2}`;
           }
         } else {
-          // --- MODO LÍNEAS RECTAS ---
           const xOffset1 = (index % 5) * 10 - 20; 
           const xOffset2 = ((index + 2) % 5) * 10 - 20; 
-          
-          x1 += xOffset1;
-          x2 += xOffset2;
+          x1 += xOffset1; x2 += xOffset2;
 
           if (isSameLevel) {
             const y1 = rectFrom.top - wrapperRect.top;
@@ -957,29 +997,18 @@
         path.style.strokeLinecap = "round";
         path.dataset.from = conn.from;
         path.dataset.to = conn.to;
-
         svg.appendChild(path);
       });
 
-      if (pinnedSubjectId) {
-        highlightConnections(pinnedSubjectId);
-      }
+      if (pinnedSubjectId) { highlightConnections(pinnedSubjectId); }
     }
 
     function highlightConnections(id) {
       clearHighlights();
-
       state.connections.forEach(c => {
-        if (c.to === id) {
-          const el = document.getElementById(`card-${c.from}`);
-          if (el) el.classList.add('highlight-req');
-        }
-        if (c.from === id) {
-          const el = document.getElementById(`card-${c.to}`);
-          if (el) el.classList.add('highlight-next');
-        }
+        if (c.to === id) { const el = document.getElementById(`card-${c.from}`); if (el) el.classList.add('highlight-req'); }
+        if (c.from === id) { const el = document.getElementById(`card-${c.to}`); if (el) el.classList.add('highlight-next'); }
       });
-
       document.querySelectorAll('path.connection').forEach(path => {
         if (path.dataset.to === id) path.classList.add('highlight-req');
         if (path.dataset.from === id) path.classList.add('highlight-next');
@@ -987,15 +1016,69 @@
     }
 
     function clearHighlights() {
-      document.querySelectorAll('.subject-card').forEach(el => {
-        el.classList.remove('highlight-req', 'highlight-next');
-      });
-      document.querySelectorAll('path.connection').forEach(path => {
-        path.classList.remove('highlight-req', 'highlight-next');
-      });
+      document.querySelectorAll('.subject-card').forEach(el => { el.classList.remove('highlight-req', 'highlight-next'); });
+      document.querySelectorAll('path.connection').forEach(path => { path.classList.remove('highlight-req', 'highlight-next'); });
     }
 
-    /* EXPORTACIÓN E IMPORTACIÓN JSON */
+    /* --- LÓGICA DE CARGA DE JSON (UNIFICADA) --- */
+    function loadDataIntoBoard(importedData) {
+      if (importedData.levels && importedData.subjects && importedData.connections) {
+        // Forzar siempre los 9 semestres para asegurar consistencia
+        importedData.levels = [
+          { "id": "L100-1", "name": "NIVEL 100 - I" }, { "id": "L100-2", "name": "NIVEL 100 - II" },
+          { "id": "L200-1", "name": "NIVEL 200 - I" }, { "id": "L200-2", "name": "NIVEL 200 - II" },
+          { "id": "L300-1", "name": "NIVEL 300 - I" }, { "id": "L300-2", "name": "NIVEL 300 - II" },
+          { "id": "L400-1", "name": "NIVEL 400 - I" }, { "id": "L400-2", "name": "NIVEL 400 - II" },
+          { "id": "L500-1", "name": "NIVEL 500 - I" }
+        ];
+        saveStateToHistory();
+        state = importedData;
+        pinnedSubjectId = null;
+        renderBoard();
+        drawConnections();
+      } else {
+        alert('El archivo JSON no tiene la estructura válida de una malla.');
+      }
+    }
+
+    // 1. Carga desde archivo local
+    function triggerImportJSON() {
+      closeAllDropdowns();
+      document.getElementById('import-file-input').click();
+    }
+
+    function importJSONFromFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          loadDataIntoBoard(importedData);
+        } catch (err) {
+          alert('Ocurrió un error al leer el archivo JSON.');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    // 2. NUEVO: Carga desde URL de la Nube (SharePoint / GitHub)
+    async function fetchAndLoadJSON(url) {
+      closeAllDropdowns();
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Error en la descarga HTTP ' + response.status);
+        
+        const importedData = await response.json();
+        loadDataIntoBoard(importedData);
+      } catch (err) {
+        alert('⚠️ Error al cargar la carrera.\n\nEs probable que el enlace de SharePoint esté bloqueando la conexión (Seguridad CORS) o el enlace no devuelva un JSON directo.\n\nPor favor, descarga el archivo desde el botón "Ayuda" y usa la opción "Cargar archivo local...".\n\nDetalle técnico: ' + err.message);
+      }
+    }
+
+    /* EXPORTACIÓN JSON */
     function exportJSON() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
       const downloadAnchor = document.createElement('a');
@@ -1006,69 +1089,24 @@
       downloadAnchor.remove();
     }
 
-    function triggerImportJSON() {
-      document.getElementById('import-file-input').click();
-    }
-
-    function importJSON(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const importedData = JSON.parse(e.target.result);
-          if (importedData.levels && importedData.subjects && importedData.connections) {
-            
-            // Forzar siempre los 9 semestres para asegurar consistencia
-            importedData.levels = [
-              { "id": "L100-1", "name": "NIVEL 100 - I" },
-              { "id": "L100-2", "name": "NIVEL 100 - II" },
-              { "id": "L200-1", "name": "NIVEL 200 - I" },
-              { "id": "L200-2", "name": "NIVEL 200 - II" },
-              { "id": "L300-1", "name": "NIVEL 300 - I" },
-              { "id": "L300-2", "name": "NIVEL 300 - II" },
-              { "id": "L400-1", "name": "NIVEL 400 - I" },
-              { "id": "L400-2", "name": "NIVEL 400 - II" },
-              { "id": "L500-1", "name": "NIVEL 500 - I" }
-            ];
-
-            saveStateToHistory();
-            state = importedData;
-            pinnedSubjectId = null;
-            renderBoard();
-            drawConnections();
-            alert('¡Malla importada y cargada con éxito desde el archivo JSON!');
-          } else {
-            alert('El archivo JSON no tiene la estructura válida de una malla.');
-          }
-        } catch (err) {
-          alert('Ocurrió un error al leer el archivo JSON.');
-        }
-      };
-      reader.readAsText(file);
-      event.target.value = '';
-    }
-
-    /* MODAL DE EDICIÓN / CREACIÓN (DINÁMICO SEGÚN EL MOUSE) */
+    /* MODAL DE EDICIÓN / CREACIÓN */
     function openModalForCreate(e) {
       document.getElementById('modal-title').innerText = 'Agregar Nueva Materia';
       document.getElementById('edit-id').value = '';
       document.getElementById('edit-name').value = '';
       document.getElementById('edit-code').value = '';
       document.getElementById('edit-components').value = '3/1/5';
-      document.getElementById('edit-sum').value = 9; // Por defecto
+      document.getElementById('edit-sum').value = 9;
       document.getElementById('edit-is-basic').checked = false;
       document.getElementById('level-select-group').style.display = 'block';
       document.getElementById('btn-delete').style.display = 'none';
       
       const modalBox = document.getElementById('edit-modal-box');
-      let yPos = e && e.clientY ? e.clientY - 50 : 30; // Posicionar donde esté el mouse
+      let yPos = e && e.clientY ? e.clientY - 50 : 30; 
       
-      // Límite inferior para que no se corte si haces clic muy abajo
       const maxH = window.innerHeight;
       if (yPos + 480 > maxH) { yPos = maxH - 480; }
-      if (yPos < 30) yPos = 30; // Mínimo 30px del techo
+      if (yPos < 30) yPos = 30; 
       
       modalBox.style.marginTop = yPos + 'px';
       document.getElementById('modal-overlay').style.display = 'flex';
@@ -1090,7 +1128,7 @@
       document.getElementById('btn-delete').style.display = 'block';
       
       const modalBox = document.getElementById('edit-modal-box');
-      let yPos = e.clientY - 50; // Posicionar un poco más arriba de donde se hizo clic
+      let yPos = e.clientY - 50; 
       
       const maxH = window.innerHeight;
       if (yPos + 480 > maxH) { yPos = maxH - 480; }
@@ -1117,20 +1155,14 @@
       if (id) {
         const subj = state.subjects.find(s => s.id === id);
         if (subj) { 
-          subj.name = name; 
-          subj.code = code; 
-          subj.components = components; 
-          subj.sum = sum; 
-          subj.isBasic = isBasic;
+          subj.name = name; subj.code = code; subj.components = components; subj.sum = sum; subj.isBasic = isBasic;
         }
       } else {
         const levelId = document.getElementById('edit-level').value;
         const newId = 'CUSTOM_' + Date.now();
         const usedCols = state.subjects.filter(s => s.level === levelId).map(s => s.col);
         let freeCol = 0;
-        for (let i = 0; i < NUM_COLUMNS; i++) {
-          if (!usedCols.includes(i)) { freeCol = i; break; }
-        }
+        for (let i = 0; i < NUM_COLUMNS; i++) { if (!usedCols.includes(i)) { freeCol = i; break; } }
         state.subjects.push({ id: newId, code: code, name: name, components: components, sum: sum, level: levelId, col: freeCol, isBasic: isBasic });
       }
 
