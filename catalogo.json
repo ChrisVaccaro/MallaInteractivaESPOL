@@ -1,0 +1,18 @@
+{
+  "facultades": [
+    {
+      "nombre": "FIEC",
+      "carreras": [
+        { "nombre": "Telemática", "ruta": "./plantillas/FIEC/Telematica.json" },
+        { "nombre": "Computación", "ruta": "./plantillas/FIEC/Computacion.json" },
+        { "nombre": "Electricidad", "ruta": "./plantillas/FIEC/Electricidad.json" }
+      ]
+    },
+    {
+      "nombre": "FCNM",
+      "carreras": [
+        { "nombre": "Matemáticas", "ruta": "./plantillas/FCNM/Matematicas.json" }
+      ]
+    }
+  ]
+}
