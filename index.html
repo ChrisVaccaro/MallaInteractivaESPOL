@@ -85,18 +85,8 @@
       position: relative; 
     }
 
-    .toolbar-group {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .toolbar-divider {
-      width: 2px;
-      height: 24px;
-      background-color: #cbd5e1;
-      border-radius: 1px;
-    }
+    .toolbar-group { display: flex; gap: 8px; align-items: center; }
+    .toolbar-divider { width: 2px; height: 24px; background-color: #cbd5e1; border-radius: 1px; }
 
     button {
       padding: 8px 14px;
@@ -110,29 +100,13 @@
     }
 
     button:hover { background-color: #f1f5f9; }
-    button.active { 
-      background-color: var(--accent-color); 
-      color: white; 
-      border-color: var(--accent-color); 
-      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-    }
+    button.active { background-color: var(--accent-color); color: white; border-color: var(--accent-color); text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .btn-add { background-color: #10b981; color: white; border-color: #10b981; }
     .btn-add:hover { background-color: #059669; }
-    
-    .btn-help { 
-      background-color: #f8fafc; 
-      color: #3b82f6; 
-      border: 1px solid #93c5fd;
-      font-weight: 700;
-    }
-    .btn-help:hover { 
-      background-color: #eff6ff; 
-      color: #1d4ed8;
-      border-color: #3b82f6;
-    }
-
+    .btn-help { background-color: #f8fafc; color: #3b82f6; border: 1px solid #93c5fd; font-weight: 700; }
+    .btn-help:hover { background-color: #eff6ff; color: #1d4ed8; border-color: #3b82f6; }
     .btn-icon-only { padding: 8px; width: 36px; display: flex; justify-content: center; align-items: center; }
     .btn-danger { color: #dc2626; border-color: #fca5a5; background-color: #fef2f2; }
     .btn-danger:hover { background-color: #fee2e2; }
@@ -162,6 +136,39 @@
     .btn-back-option { color: #64748b !important; background-color: #f8fafc; border-bottom: 1px solid var(--border-color); }
     .btn-back-option:hover { color: var(--primary-color) !important; background-color: #e2e8f0 !important; }
 
+    /* NOTIFICACIONES TOAST */
+    #toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background-color: #1e293b;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      font-weight: 600;
+      font-size: 0.9em;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.3s, transform 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { border-left: 5px solid #10b981; }
+    .toast.error { border-left: 5px solid #ef4444; }
+    .toast.info { border-left: 5px solid #3b82f6; }
+
     /* CONTENEDORES PRINCIPALES */
     .board-container { width: 100%; overflow-x: auto; padding-top: 25px; padding-bottom: 25px; }
     .board-wrapper { position: relative; min-width: 1450px; }
@@ -187,7 +194,6 @@
     .subject-header { display: flex; justify-content: space-between; font-size: 0.7em; font-weight: bold; color: #475569; }
     .subject-title { font-size: 0.7em; font-weight: 700; text-align: center; text-transform: uppercase; line-height: 1.1; margin: 2px 0; color: #0f172a; }
     .subject-footer { display: flex; justify-content: space-between; font-size: 0.65em; color: #64748b; }
-
     .edit-btn { position: absolute; top: -6px; right: -6px; background: #3b82f6; color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.3); z-index: 20; }
     .subject-card:hover .edit-btn { display: flex; }
 
@@ -215,6 +221,8 @@
   </style>
 </head>
 <body>
+
+  <div id="toast-container"></div>
 
   <h1>Malla Curricular Interactiva - ESPOL</h1>
   <div class="subtitle">Gestión interactiva de créditos, correquisitos y ciencias básicas</div>
@@ -268,8 +276,8 @@
     </div>
   </div>
 
-  <div class="modal-overlay" id="modal-overlay">
-    <div class="modal" id="edit-modal-box">
+  <div class="modal-overlay" id="modal-overlay" onclick="closeModal()">
+    <div class="modal" id="edit-modal-box" onclick="event.stopPropagation()">
       <h2 id="modal-title">Agregar Nueva Materia</h2>
       <input type="hidden" id="edit-id">
       <div class="form-group"><label>Nombre de la Materia:</label><input type="text" id="edit-name" placeholder="Ej: CÁLCULO VECTORIAL"></div>
@@ -304,8 +312,8 @@
     </div>
   </div>
 
-  <div class="modal-overlay" id="help-modal-overlay">
-    <div class="modal" id="help-modal-box" style="width: 580px;">
+  <div class="modal-overlay" id="help-modal-overlay" onclick="closeHelpModal()">
+    <div class="modal" id="help-modal-box" style="width: 580px;" onclick="event.stopPropagation()">
       <h2 style="margin-top: 0; color: var(--primary-color);">Guía de Uso: Malla Curricular Interactiva</h2>
       <ul style="padding-left: 20px; color: #475569; font-size: 0.95em; line-height: 1.6; text-align: justify;">
         <li><b>Modos de Interacción:</b> Puedes alternar con el botón entre Mover materias (arrastrar y soltar libremente) y Modo Requisitos (hacer clic en dos materias para conectarlas).</li>
@@ -313,9 +321,9 @@
         <li><b>Ciencias Básicas:</b> Se ha dado mayor interés a las asignaturas de Ciencias Básicas y Matemáticas, resaltándolas en color celeste.</li>
         <li><b>Estilo de Conexiones:</b> Puedes alternar la visualización entre líneas curvas o rectas.</li>
         <li><b>Atajos de Teclado:</b> Utiliza Ctrl + Z para Deshacer un cambio y Ctrl + Y para Rehacer.</li>
-        <li><b>Guardado Manual:</b> La página no guarda los cambios automáticamente. Para no perder un trabajo significativo, asegúrate de Exportar la Malla y luego usar Cargar Malla cuando necesites retomar el trabajo.</li>
+        <li><b>Autoguardado:</b> Si cierras o recargas la página por accidente, el sistema recordará tu último progreso y te preguntará si deseas restaurarlo al volver a entrar.</li>
         <li><b>Prácticas Empresariales:</b> El contador total ya suma automáticamente los 5 créditos obligatorios de prácticas empresariales, por lo que no es necesario agregarlas como materia en la malla.</li>
-        <li><b>Plantillas Base:</b> Puedes seleccionar tu carrera desde el menú "Cargar Malla", o si necesitas los archivos base, puedes <a href="https://espolec.sharepoint.com/:f:/s/AjusteCurricular2027/IgCeuQkBZBv6S7KsD7vOrHULAe30C9qW5WQ3jS8-X-nCEQI?e=a8uCjb" target="_blank" style="color: var(--accent-color); font-weight: bold; text-decoration: underline;">descargarlos desde esta carpeta</a> y cargarlos localmente.</li>
+        <li><b>Plantillas Base:</b> Puedes seleccionar tu carrera desde el menú "Cargar Malla" para tener la plantilla inicial de forma inmediata.</li>
       </ul>
       <div class="modal-actions" style="justify-content: flex-end; margin-top: 25px;">
         <button onclick="closeHelpModal()" style="background-color: var(--accent-color); color: white; padding: 10px 20px;">Entendido</button>
@@ -344,6 +352,31 @@
     let currentMode = 'drag'; let selectedSourceId = null; let pinnedSubjectId = null; let lineType = 'curved'; 
     let historyStack = []; let redoStack = [];
     
+    // --- SISTEMA DE TOAST NOTIFICATIONS ---
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      
+      let icon = 'ℹ️';
+      if (type === 'success') icon = '✅';
+      if (type === 'error') icon = '⚠️';
+      
+      toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => toast.classList.add('show'), 10);
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // --- SISTEMA DE GUARDADO AUTOMÁTICO ---
+    function persistState() {
+      localStorage.setItem('malla_espol_autosave', JSON.stringify(state));
+    }
+
     // --- LÓGICA DEL MENÚ DE NAVEGACIÓN (FACULTADES -> CARRERAS) ---
     let catalogoGlobal = null;
 
@@ -363,7 +396,6 @@
       }
     }
 
-    // Renderiza la vista principal del menú (Lista de Facultades)
     function renderMenuFacultades() {
       const container = document.getElementById('dropdown-json');
       if (!catalogoGlobal) return;
@@ -379,9 +411,8 @@
       container.innerHTML = html;
     }
 
-    // Renderiza la vista secundaria del menú (Carreras dentro de una Facultad)
     function renderMenuCarreras(indexFacultad, event) {
-      if (event) { event.preventDefault(); event.stopPropagation(); } // Evita que el menú se cierre
+      if (event) { event.preventDefault(); event.stopPropagation(); } 
       
       const container = document.getElementById('dropdown-json');
       const facultad = catalogoGlobal.facultades[indexFacultad];
@@ -400,13 +431,11 @@
       if (event) { event.preventDefault(); event.stopPropagation(); }
       renderMenuFacultades();
     }
-    // -------------------------------------------------------------
 
     function toggleJSONDropdown(e) {
       e.preventDefault(); e.stopPropagation();
       const dropdown = document.getElementById("dropdown-json");
       dropdown.classList.toggle("show");
-      // Si abrimos el menú de nuevo, nos aseguramos que empiece mostrando las facultades
       if (dropdown.classList.contains("show")) {
         renderMenuFacultades();
       }
@@ -449,12 +478,14 @@
     function undo() {
       if (historyStack.length === 0) return;
       redoStack.push(JSON.stringify(state)); state = JSON.parse(historyStack.pop());
+      persistState();
       pinnedSubjectId = null; renderBoard(); drawConnections(); updateUndoRedoButtons();
     }
 
     function redo() {
       if (redoStack.length === 0) return;
       historyStack.push(JSON.stringify(state)); state = JSON.parse(redoStack.pop());
+      persistState();
       pinnedSubjectId = null; renderBoard(); drawConnections(); updateUndoRedoButtons();
     }
 
@@ -507,9 +538,18 @@
     }
 
     function init() {
+      // 1. Verificar si hay un autoguardado en LocalStorage
+      const savedState = localStorage.getItem('malla_espol_autosave');
+      if (savedState) {
+        if (confirm("Tienes una malla sin guardar de tu sesión anterior. ¿Deseas restaurarla?")) {
+          state = JSON.parse(savedState);
+          showToast('Trabajo anterior restaurado.', 'success');
+        } else {
+          localStorage.removeItem('malla_espol_autosave');
+        }
+      }
+
       renderBoard(); setTimeout(drawConnections, 100); window.addEventListener('resize', drawConnections); updateUndoRedoButtons();
-      
-      // Llamamos al catálogo al iniciar la página
       loadCatalogo();
 
       document.getElementById('edit-components').addEventListener('input', function(e) {
@@ -580,7 +620,9 @@
       const subjectId = e.dataTransfer.getData('text/plain'); const subject = state.subjects.find(s => s.id === subjectId);
       const occupied = state.subjects.find(s => s.level === targetLevelId && s.col === targetCol && s.id !== subjectId);
       if (subject && !occupied && (subject.level !== targetLevelId || subject.col !== targetCol)) {
-        saveStateToHistory(); subject.level = targetLevelId; subject.col = targetCol; renderBoard(); drawConnections();
+        saveStateToHistory(); subject.level = targetLevelId; subject.col = targetCol; 
+        persistState();
+        renderBoard(); drawConnections();
         if (pinnedSubjectId) highlightConnections(pinnedSubjectId);
       }
     }
@@ -597,6 +639,8 @@
           saveStateToHistory();
           const existingIdx = state.connections.findIndex(c => (c.from === prereqId && c.to === targetId) || (c.from === targetId && c.to === prereqId));
           if (existingIdx >= 0) { state.connections.splice(existingIdx, 1); } else { state.connections.push({ from: prereqId, to: targetId }); }
+          
+          persistState();
           document.getElementById(`card-${selectedSourceId}`).classList.remove('connecting-source'); selectedSourceId = null; drawConnections();
         }
       } else {
@@ -674,8 +718,8 @@
           { "id": "L100-1", "name": "NIVEL 100 - I" }, { "id": "L100-2", "name": "NIVEL 100 - II" }, { "id": "L200-1", "name": "NIVEL 200 - I" }, { "id": "L200-2", "name": "NIVEL 200 - II" },
           { "id": "L300-1", "name": "NIVEL 300 - I" }, { "id": "L300-2", "name": "NIVEL 300 - II" }, { "id": "L400-1", "name": "NIVEL 400 - I" }, { "id": "L400-2", "name": "NIVEL 400 - II" }, { "id": "L500-1", "name": "NIVEL 500 - I" }
         ];
-        saveStateToHistory(); state = importedData; pinnedSubjectId = null; renderBoard(); drawConnections();
-      } else { alert('El archivo JSON no tiene la estructura válida de una malla.'); }
+        saveStateToHistory(); state = importedData; persistState(); pinnedSubjectId = null; renderBoard(); drawConnections();
+      } else { showToast('El archivo JSON no tiene la estructura válida de una malla.', 'error'); }
     }
 
     function triggerImportJSON() { closeAllDropdowns(); document.getElementById('import-file-input').click(); }
@@ -683,7 +727,7 @@
     function importJSONFromFile(event) {
       const file = event.target.files[0]; if (!file) return;
       const reader = new FileReader();
-      reader.onload = function(e) { try { const importedData = JSON.parse(e.target.result); loadDataIntoBoard(importedData); } catch (err) { alert('Ocurrió un error al leer el archivo JSON.'); } };
+      reader.onload = function(e) { try { const importedData = JSON.parse(e.target.result); loadDataIntoBoard(importedData); showToast('Malla cargada con éxito.', 'success'); } catch (err) { showToast('Ocurrió un error al leer el archivo JSON.', 'error'); } };
       reader.readAsText(file); event.target.value = '';
     }
 
@@ -694,13 +738,17 @@
         if (!response.ok) throw new Error('Archivo no encontrado (' + response.status + ')');
         const importedData = await response.json();
         loadDataIntoBoard(importedData);
-        alert('¡Malla cargada con éxito!');
-      } catch (err) { alert('⚠️ Error al cargar la carrera.\n\nEs probable que el archivo JSON aún no se haya subido a la carpeta correcta en GitHub, o que el nombre no coincida exactamente.\n\nRuta buscada: ' + url + '\nDetalle: ' + err.message); }
+        showToast('Malla cargada con éxito.', 'success');
+      } catch (err) { 
+        showToast('Error al cargar la carrera. Verifica el archivo en GitHub.', 'error'); 
+        console.error(err);
+      }
     }
 
     function exportJSON() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
       const downloadAnchor = document.createElement('a'); downloadAnchor.setAttribute("href", dataStr); downloadAnchor.setAttribute("download", "malla_espol_personalizada.json"); document.body.appendChild(downloadAnchor); downloadAnchor.click(); downloadAnchor.remove();
+      showToast('Archivo JSON exportado correctamente.', 'success');
     }
 
     function openModalForCreate(e) {
@@ -718,20 +766,33 @@
 
     function saveSubjectFromModal() {
       const id = document.getElementById('edit-id').value; const name = document.getElementById('edit-name').value.trim(); const code = document.getElementById('edit-code').value.trim(); const components = document.getElementById('edit-components').value.trim(); const sum = parseFloat(document.getElementById('edit-sum').value) || 0; const isBasic = document.getElementById('edit-is-basic').checked;
-      if (!name || !code) { alert('Por favor ingresa un nombre y código válidos.'); return; }
+      if (!name || !code) { showToast('Por favor ingresa un nombre y código válidos.', 'error'); return; }
       saveStateToHistory();
       if (id) { const subj = state.subjects.find(s => s.id === id); if (subj) { subj.name = name; subj.code = code; subj.components = components; subj.sum = sum; subj.isBasic = isBasic; } } 
       else { const levelId = document.getElementById('edit-level').value; const newId = 'CUSTOM_' + Date.now(); const usedCols = state.subjects.filter(s => s.level === levelId).map(s => s.col); let freeCol = 0; for (let i = 0; i < NUM_COLUMNS; i++) { if (!usedCols.includes(i)) { freeCol = i; break; } } state.subjects.push({ id: newId, code: code, name: name, components: components, sum: sum, level: levelId, col: freeCol, isBasic: isBasic }); }
+      
+      persistState();
       closeModal(); renderBoard(); drawConnections();
+      showToast(id ? 'Materia actualizada.' : 'Nueva materia agregada.', 'success');
     }
 
     function deleteSubject() {
       const id = document.getElementById('edit-id').value; if (!id) return;
-      if (confirm('¿Seguro que deseas eliminar esta materia?')) { saveStateToHistory(); state.subjects = state.subjects.filter(s => s.id !== id); state.connections = state.connections.filter(c => c.from !== id && c.to !== id); pinnedSubjectId = null; closeModal(); renderBoard(); drawConnections(); }
+      if (confirm('¿Seguro que deseas eliminar esta materia?')) { 
+        saveStateToHistory(); state.subjects = state.subjects.filter(s => s.id !== id); state.connections = state.connections.filter(c => c.from !== id && c.to !== id); 
+        persistState();
+        pinnedSubjectId = null; closeModal(); renderBoard(); drawConnections(); 
+        showToast('Materia eliminada.', 'info');
+      }
     }
 
     function resetLayout() {
-      if (confirm('¿Deseas vaciar la malla y borrar todo el contenido?')) { saveStateToHistory(); state = JSON.parse(JSON.stringify(initialData)); pinnedSubjectId = null; renderBoard(); drawConnections(); }
+      if (confirm('¿Deseas vaciar la malla y borrar todo el contenido?')) { 
+        saveStateToHistory(); state = JSON.parse(JSON.stringify(initialData)); 
+        persistState();
+        pinnedSubjectId = null; renderBoard(); drawConnections(); 
+        showToast('Malla vaciada exitosamente.', 'info');
+      }
     }
 
     window.onload = init;
