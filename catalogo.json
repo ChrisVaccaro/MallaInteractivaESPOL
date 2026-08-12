@@ -11,7 +11,7 @@
     {
       "nombre": "FIMCP",
       "carreras": [
-        { "nombre": "Mecatrónica", "ruta": "./plantillas/FIEC/MECATRONICA.json" }
+        { "nombre": "Mecatrónica", "ruta": "./plantillas/FIMCP/MECATRONICA.json" }
       ]
     }
   ]
