@@ -405,7 +405,7 @@
       html += `<div class="dropdown-header">Facultades</div>`;
 
       catalogoGlobal.facultades.forEach((facultad, index) => {
-        html += `<a href="#" onclick="renderMenuCarreras(${index}, event)">🏫 ${facultad.nombre} <span>➡️</span></a>`;
+        html += `<a href="#" onclick="renderMenuCarreras(${index}, event)">${facultad.nombre} <span>➡️</span></a>`;
       });
 
       container.innerHTML = html;
@@ -719,6 +719,7 @@
           { "id": "L300-1", "name": "NIVEL 300 - I" }, { "id": "L300-2", "name": "NIVEL 300 - II" }, { "id": "L400-1", "name": "NIVEL 400 - I" }, { "id": "L400-2", "name": "NIVEL 400 - II" }, { "id": "L500-1", "name": "NIVEL 500 - I" }
         ];
         saveStateToHistory(); state = importedData; persistState(); pinnedSubjectId = null; renderBoard(); drawConnections();
+        showToast('Malla cargada con éxito.', 'success');
       } else { showToast('El archivo JSON no tiene la estructura válida de una malla.', 'error'); }
     }
 
@@ -727,7 +728,7 @@
     function importJSONFromFile(event) {
       const file = event.target.files[0]; if (!file) return;
       const reader = new FileReader();
-      reader.onload = function(e) { try { const importedData = JSON.parse(e.target.result); loadDataIntoBoard(importedData); showToast('Malla cargada con éxito.', 'success'); } catch (err) { showToast('Ocurrió un error al leer el archivo JSON.', 'error'); } };
+      reader.onload = function(e) { try { const importedData = JSON.parse(e.target.result); loadDataIntoBoard(importedData); } catch (err) { showToast('Ocurrió un error al leer el archivo JSON.', 'error'); } };
       reader.readAsText(file); event.target.value = '';
     }
 
@@ -738,7 +739,6 @@
         if (!response.ok) throw new Error('Archivo no encontrado (' + response.status + ')');
         const importedData = await response.json();
         loadDataIntoBoard(importedData);
-        showToast('Malla cargada con éxito.', 'success');
       } catch (err) { 
         showToast('Error al cargar la carrera. Verifica el archivo en GitHub.', 'error'); 
         console.error(err);
