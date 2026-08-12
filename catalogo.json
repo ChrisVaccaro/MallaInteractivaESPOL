@@ -7,6 +7,12 @@
         { "nombre": "Computación", "ruta": "./plantillas/FIEC/COMPUTACION.json" },
         { "nombre": "Ciencia de Datos e IA", "ruta": "./plantillas/FIEC/CIENCIA DE DATOS E IA.json" }
       ]
+    },
+    {
+      "nombre": "FIMCP",
+      "carreras": [
+        { "nombre": "Mecatrónica", "ruta": "./plantillas/FIEC/MECATRONICA.json" }
+      ]
     }
   ]
 }
