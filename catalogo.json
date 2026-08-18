@@ -5,7 +5,10 @@
       "carreras": [
         { "nombre": "Telemática", "ruta": "./plantillas/FIEC/TELEMATICA.json" },
         { "nombre": "Computación", "ruta": "./plantillas/FIEC/COMPUTACION.json" },
-        { "nombre": "Ciencia de Datos e IA", "ruta": "./plantillas/FIEC/CIENCIA DE DATOS E IA.json" }
+        { "nombre": "Ciencia de Datos e IA", "ruta": "./plantillas/FIEC/CIENCIA DE DATOS E IA.json" },
+        { "nombre": "Electricidad", "ruta": "./plantillas/FIEC/ELECTRICIDAD.json" },
+        { "nombre": "Electrónica y Automatización", "ruta": "./plantillas/FIEC/ELECTRICIDAD Y AUTOMATIZACION.json" },
+        { "nombre": "Telecomunicaciones", "ruta": "./plantillas/FIEC/TELECOMUNICACIONES.json" }
       ]
     },
     {
