@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Malla Curricular Interactiva - ESPOL</title>
 
+  <!-- Librería para manipulación y generación de archivos Excel (.xlsx) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
   <style>
     :root {
       --bg-color: #f8fafc;
@@ -132,7 +136,7 @@
       color: #64748b; text-transform: uppercase; background-color: #f8fafc;
     }
     .dropdown-divider { height: 1px; background-color: var(--border-color); margin: 0; }
-    .btn-primary-option { color: var(--accent-color) !important; font-weight: 700 !important; }
+    .btn-primary-option { color: #059669 !important; font-weight: 700 !important; }
     .btn-back-option { color: #64748b !important; background-color: #f8fafc; border-bottom: 1px solid var(--border-color); }
     .btn-back-option:hover { color: var(--primary-color) !important; background-color: #e2e8f0 !important; }
 
@@ -250,7 +254,15 @@
     <div class="toolbar-divider"></div>
 
     <div class="toolbar-group">
-      <button onclick="exportJSON()">💾 Exportar Malla</button>
+      
+      <!-- MENÚ DESPLEGABLE DE GUARDADO -->
+      <div class="dropdown">
+        <button onclick="toggleSaveDropdown(event)" class="dropbtn">💾 Guardar 🔽</button>
+        <div id="dropdown-save" class="dropdown-content">
+          <a href="#" onclick="exportJSON(); closeAllDropdowns();">📄 Guardar borrador (JSON)</a>
+          <a href="#" onclick="procesarYDescargarExcel(); closeAllDropdowns();" class="btn-primary-option">📊 Exportar excel final</a>
+        </div>
+      </div>
       
       <div class="dropdown">
         <button onclick="toggleJSONDropdown(event)" class="dropbtn">📂 Cargar Malla 🔽</button>
@@ -323,7 +335,8 @@
         <li><b>Atajos de Teclado:</b> Utiliza Ctrl + Z para Deshacer un cambio y Ctrl + Y para Rehacer.</li>
         <li><b>Autoguardado:</b> Si cierras o recargas la página por accidente, el sistema recordará tu último progreso y te preguntará si deseas restaurarlo al volver a entrar.</li>
         <li><b>Prácticas Empresariales:</b> El contador total ya suma automáticamente los 5 créditos obligatorios de prácticas empresariales, por lo que no es necesario agregarlas como materia en la malla.</li>
-        <li><b>Plantillas Base:</b> Puedes seleccionar tu carrera desde el menú "Cargar Malla" para tener la plantilla inicial de forma inmediata.</li>
+        <li><b>Mallas Base y Carga Local:</b> Puedes seleccionar tu carrera desde el menú "Cargar Malla" para tener la plantilla inicial de forma inmediata. Desde ese mismo menú puedes subir tu propio archivo desde el ordenador, el cual <b>debe ser obligatoriamente una versión en formato JSON</b> que hayas guardado anteriormente.</li>
+        <li><b>Opciones de Guardado:</b> Utiliza el menú desplegable "Guardar 🔽" para descargar tu avance como un borrador (archivo JSON) que podrás retomar después, o para exportar tu malla final directamente a una plantilla de Excel.</li>
       </ul>
       <div class="modal-actions" style="justify-content: flex-end; margin-top: 25px;">
         <button onclick="closeHelpModal()" style="background-color: var(--accent-color); color: white; padding: 10px 20px;">Entendido</button>
@@ -372,12 +385,10 @@
       }, 3500);
     }
 
-    // --- SISTEMA DE GUARDADO AUTOMÁTICO ---
     function persistState() {
       localStorage.setItem('malla_espol_autosave', JSON.stringify(state));
     }
 
-    // --- LÓGICA DEL MENÚ DE NAVEGACIÓN (FACULTADES -> CARRERAS) ---
     let catalogoGlobal = null;
 
     async function loadCatalogo() {
@@ -389,7 +400,7 @@
         renderMenuFacultades();
       } catch (err) {
         container.innerHTML = `
-          <a href="#" class="btn-primary-option" onclick="triggerImportJSON();">📁 Cargar archivo local...</a>
+          <a href="#" style="color: var(--accent-color); font-weight: bold;" onclick="triggerImportJSON();">📁 Cargar archivo local...</a>
           <div class="dropdown-divider"></div>
           <div style="padding: 10px; font-size: 0.8em; color: #ef4444; text-align: center;">No se pudo cargar el catálogo.<br>Asegúrate de tener "catalogo.json" en GitHub.</div>
         `;
@@ -400,7 +411,7 @@
       const container = document.getElementById('dropdown-json');
       if (!catalogoGlobal) return;
 
-      let html = `<a href="#" class="btn-primary-option" onclick="triggerImportJSON();">📁 Cargar archivo local...</a>`;
+      let html = `<a href="#" style="color: var(--accent-color); font-weight: bold;" onclick="triggerImportJSON();">📁 Cargar archivo local...</a>`;
       html += `<div class="dropdown-divider"></div>`;
       html += `<div class="dropdown-header">Facultades</div>`;
 
@@ -432,13 +443,22 @@
       renderMenuFacultades();
     }
 
+    // --- MANEJO DE MENÚS DESPLEGABLES ---
     function toggleJSONDropdown(e) {
       e.preventDefault(); e.stopPropagation();
+      closeAllDropdowns();
       const dropdown = document.getElementById("dropdown-json");
       dropdown.classList.toggle("show");
       if (dropdown.classList.contains("show")) {
         renderMenuFacultades();
       }
+    }
+
+    function toggleSaveDropdown(e) {
+      e.preventDefault(); e.stopPropagation();
+      closeAllDropdowns();
+      const dropdown = document.getElementById("dropdown-save");
+      dropdown.classList.toggle("show");
     }
 
     function closeAllDropdowns() {
@@ -499,10 +519,11 @@
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { redo(); }
     });
 
+    // Se extraen ahora los 3 valores: ACD, APE, AA
     function parseHoursComponents(componentsStr) {
-      if (!componentsStr) return { acd: 0, ape: 0 };
+      if (!componentsStr) return { acd: 0, ape: 0, aa: 0 };
       const parts = componentsStr.split('/').map(p => parseFloat(p) || 0);
-      return { acd: parts[0] || 0, ape: parts[1] || 0 };
+      return { acd: parts[0] || 0, ape: parts[1] || 0, aa: parts[2] || 0 };
     }
 
     function calculateCredits(subj) {
@@ -513,7 +534,7 @@
 
     function isBasicMathSubject(name) {
       const n = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      const keywords = ["calculo", "fisica", "algebra", "estadistica", "ecuaciones", "matematicas", "quimica"];
+      const keywords = ["calculo", "fisica", "algebra", "estadistica", "ecuaciones", "matematicas", "quimica", "evaluacion"];
       return keywords.some(kw => n.includes(kw));
     }
 
@@ -538,7 +559,6 @@
     }
 
     function init() {
-      // 1. Verificar si hay un autoguardado en LocalStorage
       const savedState = localStorage.getItem('malla_espol_autosave');
       if (savedState) {
         if (confirm("Tienes una malla sin guardar de tu sesión anterior. ¿Deseas restaurarla?")) {
@@ -574,7 +594,9 @@
 
         let totalACD = 0; let totalAPE = 0;
         subjectsInLevel.forEach(subj => {
-          const hours = parseHoursComponents(subj.components); totalACD += hours.acd; totalAPE += hours.ape;
+          const hours = parseHoursComponents(subj.components); 
+          totalACD += hours.acd; 
+          totalAPE += hours.ape;
         });
 
         row.innerHTML = `
@@ -749,6 +771,70 @@
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
       const downloadAnchor = document.createElement('a'); downloadAnchor.setAttribute("href", dataStr); downloadAnchor.setAttribute("download", "malla_espol_personalizada.json"); document.body.appendChild(downloadAnchor); downloadAnchor.click(); downloadAnchor.remove();
       showToast('Archivo JSON exportado correctamente.', 'success');
+    }
+
+    // --- FUNCIÓN PARA EXTRAER LA MALLA Y MAPEARLA EN LA PLANTILLA EXCEL ---
+    async function procesarYDescargarExcel() {
+      try {
+        showToast('Procesando matriz curricular...', 'info');
+        const fileUrl = 'plantillas/excel_base.xlsx';
+        
+        const response = await fetch(fileUrl);
+        if (!response.ok) throw new Error(`No se pudo obtener el archivo base (${response.status})`);
+        
+        const arrayBuffer = await response.arrayBuffer();
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(arrayBuffer);
+        
+        // 1. Obtener la hoja correcta
+        const worksheet = workbook.getWorksheet('MALLA CURRICULAR');
+        if (!worksheet) {
+          throw new Error('La pestaña "MALLA CURRICULAR" no se encontró en la plantilla.');
+        }
+
+        // 2. Iterar por la cuadrícula de tu app (9 Niveles x 8 Columnas)
+        for (let lvlIdx = 0; lvlIdx < state.levels.length; lvlIdx++) {
+          const levelId = state.levels[lvlIdx].id;
+          
+          // Cálculo de Filas en Excel (4 filas de salto por semestre)
+          const nameRow = 6 + (lvlIdx * 4);
+          const hoursRow = 7 + (lvlIdx * 4);
+
+          for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
+            // Cálculo de la Columna inicial en Excel (9 columnas de salto entre materias, empezando en G = 7)
+            const startCol = 7 + (colIdx * 9); 
+            
+            // Buscar si hay una materia en esta posición
+            const subject = state.subjects.find(s => s.level === levelId && s.col === colIdx);
+
+            if (subject) {
+              const hours = parseHoursComponents(subject.components);
+              
+              // Inyectar Datos Reales
+              worksheet.getCell(nameRow, startCol).value = subject.name;     // Celda Nombre (Combinada)
+              worksheet.getCell(hoursRow, startCol + 1).value = hours.acd;   // ACD (Col + 1)
+              worksheet.getCell(hoursRow, startCol + 3).value = hours.ape;   // APE (Col + 3)
+              worksheet.getCell(hoursRow, startCol + 5).value = hours.aa;    // AA  (Col + 5)
+            } else {
+              // Limpiar celdas vacías (si moviste una materia y la casilla quedó blanca)
+              worksheet.getCell(nameRow, startCol).value = "";
+              worksheet.getCell(hoursRow, startCol + 1).value = 0;
+              worksheet.getCell(hoursRow, startCol + 3).value = 0;
+              worksheet.getCell(hoursRow, startCol + 5).value = 0;
+            }
+          }
+        }
+        
+        // 3. Descargar el archivo procesado respetando colores y estructura original
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+        saveAs(blob, "Matriz_Curricular_ESPOL.xlsx");
+        
+        showToast('Malla exportada a Excel con éxito.', 'success');
+      } catch (error) {
+        console.error("Error al generar el Excel:", error);
+        showToast('Error al generar la malla. Revisa la consola.', 'error');
+      }
     }
 
     function openModalForCreate(e) {
