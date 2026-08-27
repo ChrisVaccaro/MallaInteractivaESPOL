@@ -828,7 +828,7 @@
         // 3. Descargar el archivo procesado respetando colores y estructura original
         const buffer = await workbook.xlsx.writeBuffer();
         const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-        saveAs(blob, "Matriz_Curricular_ESPOL.xlsx");
+        saveAs(blob, "2. Estructura curricular propuesta y tabla de equivalencias.xlsx");
         
         showToast('Malla exportada a Excel con éxito.', 'success');
       } catch (error) {
