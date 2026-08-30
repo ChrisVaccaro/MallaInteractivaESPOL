@@ -846,7 +846,7 @@
       document.querySelectorAll('path.connection').forEach(path => { path.classList.remove('highlight-req', 'highlight-next'); });
     }
 
-    function loadDataIntoBoard(importedData, fileNameCareer = null) {
+    function loadDataIntoBoard(importedData) {
       if (importedData.levels && importedData.subjects && importedData.connections) {
         importedData.levels = [
           { "id": "L100-1", "name": "NIVEL 100 - I" }, { "id": "L100-2", "name": "NIVEL 100 - II" }, { "id": "L200-1", "name": "NIVEL 200 - I" }, { "id": "L200-2", "name": "NIVEL 200 - II" },
@@ -855,10 +855,8 @@
         saveStateToHistory(); 
         state = importedData; 
         
-        // Priorizar el baseCareer que venga dentro del JSON (incluso si es un JSON viejo sin la propiedad, usa el parámetro)
-        if (fileNameCareer) {
-          state.baseCareer = fileNameCareer;
-        } else if (!state.baseCareer) {
+        // Si el JSON no tiene baseCareer, aseguramos que sea null
+        if (!state.baseCareer) {
           state.baseCareer = null;
         }
 
@@ -879,8 +877,7 @@
       reader.onload = function(e) { 
         try { 
           const importedData = JSON.parse(e.target.result); 
-          // Si el JSON viejo no tiene baseCareer, pasará null y activará el modal al exportar
-          loadDataIntoBoard(importedData, importedData.baseCareer || null); 
+          loadDataIntoBoard(importedData); 
         } catch (err) { 
           showToast('Ocurrió un error al leer el archivo JSON.', 'error'); 
         } 
@@ -894,14 +891,15 @@
         const response = await fetch(url);
         if (!response.ok) throw new Error('Archivo no encontrado (' + response.status + ')');
         const importedData = await response.json();
-        loadDataIntoBoard(importedData, careerName);
+        importedData.baseCareer = careerName;
+        loadDataIntoBoard(importedData);
       } catch (err) { 
         showToast('Error al cargar la carrera. Verifica el archivo en GitHub.', 'error'); 
         console.error(err);
       }
     }
 
-    // --- MODAL PARA ASEGURAR CARRERA BASE ANTES DE EXPORTAR ---
+    // --- MODAL PARA ASEGURAR CARRERA BASE ANTES DE EXPORTAR O GUARDAR JSON ---
     function checkAndExportJSON() {
       if (!state.baseCareer) {
         pendingExportAction = 'json';
@@ -1038,7 +1036,7 @@
       if (!name || !code) { showToast('Por favor ingresa un nombre y código válidos.', 'error'); return; }
       saveStateToHistory();
       if (id) { const subj = state.subjects.find(s => s.id === id); if (subj) { subj.name = name; subj.code = code; subj.components = components; subj.sum = sum; subj.isBasic = isBasic; } } 
-      else { const levelId = document.getElementById('edit-level').value; const newId = 'CUSTOM_' + Date.now(); const usedCols = state.subjects.filter(s => s.level === levelId).map(s => s.col); let freeCol = 0; for (let i = 0; i < NUM_COLUMNS; i++) {- if (!usedCols.includes(i)) { freeCol = i; break; } } state.subjects.push({ id: newId, code: code, name: name, components: components, sum: sum, level: levelId, col: freeCol, isBasic: isBasic }); }
+      else { const levelId = document.getElementById('edit-level').value; const newId = 'CUSTOM_' + Date.now(); const usedCols = state.subjects.filter(s => s.level === levelId).map(s => s.col); let freeCol = 0; for (let i = 0; i < NUM_COLUMNS; i++) { if (!usedCols.includes(i)) { freeCol = i; break; } } state.subjects.push({ id: newId, code: code, name: name, components: components, sum: sum, level: levelId, col: freeCol, isBasic: isBasic }); }
       
       persistState();
       closeModal(); renderBoard(); drawConnections();
