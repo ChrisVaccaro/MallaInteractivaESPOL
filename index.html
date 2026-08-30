@@ -33,7 +33,28 @@
     }
 
     h1 { text-align: center; margin-bottom: 4px; color: var(--primary-color); }
-    .subtitle { text-align: center; font-size: 0.9em; color: #64748b; margin-bottom: 15px; }
+    
+    /* Subtítulo interactivo dinámico */
+    .subtitle { 
+      text-align: center; 
+      font-size: 0.95em; 
+      color: #475569; 
+      margin-bottom: 15px; 
+      font-weight: 600;
+    }
+    .subtitle-dropdown {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      color: var(--accent-color);
+      padding: 2px 8px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .subtitle-dropdown:hover {
+      background-color: #eff6ff;
+    }
 
     /* Barra de Leyenda e Indicadores */
     .legend-bar {
@@ -50,7 +71,8 @@
     .legend-item { display: flex; align-items: center; gap: 8px; }
     .legend-line { width: 30px; height: 3px; display: inline-block; border-radius: 2px; }
     .legend-prereq { background-color: #64748b; }
-    .legend-coreq { background-color: var(--coreq-color); border-bottom: 2px dashed var(--coreq-color); }
+    /* Correquisito corregido a línea segmentada */
+    .legend-coreq { background-color: transparent; border-top: 3px dashed var(--coreq-color); width: 30px; height: 0px; display: inline-block; }
     .legend-box-basic { width: 16px; height: 16px; background-color: var(--basic-math-color); border: 2px solid var(--basic-math-border); border-radius: 4px; }
 
     /* Badges / Contadores de Créditos */
@@ -183,9 +205,9 @@
 
     /* CAPA BASE: FILAS Y CELDAS */
     .level-row { display: flex; background: #ffffff; border-radius: 8px; border: 1px solid var(--border-color); min-height: 125px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; }
-    .level-header { width: 160px; min-width: 160px; background-color: #f1f5f9; border-right: 1px solid var(--border-color); border-radius: 8px 0 0 8px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 8px; font-weight: bold; color: var(--primary-color); font-size: 0.82em; text-align: center; }
+    .level-header { width: 170px; min-width: 170px; background-color: #f1f5f9; border-right: 1px solid var(--border-color); border-radius: 8px 0 0 8px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 8px; font-weight: bold; color: var(--primary-color); font-size: 0.80em; text-align: center; }
     .level-credits { font-size: 0.85em; color: #0369a1; background: #e0f2fe; padding: 3px 8px; border-radius: 12px; margin-top: 4px; margin-bottom: 4px; }
-    .level-hours { font-size: 0.78em; color: #475569; line-height: 1.3; margin-top: 2px; font-weight: 600; }
+    .level-hours { font-size: 0.75em; color: #475569; line-height: 1.3; margin-top: 2px; font-weight: 600; }
     .level-content-grid { flex: 1; display: grid; grid-template-columns: repeat(8, 1fr); gap: 14px; padding: 16px; background-color: #fafafa; align-items: center; }
     .grid-cell { border: 1px dashed #cbd5e1; border-radius: 6px; min-height: 90px; display: flex; justify-content: center; align-items: center; background-color: rgba(255, 255, 255, 0.5); transition: background-color 0.2s; }
     .grid-cell.drag-over { background-color: #e0f2fe; border-color: var(--accent-color); }
@@ -229,11 +251,16 @@
   <div id="toast-container"></div>
 
   <h1>Malla Curricular Interactiva - ESPOL</h1>
-  <div class="subtitle">Gestión interactiva de créditos, correquisitos y ciencias básicas</div>
+  <div class="subtitle" id="subtitle-container" style="display: none;">
+    Malla actual: <span id="subtitle-career-name" class="subtitle-dropdown" onclick="toggleSubtitleDropdown(event)">Seleccionar carrera ▾</span>
+    <div id="dropdown-subtitle" class="dropdown-content" style="left: 50%; transform: translateX(-50%); top: 120%;">
+      <div style="padding: 10px; font-size: 0.8em; color: #64748b; text-align: center;">Cargando catálogo...</div>
+    </div>
+  </div>
 
   <div class="legend-bar">
     <div class="legend-item"><span class="legend-line legend-prereq"></span><span>Prerrequisito</span></div>
-    <div class="legend-item"><span class="legend-line legend-coreq"></span><span>Correquisito (Mismo nivel)</span></div>
+    <div class="legend-item"><span class="legend-coreq"></span><span>Correquisito</span></div>
     <div class="legend-item"><span class="legend-box-basic"></span><span>Ciencias Básicas</span></div>
     <div class="basic-credits-badge" id="basic-credits-summary">📐 Créditos Ciencias Básicas: 0</div>
     <div class="total-credits-badge" id="total-credits-summary">🎓 Total Créditos Malla: 0</div>
@@ -242,7 +269,7 @@
   <div class="toolbar">
     <div class="toolbar-group">
       <button id="btn-mode-toggle" class="active" onclick="toggleInteractionMode()">🖐️ Modo: Mover</button>
-      <button id="btn-toggle-lines" class="active" onclick="toggleLineType()">〰️ Líneas: Curvas</button>
+      <button id="btn-toggle-lines" class="active" onclick="toggleLineType()">📐 Líneas: Rectas</button>
       <button class="btn-add" onclick="openModalForCreate(event)">➕ Nueva Materia</button>
     </div>
     <div class="toolbar-divider"></div>
@@ -259,8 +286,8 @@
       <div class="dropdown">
         <button onclick="toggleSaveDropdown(event)" class="dropbtn">💾 Guardar 🔽</button>
         <div id="dropdown-save" class="dropdown-content">
-          <a href="#" onclick="exportJSON(); closeAllDropdowns();">📄 Guardar borrador (JSON)</a>
-          <a href="#" onclick="procesarYDescargarExcel(); closeAllDropdowns();" class="btn-primary-option">📊 Exportar excel final</a>
+          <a href="#" onclick="checkAndExportJSON(); closeAllDropdowns();">📄 Guardar borrador (JSON)</a>
+          <a href="#" onclick="checkAndProcessExcel(); closeAllDropdowns();" class="btn-primary-option">📊 Exportar excel final</a>
         </div>
       </div>
       
@@ -285,6 +312,22 @@
     <div class="board-wrapper" id="board-wrapper">
       <svg id="connections-layer"></svg>
       <div class="board" id="board"></div>
+    </div>
+  </div>
+
+  <!-- MODAL PARA SELECCIONAR CARRERA SI ESTÁ HUÉRFANA -->
+  <div class="modal-overlay" id="career-modal-overlay">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h2>Seleccionar Malla Base</h2>
+      <p style="font-size: 0.9em; color: #475569; line-height: 1.4;">Esta malla no tiene una carrera base asignada o fue creada desde cero. Por favor, selecciona con qué carrera deseas asociarla para generar los reportes:</p>
+      <div class="form-group">
+        <label>Carrera de comparación:</label>
+        <select id="modal-career-select"></select>
+      </div>
+      <div class="modal-actions">
+        <button onclick="closeCareerModal()">Cancelar</button>
+        <button onclick="confirmCareerSelection()" style="background-color: var(--accent-color); color: white;">Confirmar y Continuar</button>
+      </div>
     </div>
   </div>
 
@@ -331,11 +374,11 @@
         <li><b>Modos de Interacción:</b> Puedes alternar con el botón entre Mover materias (arrastrar y soltar libremente) y Modo Requisitos (hacer clic en dos materias para conectarlas).</li>
         <li><b>Visualización de Requisitos:</b> Al pasar el cursor sobre cualquier materia, se resaltará su ruta académica en rojo (prerrequisitos) y verde (materias futuras).</li>
         <li><b>Ciencias Básicas:</b> Se ha dado mayor interés a las asignaturas de Ciencias Básicas y Matemáticas, resaltándolas en color celeste.</li>
-        <li><b>Estilo de Conexiones:</b> Puedes alternar la visualización entre líneas curvas o rectas.</li>
+        <li><b>Estilo de Conexiones:</b> Puedes alternar la visualización entre líneas curvas o rectas por defecto.</li>
         <li><b>Atajos de Teclado:</b> Utiliza Ctrl + Z para Deshacer un cambio y Ctrl + Y para Rehacer.</li>
         <li><b>Autoguardado:</b> Si cierras o recargas la página por accidente, el sistema recordará tu último progreso y te preguntará si deseas restaurarlo al volver a entrar.</li>
         <li><b>Prácticas Empresariales:</b> El contador total ya suma automáticamente los 5 créditos obligatorios de prácticas empresariales, por lo que no es necesario agregarlas como materia en la malla.</li>
-        <li><b>Mallas Base y Carga Local:</b> Puedes seleccionar tu carrera desde el menú "Cargar Malla" para tener la plantilla inicial de forma inmediata. Desde ese mismo menú puedes subir tu propio archivo desde el ordenador, el cual <b>debe ser obligatoriamente una versión en formato JSON</b> que hayas guardado anteriormente.</li>
+        <li><b>Mallas Base y Carga Local:</b> Puedes seleccionar tu carrera desde el menú "Cargar Malla" para tener la plantilla inicial de forma inmediata. Desde ese mismo menú puedes subir tu propio archivo desde el ordenador en formato JSON.</li>
         <li><b>Opciones de Guardado:</b> Utiliza el menú desplegable "Guardar 🔽" para descargar tu avance como un borrador (archivo JSON) que podrás retomar después, o para exportar tu malla final directamente a una plantilla de Excel.</li>
       </ul>
       <div class="modal-actions" style="justify-content: flex-end; margin-top: 25px;">
@@ -351,6 +394,7 @@
   <script>
     const NUM_COLUMNS = 8;
     const initialData = {
+      "baseCareer": null,
       "levels": [
         { "id": "L100-1", "name": "NIVEL 100 - I" }, { "id": "L100-2", "name": "NIVEL 100 - II" },
         { "id": "L200-1", "name": "NIVEL 200 - I" }, { "id": "L200-2", "name": "NIVEL 200 - II" },
@@ -362,9 +406,12 @@
     };
 
     let state = JSON.parse(JSON.stringify(initialData));
-    let currentMode = 'drag'; let selectedSourceId = null; let pinnedSubjectId = null; let lineType = 'curved'; 
+    let currentMode = 'drag'; let selectedSourceId = null; let pinnedSubjectId = null; 
+    let lineType = 'orthogonal'; // Por defecto líneas rectas
     let historyStack = []; let redoStack = [];
-    
+    let catalogoGlobal = null;
+    let pendingExportAction = null; // Para manejar el modal de carrera faltante
+
     // --- SISTEMA DE TOAST NOTIFICATIONS ---
     function showToast(message, type = 'info') {
       const container = document.getElementById('toast-container');
@@ -389,21 +436,19 @@
       localStorage.setItem('malla_espol_autosave', JSON.stringify(state));
     }
 
-    let catalogoGlobal = null;
-
     async function loadCatalogo() {
       const container = document.getElementById('dropdown-json');
+      const subtitleContainer = document.getElementById('dropdown-subtitle');
       try {
         const response = await fetch('./catalogo.json');
         if (!response.ok) throw new Error('Catálogo no encontrado');
         catalogoGlobal = await response.json();
         renderMenuFacultades();
+        renderSubtitleDropdownContent();
       } catch (err) {
-        container.innerHTML = `
-          <a href="#" style="color: var(--accent-color); font-weight: bold;" onclick="triggerImportJSON();">📁 Cargar archivo local...</a>
-          <div class="dropdown-divider"></div>
-          <div style="padding: 10px; font-size: 0.8em; color: #ef4444; text-align: center;">No se pudo cargar el catálogo.<br>Asegúrate de tener "catalogo.json" en GitHub.</div>
-        `;
+        const errorHtml = `<div style="padding: 10px; font-size: 0.8em; color: #ef4444; text-align: center;">No se pudo cargar el catálogo.</div>`;
+        if (container) container.innerHTML = `<a href="#" style="color: var(--accent-color); font-weight: bold;" onclick="triggerImportJSON();">📁 Cargar archivo local...</a>` + errorHtml;
+        if (subtitleContainer) subtitleContainer.innerHTML = errorHtml;
       }
     }
 
@@ -424,7 +469,6 @@
 
     function renderMenuCarreras(indexFacultad, event) {
       if (event) { event.preventDefault(); event.stopPropagation(); } 
-      
       const container = document.getElementById('dropdown-json');
       const facultad = catalogoGlobal.facultades[indexFacultad];
 
@@ -432,7 +476,7 @@
       html += `<div class="dropdown-header" style="margin-top: 5px;">Carreras - ${facultad.nombre}</div>`;
 
       facultad.carreras.forEach(carrera => {
-        html += `<a href="#" onclick="fetchAndLoadJSON('${carrera.ruta}')">📄 ${carrera.nombre}</a>`;
+        html += `<a href="#" onclick="fetchAndLoadJSON('${carrera.ruta}', '${carrera.nombre}')">📄 ${carrera.nombre}</a>`;
       });
 
       container.innerHTML = html;
@@ -443,7 +487,49 @@
       renderMenuFacultades();
     }
 
-    // --- MANEJO DE MENÚS DESPLEGABLES ---
+    // --- MENÚ SUBTÍTULO INTERACTIVO ---
+    function renderSubtitleDropdownContent() {
+      const container = document.getElementById('dropdown-subtitle');
+      if (!catalogoGlobal) return;
+
+      let html = `<div class="dropdown-header">Cambiar malla base</div>`;
+      catalogoGlobal.facultades.forEach(facultad => {
+        html += `<div class="dropdown-header" style="background:#f1f5f9; color:#334155; font-size:0.7em;">${facultad.nombre}</div>`;
+        facultad.carreras.forEach(carrera => {
+          html += `<a href="#" onclick="changeBaseCareer('${carrera.nombre}', event)">📄 ${carrera.nombre}</a>`;
+        });
+      });
+      container.innerHTML = html;
+    }
+
+    function toggleSubtitleDropdown(e) {
+      e.preventDefault(); e.stopPropagation();
+      closeAllDropdowns();
+      const dropdown = document.getElementById("dropdown-subtitle");
+      dropdown.classList.toggle("show");
+    }
+
+    function changeBaseCareer(careerName, event) {
+      if (event) { event.preventDefault(); event.stopPropagation(); }
+      state.baseCareer = careerName;
+      persistState();
+      updateSubtitleUI();
+      closeAllDropdowns();
+      showToast(`Malla base actualizada a: ${careerName}`, 'success');
+    }
+
+    function updateSubtitleUI() {
+      const container = document.getElementById('subtitle-container');
+      const nameSpan = document.getElementById('subtitle-career-name');
+      if (state.baseCareer) {
+        nameSpan.innerHTML = `${state.baseCareer} ▾`;
+        container.style.display = 'block';
+      } else {
+        container.style.display = 'none';
+      }
+    }
+
+    // --- MANEJO DE MENÚS DESPLEGABLES GENERALES ---
     function toggleJSONDropdown(e) {
       e.preventDefault(); e.stopPropagation();
       closeAllDropdowns();
@@ -488,8 +574,8 @@
 
     function toggleLineType() {
       const btn = document.getElementById('btn-toggle-lines');
-      if (lineType === 'orthogonal') { lineType = 'curved'; btn.innerHTML = '〰️ Líneas: Curvas'; btn.classList.add('active'); } 
-      else { lineType = 'orthogonal'; btn.innerHTML = '📐 Líneas: Rectas'; btn.classList.remove('active'); }
+      if (lineType === 'orthogonal') { lineType = 'curved'; btn.innerHTML = '〰️ Líneas: Curvas'; btn.classList.remove('active'); } 
+      else { lineType = 'orthogonal'; btn.innerHTML = '📐 Líneas: Rectas'; btn.classList.add('active'); }
       drawConnections(); 
     }
 
@@ -499,14 +585,14 @@
       if (historyStack.length === 0) return;
       redoStack.push(JSON.stringify(state)); state = JSON.parse(historyStack.pop());
       persistState();
-      pinnedSubjectId = null; renderBoard(); drawConnections(); updateUndoRedoButtons();
+      pinnedSubjectId = null; renderBoard(); drawConnections(); updateUndoRedoButtons(); updateSubtitleUI();
     }
 
     function redo() {
       if (redoStack.length === 0) return;
       historyStack.push(JSON.stringify(state)); state = JSON.parse(redoStack.pop());
       persistState();
-      pinnedSubjectId = null; renderBoard(); drawConnections(); updateUndoRedoButtons();
+      pinnedSubjectId = null; renderBoard(); drawConnections(); updateUndoRedoButtons(); updateSubtitleUI();
     }
 
     function updateUndoRedoButtons() {
@@ -519,7 +605,6 @@
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { redo(); }
     });
 
-    // Se extraen ahora los 3 valores: ACD, APE, AA
     function parseHoursComponents(componentsStr) {
       if (!componentsStr) return { acd: 0, ape: 0, aa: 0 };
       const parts = componentsStr.split('/').map(p => parseFloat(p) || 0);
@@ -569,6 +654,7 @@
         }
       }
 
+      updateSubtitleUI();
       renderBoard(); setTimeout(drawConnections, 100); window.addEventListener('resize', drawConnections); updateUndoRedoButtons();
       loadCatalogo();
 
@@ -592,16 +678,17 @@
         const subjectsInLevel = state.subjects.filter(s => s.level === level.id);
         const totalCredits = subjectsInLevel.reduce((acc, curr) => acc + calculateCredits(curr), 0);
 
-        let totalACD = 0; let totalAPE = 0;
+        let totalACD = 0; let totalAPE = 0; let totalAA = 0;
         subjectsInLevel.forEach(subj => {
           const hours = parseHoursComponents(subj.components); 
           totalACD += hours.acd; 
           totalAPE += hours.ape;
+          totalAA += hours.aa;
         });
 
         row.innerHTML = `
           <div class="level-header"><span>${level.name}</span><span class="level-credits">${totalCredits} Créditos</span>
-            <div class="level-hours"><div>ACD: ${totalACD}h</div><div>APE: ${totalAPE}h</div></div>
+            <div class="level-hours"><div>ACD: ${totalACD}h</div><div>APE: ${totalAPE}h</div><div>AA: ${totalAA}h</div></div>
           </div>
           <div class="level-content-grid" id="grid-${level.id}"></div>
         `;
@@ -734,13 +821,22 @@
       document.querySelectorAll('path.connection').forEach(path => { path.classList.remove('highlight-req', 'highlight-next'); });
     }
 
-    function loadDataIntoBoard(importedData) {
+    function loadDataIntoBoard(importedData, fileNameCareer = null) {
       if (importedData.levels && importedData.subjects && importedData.connections) {
         importedData.levels = [
           { "id": "L100-1", "name": "NIVEL 100 - I" }, { "id": "L100-2", "name": "NIVEL 100 - II" }, { "id": "L200-1", "name": "NIVEL 200 - I" }, { "id": "L200-2", "name": "NIVEL 200 - II" },
           { "id": "L300-1", "name": "NIVEL 300 - I" }, { "id": "L300-2", "name": "NIVEL 300 - II" }, { "id": "L400-1", "name": "NIVEL 400 - I" }, { "id": "L400-2", "name": "NIVEL 400 - II" }, { "id": "L500-1", "name": "NIVEL 500 - I" }
         ];
-        saveStateToHistory(); state = importedData; persistState(); pinnedSubjectId = null; renderBoard(); drawConnections();
+        saveStateToHistory(); 
+        state = importedData; 
+        if (fileNameCareer) {
+          state.baseCareer = fileNameCareer;
+        }
+        persistState(); 
+        pinnedSubjectId = null; 
+        updateSubtitleUI();
+        renderBoard(); 
+        drawConnections();
         showToast('Malla cargada con éxito.', 'success');
       } else { showToast('El archivo JSON no tiene la estructura válida de una malla.', 'error'); }
     }
@@ -750,21 +846,85 @@
     function importJSONFromFile(event) {
       const file = event.target.files[0]; if (!file) return;
       const reader = new FileReader();
-      reader.onload = function(e) { try { const importedData = JSON.parse(e.target.result); loadDataIntoBoard(importedData); } catch (err) { showToast('Ocurrió un error al leer el archivo JSON.', 'error'); } };
+      reader.onload = function(e) { 
+        try { 
+          const importedData = JSON.parse(e.target.result); 
+          loadDataIntoBoard(importedData, importedData.baseCareer || null); 
+        } catch (err) { 
+          showToast('Ocurrió un error al leer el archivo JSON.', 'error'); 
+        } 
+      };
       reader.readAsText(file); event.target.value = '';
     }
 
-    async function fetchAndLoadJSON(url) {
+    async function fetchAndLoadJSON(url, careerName) {
       closeAllDropdowns();
       try {
         const response = await fetch(url);
         if (!response.ok) throw new Error('Archivo no encontrado (' + response.status + ')');
         const importedData = await response.json();
-        loadDataIntoBoard(importedData);
+        loadDataIntoBoard(importedData, careerName);
       } catch (err) { 
         showToast('Error al cargar la carrera. Verifica el archivo en GitHub.', 'error'); 
         console.error(err);
       }
+    }
+
+    // --- MODAL PARA ASEGURAR CARRERA BASE ANTES DE EXPORTAR ---
+    function checkAndExportJSON() {
+      if (!state.baseCareer) {
+        pendingExportAction = 'json';
+        openCareerModal();
+      } else {
+        exportJSON();
+      }
+    }
+
+    function checkAndProcessExcel() {
+      if (!state.baseCareer) {
+        pendingExportAction = 'excel';
+        openCareerModal();
+      } else {
+        procesarYDescargarExcel();
+      }
+    }
+
+    function openCareerModal() {
+      const select = document.getElementById('modal-career-select');
+      select.innerHTML = '';
+      if (catalogoGlobal && catalogoGlobal.facultades) {
+        catalogoGlobal.facultades.forEach(fac => {
+          fac.carreras.forEach(car => {
+            const opt = document.createElement('option');
+            opt.value = car.nombre;
+            opt.textContent = `${car.nombre} (${fac.nombre})`;
+            select.appendChild(opt);
+          });
+        });
+      }
+      document.getElementById('career-modal-overlay').style.display = 'flex';
+    }
+
+    function closeCareerModal() {
+      document.getElementById('career-modal-overlay').style.display = 'none';
+      pendingExportAction = null;
+    }
+
+    function confirmCareerSelection() {
+      const select = document.getElementById('modal-career-select');
+      const chosen = select.value;
+      if (!chosen) return;
+      state.baseCareer = chosen;
+      persistState();
+      updateSubtitleUI();
+      closeCareerModal();
+      
+      if (pendingExportAction === 'json') {
+        exportJSON();
+      } else if (pendingExportAction === 'excel') {
+        procesarYDescargarExcel();
+      }
+      pendingExportAction = null;
     }
 
     function exportJSON() {
@@ -786,37 +946,30 @@
         const workbook = new ExcelJS.Workbook();
         await workbook.xlsx.load(arrayBuffer);
         
-        // 1. Obtener la hoja correcta
         const worksheet = workbook.getWorksheet('MALLA CURRICULAR');
         if (!worksheet) {
           throw new Error('La pestaña "MALLA CURRICULAR" no se encontró en la plantilla.');
         }
 
-        // 2. Iterar por la cuadrícula de tu app (9 Niveles x 8 Columnas)
         for (let lvlIdx = 0; lvlIdx < state.levels.length; lvlIdx++) {
           const levelId = state.levels[lvlIdx].id;
           
-          // Cálculo de Filas en Excel (4 filas de salto por semestre)
           const nameRow = 6 + (lvlIdx * 4);
           const hoursRow = 7 + (lvlIdx * 4);
 
           for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
-            // Cálculo de la Columna inicial en Excel (9 columnas de salto entre materias, empezando en G = 7)
             const startCol = 7 + (colIdx * 9); 
             
-            // Buscar si hay una materia en esta posición
             const subject = state.subjects.find(s => s.level === levelId && s.col === colIdx);
 
             if (subject) {
               const hours = parseHoursComponents(subject.components);
               
-              // Inyectar Datos Reales
-              worksheet.getCell(nameRow, startCol).value = subject.name;     // Celda Nombre (Combinada)
-              worksheet.getCell(hoursRow, startCol + 1).value = hours.acd;   // ACD (Col + 1)
-              worksheet.getCell(hoursRow, startCol + 3).value = hours.ape;   // APE (Col + 3)
-              worksheet.getCell(hoursRow, startCol + 5).value = hours.aa;    // AA  (Col + 5)
+              worksheet.getCell(nameRow, startCol).value = subject.name;   
+              worksheet.getCell(hoursRow, startCol + 1).value = hours.acd;   
+              worksheet.getCell(hoursRow, startCol + 3).value = hours.ape;   
+              worksheet.getCell(hoursRow, startCol + 5).value = hours.aa;    
             } else {
-              // Limpiar celdas vacías (si moviste una materia y la casilla quedó blanca)
               worksheet.getCell(nameRow, startCol).value = "";
               worksheet.getCell(hoursRow, startCol + 1).value = 0;
               worksheet.getCell(hoursRow, startCol + 3).value = 0;
@@ -825,7 +978,6 @@
           }
         }
         
-        // 3. Descargar el archivo procesado respetando colores y estructura original
         const buffer = await workbook.xlsx.writeBuffer();
         const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
         saveAs(blob, "2. Estructura curricular propuesta y tabla de equivalencias.xlsx");
@@ -874,9 +1026,13 @@
 
     function resetLayout() {
       if (confirm('¿Deseas vaciar la malla y borrar todo el contenido?')) { 
-        saveStateToHistory(); state = JSON.parse(JSON.stringify(initialData)); 
+        saveStateToHistory(); 
+        state = JSON.parse(JSON.stringify(initialData)); 
         persistState();
-        pinnedSubjectId = null; renderBoard(); drawConnections(); 
+        pinnedSubjectId = null; 
+        updateSubtitleUI();
+        renderBoard(); 
+        drawConnections(); 
         showToast('Malla vaciada exitosamente.', 'info');
       }
     }
