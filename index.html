@@ -42,6 +42,7 @@
       margin-bottom: 15px; 
       font-weight: 600;
       visibility: hidden;
+      position: relative;
     }
     .subtitle.visible {
       visibility: visible;
@@ -491,19 +492,36 @@
       renderMenuFacultades();
     }
 
-    // --- MENÚ SUBTÍTULO INTERACTIVO ---
+    // --- MENÚ SUBTÍTULO INTERACTIVO (PLEGABLE) ---
     function renderSubtitleDropdownContent() {
       const container = document.getElementById('dropdown-subtitle');
       if (!catalogoGlobal) return;
 
-      let html = `<div class="dropdown-header">Cambiar malla base</div>`;
-      catalogoGlobal.facultades.forEach(facultad => {
-        html += `<div class="dropdown-header" style="background:#f1f5f9; color:#334155; font-size:0.7em;">${facultad.nombre}</div>`;
-        facultad.carreras.forEach(carrera => {
-          html += `<a href="#" onclick="changeBaseCareer('${carrera.nombre}', event)">📄 ${carrera.nombre}</a>`;
-        });
+      let html = `<div class="dropdown-header">Facultades</div>`;
+      catalogoGlobal.facultades.forEach((facultad, index) => {
+        html += `<a href="#" onclick="renderSubtitleCarreras(${index}, event)">${facultad.nombre} <span>➡️</span></a>`;
       });
       container.innerHTML = html;
+    }
+
+    function renderSubtitleCarreras(indexFacultad, event) {
+      if (event) { event.preventDefault(); event.stopPropagation(); }
+      const container = document.getElementById('dropdown-subtitle');
+      const facultad = catalogoGlobal.facultades[indexFacultad];
+
+      let html = `<a href="#" class="btn-back-option" onclick="volverSubtitleFacultades(event)">⬅️ Volver a Facultades</a>`;
+      html += `<div class="dropdown-header" style="margin-top: 5px;">Carreras - ${facultad.nombre}</div>`;
+
+      facultad.carreras.forEach(carrera => {
+        html += `<a href="#" onclick="changeBaseCareerFromSubmenu('${carrera.nombre}', event)">📄 ${carrera.nombre}</a>`;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function volverSubtitleFacultades(event) {
+      if (event) { event.preventDefault(); event.stopPropagation(); }
+      renderSubtitleDropdownContent();
     }
 
     function toggleSubtitleDropdown(e) {
@@ -511,9 +529,12 @@
       closeAllDropdowns();
       const dropdown = document.getElementById("dropdown-subtitle");
       dropdown.classList.toggle("show");
+      if (dropdown.classList.contains("show")) {
+        renderSubtitleDropdownContent();
+      }
     }
 
-    function changeBaseCareer(careerName, event) {
+    function changeBaseCareerFromSubmenu(careerName, event) {
       if (event) { event.preventDefault(); event.stopPropagation(); }
       state.baseCareer = careerName;
       persistState();
@@ -833,9 +854,14 @@
         ];
         saveStateToHistory(); 
         state = importedData; 
+        
+        // Si el JSON trae baseCareer, se asigna; de lo contrario, se respeta o queda nulo para que salte el modal si es necesario
         if (fileNameCareer) {
           state.baseCareer = fileNameCareer;
+        } else if (!state.baseCareer) {
+          state.baseCareer = null;
         }
+
         persistState(); 
         pinnedSubjectId = null; 
         updateSubtitleUI();
@@ -1033,7 +1059,7 @@
         saveStateToHistory(); 
         state = JSON.parse(JSON.stringify(initialData)); 
         persistState();
-        pinnedSubjectId = null; 
+        pinnedSubjectId = site = null; 
         updateSubtitleUI();
         renderBoard(); 
         drawConnections(); 
