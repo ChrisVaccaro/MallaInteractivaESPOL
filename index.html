@@ -326,7 +326,7 @@
   <div class="modal-overlay" id="career-modal-overlay">
     <div class="modal" onclick="event.stopPropagation()">
       <h2>Seleccionar Malla Base</h2>
-      <p style="font-size: 0.9em; color: #475569; line-height: 1.4;">Esta malla no tiene una carrera base asignada o fue creada desde cero. Por favor, selecciona con qué carrera deseas asociarla para generar los reportes:</p>
+      <p style="font-size: 0.9em; color: #475569; line-height: 1.4;">Esta malla no tiene una carrera base asignada o fue creada desde cero. Por favor, selecciona con qué carrera deseas asociarla para continuar:</p>
       <div class="form-group">
         <label>Carrera de comparación:</label>
         <select id="modal-career-select"></select>
@@ -418,6 +418,7 @@
     let historyStack = []; let redoStack = [];
     let catalogoGlobal = null;
     let pendingExportAction = null;
+    let pendingImportedData = null; // Variable temporal para guardar el JSON importado sin carrera
 
     // --- SISTEMA DE TOAST NOTIFICATIONS ---
     function showToast(message, type = 'info') {
@@ -852,21 +853,29 @@
           { "id": "L100-1", "name": "NIVEL 100 - I" }, { "id": "L100-2", "name": "NIVEL 100 - II" }, { "id": "L200-1", "name": "NIVEL 200 - I" }, { "id": "L200-2", "name": "NIVEL 200 - II" },
           { "id": "L300-1", "name": "NIVEL 300 - I" }, { "id": "L300-2", "name": "NIVEL 300 - II" }, { "id": "L400-1", "name": "NIVEL 400 - I" }, { "id": "L400-2", "name": "NIVEL 400 - II" }, { "id": "L500-1", "name": "NIVEL 500 - I" }
         ];
-        saveStateToHistory(); 
-        state = importedData; 
         
-        // Si el JSON no tiene baseCareer, aseguramos que sea null
-        if (!state.baseCareer) {
-          state.baseCareer = null;
+        // Verificación crítica: Si el JSON no tiene baseCareer definido, se intercepta antes de cargar el tablero
+        if (!importedData.baseCareer) {
+          pendingImportedData = importedData;
+          openCareerModal();
+          return; // Detenemos la carga hasta que el usuario elija la carrera en el modal
         }
 
-        persistState(); 
-        pinnedSubjectId = null; 
-        updateSubtitleUI();
-        renderBoard(); 
-        drawConnections();
-        showToast('Malla cargada con éxito.', 'success');
-      } else { showToast('El archivo JSON no tiene la estructura válida de una malla.', 'error'); }
+        applyLoadedData(importedData);
+      } else { 
+        showToast('El archivo JSON no tiene la estructura válida de una malla.', 'error'); 
+      }
+    }
+
+    function applyLoadedData(dataToApply) {
+      saveStateToHistory(); 
+      state = dataToApply; 
+      persistState(); 
+      pinnedSubjectId = null; 
+      updateSubtitleUI();
+      renderBoard(); 
+      drawConnections();
+      showToast('Malla cargada con éxito.', 'success');
     }
 
     function triggerImportJSON() { closeAllDropdowns(); document.getElementById('import-file-input').click(); }
@@ -899,7 +908,7 @@
       }
     }
 
-    // --- MODAL PARA ASEGURAR CARRERA BASE ANTES DE EXPORTAR O GUARDAR JSON ---
+    // --- MODAL PARA ASEGURAR CARRERA BASE ANTES DE EXPORTAR O AL IMPORTAR ---
     function checkAndExportJSON() {
       if (!state.baseCareer) {
         pendingExportAction = 'json';
@@ -937,23 +946,35 @@
     function closeCareerModal() {
       document.getElementById('career-modal-overlay').style.display = 'none';
       pendingExportAction = null;
+      pendingImportedData = null;
     }
 
     function confirmCareerSelection() {
       const select = document.getElementById('modal-career-select');
       const chosen = select.value;
       if (!chosen) return;
-      state.baseCareer = chosen;
-      persistState();
-      updateSubtitleUI();
-      closeCareerModal();
       
-      if (pendingExportAction === 'json') {
-        exportJSON();
-      } else if (pendingExportAction === 'excel') {
-        procesarYDescargarExcel();
+      closeCareerModal();
+
+      if (pendingImportedData) {
+        // Viene de un JSON importado sin carrera base
+        pendingImportedData.baseCareer = chosen;
+        const dataToLoad = pendingImportedData;
+        pendingImportedData = null;
+        applyLoadedData(dataToLoad);
+      } else {
+        // Viene de un intento de exportación (JSON o Excel)
+        state.baseCareer = chosen;
+        persistState();
+        updateSubtitleUI();
+        
+        if (pendingExportAction === 'json') {
+          exportJSON();
+        } else if (pendingExportAction === 'excel') {
+          procesarYDescargarExcel();
+        }
+        pendingExportAction = null;
       }
-      pendingExportAction = null;
     }
 
     function exportJSON() {
