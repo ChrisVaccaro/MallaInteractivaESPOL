@@ -673,7 +673,7 @@
     function init() {
       const savedState = localStorage.getItem('malla_espol_autosave');
       if (savedState) {
-        if (confirm("Tienes una malla sin guardar de tu sesión anterior. ¿Deseas restaurarla?")) {
+        if (("Tienes una malla sin guardar de tu sesión anterior. ¿Deseas restaurarla?")) {
           state = JSON.parse(savedState);
           showToast('Trabajo anterior restaurado.', 'success');
         } else {
@@ -955,26 +955,23 @@
       const chosen = select.value;
       if (!chosen) return;
       
+      const action = pendingExportAction;
+      const dataToLoad = pendingImportedData;
       closeCareerModal();
 
-      if (pendingImportedData) {
-        // Lógica si el usuario subió un JSON viejo
-        pendingImportedData.baseCareer = chosen;
-        const dataToLoad = pendingImportedData;
-        pendingImportedData = null;
+      if (dataToLoad) {
+        dataToLoad.baseCareer = chosen;
         applyLoadedData(dataToLoad);
       } else {
-        // Lógica si el usuario estaba intentando exportar/guardar
         state.baseCareer = chosen;
         persistState();
         updateSubtitleUI();
         
-        if (pendingExportAction === 'json') {
+        if (action === 'json') {
           exportJSON();
-        } else if (pendingExportAction === 'excel') {
+        } else if (action === 'excel') {
           procesarYDescargarExcel();
         }
-        pendingExportAction = null;
       }
     }
 
