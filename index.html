@@ -855,7 +855,7 @@
         saveStateToHistory(); 
         state = importedData; 
         
-        // Si el JSON trae baseCareer, se asigna; de lo contrario, se respeta o queda nulo para que salte el modal si es necesario
+        // Priorizar el baseCareer que venga dentro del JSON (incluso si es un JSON viejo sin la propiedad, usa el parámetro)
         if (fileNameCareer) {
           state.baseCareer = fileNameCareer;
         } else if (!state.baseCareer) {
@@ -879,6 +879,7 @@
       reader.onload = function(e) { 
         try { 
           const importedData = JSON.parse(e.target.result); 
+          // Si el JSON viejo no tiene baseCareer, pasará null y activará el modal al exportar
           loadDataIntoBoard(importedData, importedData.baseCareer || null); 
         } catch (err) { 
           showToast('Ocurrió un error al leer el archivo JSON.', 'error'); 
@@ -1037,7 +1038,7 @@
       if (!name || !code) { showToast('Por favor ingresa un nombre y código válidos.', 'error'); return; }
       saveStateToHistory();
       if (id) { const subj = state.subjects.find(s => s.id === id); if (subj) { subj.name = name; subj.code = code; subj.components = components; subj.sum = sum; subj.isBasic = isBasic; } } 
-      else { const levelId = document.getElementById('edit-level').value; const newId = 'CUSTOM_' + Date.now(); const usedCols = state.subjects.filter(s => s.level === levelId).map(s => s.col); let freeCol = 0; for (let i = 0; i < NUM_COLUMNS; i++) { if (!usedCols.includes(i)) { freeCol = i; break; } } state.subjects.push({ id: newId, code: code, name: name, components: components, sum: sum, level: levelId, col: freeCol, isBasic: isBasic }); }
+      else { const levelId = document.getElementById('edit-level').value; const newId = 'CUSTOM_' + Date.now(); const usedCols = state.subjects.filter(s => s.level === levelId).map(s => s.col); let freeCol = 0; for (let i = 0; i < NUM_COLUMNS; i++) {- if (!usedCols.includes(i)) { freeCol = i; break; } } state.subjects.push({ id: newId, code: code, name: name, components: components, sum: sum, level: levelId, col: freeCol, isBasic: isBasic }); }
       
       persistState();
       closeModal(); renderBoard(); drawConnections();
@@ -1059,7 +1060,7 @@
         saveStateToHistory(); 
         state = JSON.parse(JSON.stringify(initialData)); 
         persistState();
-        pinnedSubjectId = site = null; 
+        pinnedSubjectId = null; 
         updateSubtitleUI();
         renderBoard(); 
         drawConnections(); 
