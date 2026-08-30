@@ -34,7 +34,7 @@
 
     h1 { text-align: center; margin-bottom: 4px; color: var(--primary-color); }
     
-    /* Subtítulo interactivo dinámico (mantiene el espacio con visibility: hidden) */
+    /* Subtítulo interactivo dinámico */
     .subtitle { 
       text-align: center; 
       font-size: 0.95em; 
@@ -76,7 +76,6 @@
     .legend-item { display: flex; align-items: center; gap: 8px; }
     .legend-line { width: 30px; height: 3px; display: inline-block; border-radius: 2px; }
     .legend-prereq { background-color: #64748b; }
-    /* Corrección visual del correquisito a línea segmentada */
     .legend-coreq { background-color: transparent; border-top: 3px dashed var(--coreq-color); width: 30px; height: 0px; display: inline-block; }
     .legend-box-basic { width: 16px; height: 16px; background-color: var(--basic-math-color); border: 2px solid var(--basic-math-border); border-radius: 4px; }
 
@@ -323,6 +322,18 @@
     </div>
   </div>
 
+  <!-- MODAL PARA RESTAURAR SESIÓN AL RECARGAR PÁGINA -->
+  <div class="modal-overlay" id="restore-modal-overlay">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h2>Restaurar Sesión</h2>
+      <p style="font-size: 0.9em; color: #475569; line-height: 1.4;">Hemos detectado una malla sin guardar de tu sesión anterior. ¿Deseas restaurar tu trabajo o empezar desde cero?</p>
+      <div class="modal-actions">
+        <button onclick="discardPreviousSession()" style="color: #dc2626; background-color: #fef2f2; border-color: #fca5a5;">Empezar de cero</button>
+        <button onclick="restorePreviousSession()" style="background-color: var(--accent-color); color: white;">Restaurar trabajo</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL PARA SELECCIONAR CARRERA SI ESTÁ HUÉRFANA -->
   <div class="modal-overlay" id="career-modal-overlay">
     <div class="modal" onclick="event.stopPropagation()">
@@ -339,6 +350,7 @@
     </div>
   </div>
 
+  <!-- MODAL DE EDICIÓN DE MATERIAS -->
   <div class="modal-overlay" id="modal-overlay" onclick="closeModal()">
     <div class="modal" id="edit-modal-box" onclick="event.stopPropagation()">
       <h2 id="modal-title">Agregar Nueva Materia</h2>
@@ -419,7 +431,8 @@
     let historyStack = []; let redoStack = [];
     let catalogoGlobal = null;
     let pendingExportAction = null;
-    let pendingImportedData = null; // Guardará temporalmente el JSON al importar si no tiene carrera
+    let pendingImportedData = null;
+    let tempSavedState = null; // Para la restauración del caché
 
     // --- SISTEMA DE TOAST NOTIFICATIONS ---
     function showToast(message, type = 'info') {
@@ -670,19 +683,19 @@
       }
     }
 
+    // --- MANEJO DE CACHÉ CON MODAL PERSONALIZADO ---
     function init() {
       const savedState = localStorage.getItem('malla_espol_autosave');
+      
       if (savedState) {
-        if (("Tienes una malla sin guardar de tu sesión anterior. ¿Deseas restaurarla?")) {
-          state = JSON.parse(savedState);
-          showToast('Trabajo anterior restaurado.', 'success');
-        } else {
-          localStorage.removeItem('malla_espol_autosave');
-        }
+        // Pausar y mostrar el modal
+        tempSavedState = savedState;
+        document.getElementById('restore-modal-overlay').style.display = 'flex';
+      } else {
+        // Cargar normalmente
+        finishInit();
       }
 
-      updateSubtitleUI();
-      renderBoard(); setTimeout(drawConnections, 100); window.addEventListener('resize', drawConnections); updateUndoRedoButtons();
       loadCatalogo();
 
       document.getElementById('edit-components').addEventListener('input', function(e) {
@@ -696,6 +709,31 @@
           pinnedSubjectId = null; clearHighlights(); document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned'));
         }
       });
+    }
+
+    function restorePreviousSession() {
+      document.getElementById('restore-modal-overlay').style.display = 'none';
+      if (tempSavedState) {
+        state = JSON.parse(tempSavedState);
+        tempSavedState = null;
+      }
+      showToast('Trabajo anterior restaurado.', 'success');
+      finishInit();
+    }
+
+    function discardPreviousSession() {
+      document.getElementById('restore-modal-overlay').style.display = 'none';
+      localStorage.removeItem('malla_espol_autosave');
+      tempSavedState = null;
+      finishInit();
+    }
+
+    function finishInit() {
+      updateSubtitleUI();
+      renderBoard(); 
+      setTimeout(drawConnections, 100); 
+      window.addEventListener('resize', drawConnections); 
+      updateUndoRedoButtons();
     }
 
     function renderBoard() {
@@ -859,7 +897,7 @@
         if (!importedData.baseCareer) {
           pendingImportedData = importedData;
           openCareerModal();
-          return; // Detiene la carga de datos hasta que el modal sea completado
+          return; 
         }
 
         applyLoadedData(importedData);
@@ -946,8 +984,7 @@
 
     function closeCareerModal() {
       document.getElementById('career-modal-overlay').style.display = 'none';
-      pendingExportAction = null;
-      pendingImportedData = null;
+      // ¡No limpiamos aquí las variables pendientes! Se limpian al confirmar o al terminar la acción.
     }
 
     function confirmCareerSelection() {
@@ -955,14 +992,22 @@
       const chosen = select.value;
       if (!chosen) return;
       
+      // 1. Rescatamos qué estábamos haciendo ANTES de cerrar el modal
       const action = pendingExportAction;
       const dataToLoad = pendingImportedData;
+      
+      // 2. Ahora sí podemos cerrar y limpiar tranquilamente
       closeCareerModal();
+      pendingExportAction = null;
+      pendingImportedData = null;
 
+      // 3. Ejecutamos la acción rescatada
       if (dataToLoad) {
+        // Veníamos de importar un JSON huérfano
         dataToLoad.baseCareer = chosen;
         applyLoadedData(dataToLoad);
       } else {
+        // Veníamos de exportar Excel o JSON
         state.baseCareer = chosen;
         persistState();
         updateSubtitleUI();
