@@ -34,13 +34,17 @@
 
     h1 { text-align: center; margin-bottom: 4px; color: var(--primary-color); }
     
-    /* Subtítulo interactivo dinámico */
+    /* Subtítulo interactivo dinámico (mantiene el espacio con visibility: hidden) */
     .subtitle { 
       text-align: center; 
       font-size: 0.95em; 
       color: #475569; 
       margin-bottom: 15px; 
       font-weight: 600;
+      visibility: hidden;
+    }
+    .subtitle.visible {
+      visibility: visible;
     }
     .subtitle-dropdown {
       display: inline-flex;
@@ -71,7 +75,6 @@
     .legend-item { display: flex; align-items: center; gap: 8px; }
     .legend-line { width: 30px; height: 3px; display: inline-block; border-radius: 2px; }
     .legend-prereq { background-color: #64748b; }
-    /* Correquisito corregido a línea segmentada */
     .legend-coreq { background-color: transparent; border-top: 3px dashed var(--coreq-color); width: 30px; height: 0px; display: inline-block; }
     .legend-box-basic { width: 16px; height: 16px; background-color: var(--basic-math-color); border: 2px solid var(--basic-math-border); border-radius: 4px; }
 
@@ -140,9 +143,9 @@
     /* ESTILOS DEL MENÚ DESPLEGABLE (DROPDOWN) NAVEGABLE */
     .dropdown { position: relative; display: inline-block; }
     .dropdown-content {
-      display: none; position: absolute; background-color: white; min-width: 220px;
+      display: none; position: absolute; background-color: white; min-width: 250px;
       box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); border-radius: 8px;
-      border: 1px solid var(--border-color); z-index: 100; top: 110%; left: 0; overflow: hidden;
+      border: 1px solid var(--border-color); z-index: 100; top: 110%; left: 0; overflow-y: auto; max-height: 350px;
     }
     .dropdown-content.show { display: block; animation: fadeIn 0.2s; }
     @keyframes fadeIn { from {opacity: 0; transform: translateY(-10px);} to {opacity: 1; transform: translateY(0);} }
@@ -251,11 +254,14 @@
   <div id="toast-container"></div>
 
   <h1>Malla Curricular Interactiva - ESPOL</h1>
-  <div class="subtitle" id="subtitle-container" style="display: none;">
-    Malla actual: <span id="subtitle-career-name" class="subtitle-dropdown" onclick="toggleSubtitleDropdown(event)">Seleccionar carrera ▾</span>
-    <div id="dropdown-subtitle" class="dropdown-content" style="left: 50%; transform: translateX(-50%); top: 120%;">
-      <div style="padding: 10px; font-size: 0.8em; color: #64748b; text-align: center;">Cargando catálogo...</div>
-    </div>
+  <div class="subtitle" id="subtitle-container">
+    Malla actual: 
+    <span class="dropdown" style="display:inline-block;">
+      <span id="subtitle-career-name" class="subtitle-dropdown" onclick="toggleSubtitleDropdown(event)">Seleccionar carrera ▾</span>
+      <div id="dropdown-subtitle" class="dropdown-content">
+        <div style="padding: 10px; font-size: 0.8em; color: #64748b; text-align: center;">Cargando catálogo...</div>
+      </div>
+    </span>
   </div>
 
   <div class="legend-bar">
@@ -410,7 +416,7 @@
     let lineType = 'orthogonal'; // Por defecto líneas rectas
     let historyStack = []; let redoStack = [];
     let catalogoGlobal = null;
-    let pendingExportAction = null; // Para manejar el modal de carrera faltante
+    let pendingExportAction = null;
 
     // --- SISTEMA DE TOAST NOTIFICATIONS ---
     function showToast(message, type = 'info') {
@@ -438,7 +444,6 @@
 
     async function loadCatalogo() {
       const container = document.getElementById('dropdown-json');
-      const subtitleContainer = document.getElementById('dropdown-subtitle');
       try {
         const response = await fetch('./catalogo.json');
         if (!response.ok) throw new Error('Catálogo no encontrado');
@@ -448,7 +453,6 @@
       } catch (err) {
         const errorHtml = `<div style="padding: 10px; font-size: 0.8em; color: #ef4444; text-align: center;">No se pudo cargar el catálogo.</div>`;
         if (container) container.innerHTML = `<a href="#" style="color: var(--accent-color); font-weight: bold;" onclick="triggerImportJSON();">📁 Cargar archivo local...</a>` + errorHtml;
-        if (subtitleContainer) subtitleContainer.innerHTML = errorHtml;
       }
     }
 
@@ -523,9 +527,9 @@
       const nameSpan = document.getElementById('subtitle-career-name');
       if (state.baseCareer) {
         nameSpan.innerHTML = `${state.baseCareer} ▾`;
-        container.style.display = 'block';
+        container.classList.add('visible');
       } else {
-        container.style.display = 'none';
+        container.classList.remove('visible');
       }
     }
 
@@ -664,7 +668,7 @@
       });
 
       document.body.addEventListener('click', (e) => {
-        if (!e.target.closest('.dropbtn') && !e.target.closest('.dropdown-content')) { closeAllDropdowns(); }
+        if (!e.target.closest('.dropbtn') && !e.target.closest('.dropdown-content') && !e.target.closest('.subtitle-dropdown')) { closeAllDropdowns(); }
         if (!e.target.closest('.subject-card') && !e.target.closest('.toolbar') && !e.target.closest('.modal')) {
           pinnedSubjectId = null; clearHighlights(); document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned'));
         }
