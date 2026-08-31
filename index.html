@@ -424,6 +424,18 @@
       return isBasicMathSubject(parseNameReq(subj.name).cleanName);
     }
 
+    // Función para inyectar cálculos en caché (Vista Protegida Excel)
+    function setCachedResult(sheet, cellRef, numericResult) {
+      let cell = sheet.getCell(cellRef);
+      if (cell.value && (cell.value.formula || cell.value.sharedFormula)) {
+        cell.value = { ...cell.value, result: numericResult };
+      } else if (cell.value && typeof cell.value === 'object') {
+        cell.value.result = numericResult;
+      } else {
+        cell.value = numericResult;
+      }
+    }
+
     // --- SISTEMA DE TOAST NOTIFICATIONS ---
     function showToast(message, type = 'info') {
       const container = document.getElementById('toast-container');
@@ -1058,23 +1070,28 @@
           if (mod.base) {
             let h = parseHoursComponents(mod.base.components);
             sheet1.getCell(`G${startRow+1}`).value = h.acd; sheet1.getCell(`G${startRow+2}`).value = h.ape; sheet1.getCell(`G${startRow+3}`).value = h.aa;
-            sheet1.getCell(`H${startRow+1}`).value = mod.base.sum; sheet1.getCell(`I${startRow+1}`).value = calculateCredits(mod.base);
+            let sumHBase = (h.acd + h.ape + h.aa) * 16;
+            setCachedResult(sheet1, `H${startRow+1}`, sumHBase);
+            setCachedResult(sheet1, `I${startRow+1}`, sumHBase / 48);
           } else {
             sheet1.getCell(`G${startRow+1}`).value = 0; sheet1.getCell(`G${startRow+2}`).value = 0; sheet1.getCell(`G${startRow+3}`).value = 0;
-            sheet1.getCell(`H${startRow+1}`).value = 0; sheet1.getCell(`I${startRow+1}`).value = 0;
+            setCachedResult(sheet1, `H${startRow+1}`, 0);
+            setCachedResult(sheet1, `I${startRow+1}`, 0);
           }
 
           if (mod.web) {
             let h = parseHoursComponents(mod.web.components);
             sheet1.getCell(`K${startRow+1}`).value = h.acd; sheet1.getCell(`K${startRow+2}`).value = h.ape; sheet1.getCell(`K${startRow+3}`).value = h.aa;
-            sheet1.getCell(`L${startRow+1}`).value = mod.web.sum; sheet1.getCell(`M${startRow+1}`).value = calculateCredits(mod.web);
+            let sumHWeb = (h.acd + h.ape + h.aa) * 16;
+            setCachedResult(sheet1, `L${startRow+1}`, sumHWeb);
+            setCachedResult(sheet1, `M${startRow+1}`, sumHWeb / 48);
           } else {
             sheet1.getCell(`K${startRow+1}`).value = 0; sheet1.getCell(`K${startRow+2}`).value = 0; sheet1.getCell(`K${startRow+3}`).value = 0;
-            sheet1.getCell(`L${startRow+1}`).value = 0; sheet1.getCell(`M${startRow+1}`).value = 0;
+            setCachedResult(sheet1, `L${startRow+1}`, 0);
+            setCachedResult(sheet1, `M${startRow+1}`, 0);
           }
         });
 
-        // 4. ELIMINAR bloques sobrantes
         if (modifications.length < 7) {
             let startDelete = 4 + (modifications.length * 5);
             let countDelete = (7 - modifications.length) * 5;
@@ -1083,10 +1100,16 @@
 
         // --- PESTAÑA 2: MALLA CURRICULAR ---
         const worksheet = workbook.getWorksheet('MALLA CURRICULAR');
+        
+        let globalACD = 0; let globalAPE = 0; let globalAA = 0;
+
         for (let lvlIdx = 0; lvlIdx < state.levels.length; lvlIdx++) {
           const levelId = state.levels[lvlIdx].id;
           const nameRow = 6 + (lvlIdx * 4);
           const hoursRow = 7 + (lvlIdx * 4);
+          
+          let levelACD = 0; let levelAPE = 0; let levelAA = 0;
+
           for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
             const startCol = 7 + (colIdx * 9); 
             const subject = state.subjects.find(s => s.level === levelId && s.col === colIdx);
@@ -1104,16 +1127,35 @@
             worksheet.getCell(hoursRow, startCol + 3).value = targetHours.ape;   
             worksheet.getCell(hoursRow, startCol + 5).value = targetHours.aa;    
 
-            // MAGIA PARA LA VISTA PROTEGIDA: Actualizamos el resultado sin borrar la fórmula
-            let totalHorasCell = worksheet.getCell(hoursRow, startCol + 7);
-            if (totalHorasCell.value && (totalHorasCell.value.formula || totalHorasCell.value.sharedFormula)) {
-              totalHorasCell.value = {
-                ...totalHorasCell.value, 
-                result: targetHours.acd + targetHours.ape + targetHours.aa 
-              };
-            }
+            levelACD += targetHours.acd;
+            levelAPE += targetHours.ape;
+            levelAA += targetHours.aa;
+
+            setCachedResult(worksheet, worksheet.getCell(hoursRow, startCol + 7).address, targetHours.acd + targetHours.ape + targetHours.aa);
           }
+
+          // Inyección en caché de las columnas CA a CF por semestre
+          setCachedResult(worksheet, `CB${hoursRow}`, levelACD);
+          setCachedResult(worksheet, `CD${hoursRow}`, levelAPE);
+          setCachedResult(worksheet, `CF${hoursRow}`, levelAA);
+          
+          let lvlTotalHoras = (levelACD + levelAPE + levelAA) * 16;
+          setCachedResult(worksheet, `CF${hoursRow + 1}`, lvlTotalHoras); 
+          setCachedResult(worksheet, `CF${hoursRow + 2}`, lvlTotalHoras / 48); 
+
+          globalACD += levelACD;
+          globalAPE += levelAPE;
+          globalAA += levelAA;
         }
+        
+        // Inyección en caché de totales globales en la parte inferior
+        setCachedResult(worksheet, `CF46`, globalACD);
+        setCachedResult(worksheet, `CF47`, globalAPE);
+        setCachedResult(worksheet, `CF48`, globalAA);
+        
+        let globalTotalHoras = (globalACD + globalAPE + globalAA) * 16;
+        setCachedResult(worksheet, `CF52`, globalTotalHoras);
+        setCachedResult(worksheet, `CF53`, globalTotalHoras / 48);
         
         const buffer = await workbook.xlsx.writeBuffer();
         const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
