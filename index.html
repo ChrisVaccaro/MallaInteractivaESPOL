@@ -383,7 +383,7 @@
 
     let state = JSON.parse(JSON.stringify(initialData));
     let currentMode = 'drag'; let selectedSourceId = null; let pinnedSubjectId = null; 
-    let lineType = 'orthogonal'; // Por defecto
+    let lineType = 'orthogonal'; 
     let historyStack = []; let redoStack = [];
     let catalogoGlobal = null;
     let pendingExportAction = null;
@@ -1091,17 +1091,26 @@
             const startCol = 7 + (colIdx * 9); 
             const subject = state.subjects.find(s => s.level === levelId && s.col === colIdx);
             
+            let targetHours = { acd: 0, ape: 0, aa: 0 };
+            
             if (subject) {
-              const hours = parseHoursComponents(subject.components);
+              targetHours = parseHoursComponents(subject.components);
               worksheet.getCell(nameRow, startCol).value = subject.name;   
-              worksheet.getCell(hoursRow, startCol + 1).value = hours.acd;   
-              worksheet.getCell(hoursRow, startCol + 3).value = hours.ape;   
-              worksheet.getCell(hoursRow, startCol + 5).value = hours.aa;    
             } else {
               worksheet.getCell(nameRow, startCol).value = null;
-              worksheet.getCell(hoursRow, startCol + 1).value = 0;
-              worksheet.getCell(hoursRow, startCol + 3).value = 0;
-              worksheet.getCell(hoursRow, startCol + 5).value = 0;
+            }
+
+            worksheet.getCell(hoursRow, startCol + 1).value = targetHours.acd;   
+            worksheet.getCell(hoursRow, startCol + 3).value = targetHours.ape;   
+            worksheet.getCell(hoursRow, startCol + 5).value = targetHours.aa;    
+
+            // MAGIA PARA LA VISTA PROTEGIDA: Actualizamos el resultado sin borrar la fórmula
+            let totalHorasCell = worksheet.getCell(hoursRow, startCol + 7);
+            if (totalHorasCell.value && (totalHorasCell.value.formula || totalHorasCell.value.sharedFormula)) {
+              totalHorasCell.value = {
+                ...totalHorasCell.value, 
+                result: targetHours.acd + targetHours.ape + targetHours.aa 
+              };
             }
           }
         }
