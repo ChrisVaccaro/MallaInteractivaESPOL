@@ -16,6 +16,12 @@
       "carreras": [
         { "nombre": "Mecatrónica", "ruta": "./plantillas/FIMCP/MECATRONICA.json" }
       ]
+    },
+    {
+      "nombre": "FICT",
+      "carreras": [
+        { "nombre": "Ingeniería Civil", "ruta": "./plantillas/FICT/INGENIERIA CIVIL.json" }
+      ]
     }
   ]
 }
