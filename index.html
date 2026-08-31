@@ -1010,9 +1010,10 @@
               destRow.height = srcRow.height;
               srcRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
                 const destCell = destRow.getCell(colNumber);
-                if(cell.font) destCell.font = Object.assign({}, cell.font);
-                if(cell.fill) destCell.fill = Object.assign({}, cell.fill);
-                if(cell.alignment) destCell.alignment = Object.assign({}, cell.alignment);
+                if (cell.font) destCell.font = Object.assign({}, cell.font);
+                if (cell.fill) destCell.fill = Object.assign({}, cell.fill);
+                if (cell.alignment) destCell.alignment = Object.assign({}, cell.alignment);
+                if (cell.border) destCell.border = JSON.parse(JSON.stringify(cell.border));
                 destCell.value = cell.value;
               });
             }
@@ -1023,14 +1024,19 @@
             sheet1.mergeCells(`M${startRow+1}:M${startRow+3}`); sheet1.mergeCells(`N${startRow+1}:N${startRow+3}`);
           }
 
-          // Corrección estricta de bordes para evitar celdas abiertas o líneas basura (Clonadas o Base)
           ['A','B','C','D','E','F','G','H','I','J','K','L','M','N'].forEach(col => {
             let topCell = sheet1.getCell(`${col}${startRow}`);
-            topCell.border = Object.assign({}, topCell.border, { top: { style: 'thin', color: { argb: 'FF000000' } } });
+            let topB = topCell.border ? JSON.parse(JSON.stringify(topCell.border)) : {};
+            topB.top = { style: 'thin', color: { argb: 'FF000000' } };
+            topCell.border = topB;
+
             let botCell = sheet1.getCell(`${col}${startRow+3}`);
-            botCell.border = Object.assign({}, botCell.border, { bottom: { style: 'thin', color: { argb: 'FF000000' } } });
+            let botB = botCell.border ? JSON.parse(JSON.stringify(botCell.border)) : {};
+            botB.bottom = { style: 'thin', color: { argb: 'FF000000' } };
+            botCell.border = botB;
+
             let sepCell = sheet1.getCell(`${col}${startRow+4}`);
-            sepCell.border = {}; // Limpiar la línea de abajo que no pertenece al bloque
+            sepCell.border = {}; 
           });
 
           let targetSubj = mod.web || mod.base;
