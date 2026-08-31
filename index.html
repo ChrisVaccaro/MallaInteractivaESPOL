@@ -683,13 +683,10 @@
       card.className = `subject-card ${isBasic ? 'basic-math' : ''} ${isPinned ? 'pinned' : ''}`; card.id = `card-${subj.id}`; card.draggable = (currentMode === 'drag');
       const credits = calculateCredits(subj).toFixed(1).replace('.0', '');
       
-      const parsedName = parseNameReq(subj.name);
-      const displayTitle = parsedName.cleanName + (parsedName.reqNum ? ` (${parsedName.reqNum})` : '');
-
       card.innerHTML = `
         <button class="edit-btn" onclick="openModalForEdit(event, '${subj.id}')">✏️</button>
         <div class="subject-header"><span>${subj.components}</span><span>${subj.sum}</span></div>
-        <div class="subject-title">${displayTitle}</div>
+        <div class="subject-title">${subj.name}</div>
         <div class="subject-footer"><span>${subj.code}</span><span><b>${credits} CR</b></span></div>
       `;
       card.ondragstart = (e) => { e.dataTransfer.setData('text/plain', subj.id); };
@@ -887,7 +884,6 @@
       try {
         showToast('Analizando cruce de datos y procesando matriz...', 'info');
         
-        // 1. Obtener JSON Base
         let originalData = { subjects: [], connections: [] };
         if (catalogoGlobal && state.baseCareer) {
           let baseRuta = null;
@@ -908,7 +904,6 @@
         let baseSubjects = originalData.subjects || [];
         let webSubjects = state.subjects || [];
 
-        // Evaluar Eliminaciones, Cambios y Otro
         baseSubjects.forEach(baseSubj => {
           let webSubj = webSubjects.find(s => s.code === baseSubj.code);
           if (!webSubj) {
@@ -953,13 +948,21 @@
                 let basePre = baseReqs.filter(r=>!r.isCoreq).map(r=>r.code); let baseCor = baseReqs.filter(r=>r.isCoreq).map(r=>r.code);
                 let webPre = webReqs.filter(r=>!r.isCoreq).map(r=>r.code); let webCor = webReqs.filter(r=>r.isCoreq).map(r=>r.code);
                 
-                let addedPre = webPre.filter(x => !basePre.includes(x));
-                let deletedPre = basePre.filter(x => !webPre.includes(x));
                 let passedToPre = webPre.filter(x => baseCor.includes(x)); 
+                let passedToCor = webCor.filter(x => basePre.includes(x));
                 
-                if (addedPre.length > 0 && addedPre.some(x => !passedToPre.includes(x))) comments.push(`Nuevos prerrequisitos: ${addedPre.filter(x=>!passedToPre.includes(x)).join(', ')}.`);
-                if (deletedPre.length > 0 && !deletedPre.some(x => webCor.includes(x))) comments.push(`Prerrequisitos eliminados: ${deletedPre.join(', ')}.`);
-                if (passedToPre.length > 0) comments.push(`El requisito ${passedToPre.join(', ')} pasó de ser correquisito a prerrequisito.`);
+                let pureAddedPre = webPre.filter(x => !basePre.includes(x) && !passedToPre.includes(x));
+                let pureAddedCor = webCor.filter(x => !baseCor.includes(x) && !passedToCor.includes(x));
+                let pureDeletedPre = basePre.filter(x => !webPre.includes(x) && !passedToCor.includes(x));
+                let pureDeletedCor = baseCor.filter(x => !webCor.includes(x) && !passedToPre.includes(x));
+
+                if (pureAddedPre.length > 0) comments.push(`Nuevos prerrequisitos: ${pureAddedPre.join(', ')}.`);
+                if (pureAddedCor.length > 0) comments.push(`Nuevos correquisitos: ${pureAddedCor.join(', ')}.`);
+                if (pureDeletedPre.length > 0) comments.push(`Prerrequisitos eliminados: ${pureDeletedPre.join(', ')}.`);
+                if (pureDeletedCor.length > 0) comments.push(`Correquisitos eliminados: ${pureDeletedCor.join(', ')}.`);
+                
+                if (passedToPre.length > 0) comments.push(`El requisito ${passedToPre.join(', ')} pasó de correquisito a prerrequisito.`);
+                if (passedToCor.length > 0) comments.push(`El requisito ${passedToCor.join(', ')} pasó de prerrequisito a correquisito.`);
                 
                 if (comments.length === 0 && !changedLevel && !changedName && !changedReqNum) comments.push("Actualización de requisitos.");
               }
@@ -969,7 +972,6 @@
           }
         });
 
-        // Evaluar Creaciones
         webSubjects.forEach(webSubj => {
           if (!baseSubjects.find(s => s.code === webSubj.code)) {
             let webReqs = getConns(webSubjects, state.connections, webSubj.id);
@@ -986,7 +988,6 @@
           }
         });
 
-        // 3. Abrir Plantilla Excel
         const fileUrl = 'plantillas/excel_base.xlsx';
         const response = await fetch(fileUrl);
         if (!response.ok) throw new Error(`No se pudo obtener el archivo base (${response.status})`);
@@ -1009,7 +1010,9 @@
               destRow.height = srcRow.height;
               srcRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
                 const destCell = destRow.getCell(colNumber);
-                destCell.style = Object.assign({}, cell.style);
+                if(cell.font) destCell.font = Object.assign({}, cell.font);
+                if(cell.fill) destCell.fill = Object.assign({}, cell.fill);
+                if(cell.alignment) destCell.alignment = Object.assign({}, cell.alignment);
                 destCell.value = cell.value;
               });
             }
@@ -1020,18 +1023,25 @@
             sheet1.mergeCells(`M${startRow+1}:M${startRow+3}`); sheet1.mergeCells(`N${startRow+1}:N${startRow+3}`);
           }
 
-          let targetSubj = mod.web || mod.base;
-          let cleanTargetName = parseNameReq(targetSubj.name).cleanName;
+          // Corrección estricta de bordes para evitar celdas abiertas o líneas basura (Clonadas o Base)
+          ['A','B','C','D','E','F','G','H','I','J','K','L','M','N'].forEach(col => {
+            let topCell = sheet1.getCell(`${col}${startRow}`);
+            topCell.border = Object.assign({}, topCell.border, { top: { style: 'thin', color: { argb: 'FF000000' } } });
+            let botCell = sheet1.getCell(`${col}${startRow+3}`);
+            botCell.border = Object.assign({}, botCell.border, { bottom: { style: 'thin', color: { argb: 'FF000000' } } });
+            let sepCell = sheet1.getCell(`${col}${startRow+4}`);
+            sepCell.border = {}; // Limpiar la línea de abajo que no pertenece al bloque
+          });
 
-          // Borrado estricto (Limpieza de "fantasmas" de la plantilla)
+          let targetSubj = mod.web || mod.base;
+
           sheet1.getCell(`A${startRow}`).value = null; sheet1.getCell(`B${startRow}`).value = null;
           sheet1.getCell(`C${startRow}`).value = null; sheet1.getCell(`N${startRow+1}`).value = null;
           for(let i=0; i<4; i++) sheet1.getCell(`E${startRow+i}`).value = null;
 
-          // Llenar Datos Celdas Combinadas
           sheet1.getCell(`A${startRow}`).value = targetSubj.code;
           sheet1.getCell(`B${startRow}`).value = formatLevel(targetSubj.level); 
-          sheet1.getCell(`C${startRow}`).value = cleanTargetName;
+          sheet1.getCell(`C${startRow}`).value = targetSubj.name;
           sheet1.getCell(`N${startRow+1}`).value = mod.comment || null;
 
           if (mod.type === 'CAMBIO') sheet1.getCell(`E${startRow}`).value = 'X';
@@ -1058,9 +1068,8 @@
           }
         });
 
-        // 4. ELIMINAR bloques sobrantes (Deep Clean con spliceRows)
+        // 4. ELIMINAR bloques sobrantes
         if (modifications.length < 7) {
-            // Cada bloque y su separador ocupa 5 filas. 7 bloques = 35 filas.
             let startDelete = 4 + (modifications.length * 5);
             let countDelete = (7 - modifications.length) * 5;
             sheet1.spliceRows(startDelete, countDelete);
@@ -1078,8 +1087,7 @@
             
             if (subject) {
               const hours = parseHoursComponents(subject.components);
-              const cleanName = parseNameReq(subject.name).cleanName;
-              worksheet.getCell(nameRow, startCol).value = cleanName;   
+              worksheet.getCell(nameRow, startCol).value = subject.name;   
               worksheet.getCell(hoursRow, startCol + 1).value = hours.acd;   
               worksheet.getCell(hoursRow, startCol + 3).value = hours.ape;   
               worksheet.getCell(hoursRow, startCol + 5).value = hours.aa;    
@@ -1094,7 +1102,7 @@
         
         const buffer = await workbook.xlsx.writeBuffer();
         const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-        saveAs(blob, `Reporte_Modificaciones_${state.baseCareer.replace(/ /g, '_')}.xlsx`);
+        saveAs(blob, "2. Estructura curricular propuesta y tabla de equivalencias.xlsx");
         
         showToast('Malla exportada a Excel con éxito.', 'success');
       } catch (error) {
