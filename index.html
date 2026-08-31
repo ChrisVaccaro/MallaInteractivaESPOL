@@ -887,7 +887,7 @@
 
     function exportJSON() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
-      const downloadAnchor = document.createElement('a'); downloadAnchor.setAttribute("href", dataStr); downloadAnchor.setAttribute("download", "malla_espol_personalizada.json"); document.body.appendChild(downloadAnchor); downloadAnchor.click(); downloadAnchor.remove();
+      const downloadAnchor = document.createElement('a'); downloadAnchor.setAttribute("href", dataStr); downloadAnchor.setAttribute("download", "malla_espol_personalizada.json"); document.body.appendChild(downloadAnchor); document.click(); downloadAnchor.remove();
       showToast('Archivo JSON exportado correctamente.', 'success');
     }
 
@@ -1035,7 +1035,6 @@
             sheet1.mergeCells(`I${startRow+1}:I${startRow+3}`); sheet1.mergeCells(`L${startRow+1}:L${startRow+3}`);
             sheet1.mergeCells(`M${startRow+1}:M${startRow+3}`); sheet1.mergeCells(`N${startRow+1}:N${startRow+3}`);
 
-            // NUEVO: Corregir las fórmulas copiadas para que apunten a las filas de este nuevo bloque
             sheet1.getCell(`H${startRow+1}`).value = { formula: `=(G${startRow+1}+G${startRow+2}+G${startRow+3})*16` };
             sheet1.getCell(`I${startRow+1}`).value = { formula: `=H${startRow+1}/48` };
             sheet1.getCell(`L${startRow+1}`).value = { formula: `=(K${startRow+1}+K${startRow+2}+K${startRow+3})*16` };
@@ -1098,11 +1097,20 @@
           }
         });
 
-        // 4. ELIMINAR bloques sobrantes
+        // 4. ELIMINAR bloques sobrantes (Deep Clean visual)
         if (modifications.length < 7) {
-            let startDelete = 4 + (modifications.length * 5);
-            let countDelete = (7 - modifications.length) * 5;
-            sheet1.spliceRows(startDelete, countDelete);
+            for (let i = modifications.length; i < 7; i++) {
+                let startClear = 4 + (i * 5);
+                for (let offset = 0; offset < 5; offset++) {
+                    let row = sheet1.getRow(startClear + offset);
+                    ['A','B','C','D','E','F','G','H','I','J','K','L','M','N'].forEach(col => {
+                        let cell = row.getCell(col);
+                        cell.value = null;      
+                        cell.border = {};       
+                        cell.fill = { type: 'pattern', pattern: 'none' }; 
+                    });
+                }
+            }
         }
 
         // --- PESTAÑA 2: MALLA CURRICULAR ---
@@ -1141,7 +1149,6 @@
             setCachedResult(worksheet, worksheet.getCell(hoursRow, startCol + 7).address, targetHours.acd + targetHours.ape + targetHours.aa);
           }
 
-          // Inyección en caché de las columnas CA a CF por semestre
           setCachedResult(worksheet, `CB${hoursRow}`, levelACD);
           setCachedResult(worksheet, `CD${hoursRow}`, levelAPE);
           setCachedResult(worksheet, `CF${hoursRow}`, levelAA);
@@ -1155,7 +1162,6 @@
           globalAA += levelAA;
         }
         
-        // Inyección en caché de totales globales en la parte inferior
         setCachedResult(worksheet, `CF46`, globalACD);
         setCachedResult(worksheet, `CF47`, globalAPE);
         setCachedResult(worksheet, `CF48`, globalAA);
