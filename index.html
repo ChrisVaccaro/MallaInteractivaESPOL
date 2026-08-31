@@ -319,7 +319,7 @@
     <div class="modal" id="edit-modal-box" onclick="event.stopPropagation()">
       <h2 id="modal-title">Agregar Nueva Materia</h2>
       <input type="hidden" id="edit-id">
-      <div class="form-group"><label>Nombre de la Materia:</label><input type="text" id="edit-name" placeholder="Ej: CÁLCULO VECTORIAL"></div>
+      <div class="form-group"><label>Nombre de la Materia:</label><input type="text" id="edit-name" placeholder="Ej: CÁLCULO VECTORIAL & 3"></div>
       <div class="form-group"><label>Código:</label><input type="text" id="edit-code" placeholder="Ej: MATG1046"></div>
       <div class="form-group">
         <label>Componentes (Horas CD/CP/AA):</label>
@@ -390,6 +390,40 @@
     let pendingImportedData = null;
     let tempSavedState = null; 
 
+    // --- FUNCIONES UTILITARIAS Y FORMATO ---
+    function formatLevel(lvl) {
+      return lvl ? lvl.replace('L', '') : '';
+    }
+
+    function parseNameReq(name) {
+      if (!name) return { cleanName: '', reqNum: null };
+      const parts = name.split('&');
+      return { cleanName: parts[0].trim(), reqNum: parts.length > 1 ? parts[1].trim() : null };
+    }
+
+    function parseHoursComponents(componentsStr) {
+      if (!componentsStr) return { acd: 0, ape: 0, aa: 0 };
+      const parts = componentsStr.split('/').map(p => parseFloat(p) || 0);
+      return { acd: parts[0] || 0, ape: parts[1] || 0, aa: parts[2] || 0 };
+    }
+
+    function calculateCredits(subj) {
+      const baseCredits = subj.sum / 3;
+      if (subj.isIntegradora || subj.name.toUpperCase().includes("INTEGRADORA")) return baseCredits + 5;
+      return baseCredits;
+    }
+
+    function isBasicMathSubject(name) {
+      const n = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const keywords = ["calculo", "fisica", "algebra", "estadistica", "ecuaciones", "matematicas", "quimica", "evaluacion"];
+      return keywords.some(kw => n.includes(kw));
+    }
+
+    function checkIsBasic(subj) {
+      if (subj.isBasic !== undefined) return subj.isBasic;
+      return isBasicMathSubject(parseNameReq(subj.name).cleanName);
+    }
+
     // --- SISTEMA DE TOAST NOTIFICATIONS ---
     function showToast(message, type = 'info') {
       const container = document.getElementById('toast-container');
@@ -403,7 +437,6 @@
     }
 
     function persistState() {
-      // Guardamos tanto el state principal como la preferencia de visualización
       const fullSave = { stateData: state, linePreference: lineType };
       localStorage.setItem('malla_espol_autosave', JSON.stringify(fullSave));
     }
@@ -510,8 +543,8 @@
 
     function toggleLineType() {
       const btn = document.getElementById('btn-toggle-lines');
-      if (lineType === 'orthogonal') { lineType = 'curved'; btn.innerHTML = '〰️ Líneas: Curvas'; btn.classList.remove('active'); } 
-      else { lineType = 'orthogonal'; btn.innerHTML = '📐 Líneas: Rectas'; btn.classList.add('active'); }
+      if (lineType === 'orthogonal') { lineType = 'curved'; } else { lineType = 'orthogonal'; }
+      applyLineTypeUI();
       persistState();
       drawConnections(); 
     }
@@ -545,29 +578,6 @@
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { redo(); }
     });
 
-    function parseHoursComponents(componentsStr) {
-      if (!componentsStr) return { acd: 0, ape: 0, aa: 0 };
-      const parts = componentsStr.split('/').map(p => parseFloat(p) || 0);
-      return { acd: parts[0] || 0, ape: parts[1] || 0, aa: parts[2] || 0 };
-    }
-
-    function calculateCredits(subj) {
-      const baseCredits = subj.sum / 3;
-      if (subj.isIntegradora || subj.name.toUpperCase().includes("INTEGRADORA")) { return baseCredits + 5; }
-      return baseCredits;
-    }
-
-    function isBasicMathSubject(name) {
-      const n = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      const keywords = ["calculo", "fisica", "algebra", "estadistica", "ecuaciones", "matematicas", "quimica", "evaluacion"];
-      return keywords.some(kw => n.includes(kw));
-    }
-
-    function checkIsBasic(subj) {
-      if (subj.isBasic !== undefined) { return subj.isBasic; }
-      return isBasicMathSubject(subj.name);
-    }
-
     function updateCreditsSummary() {
       const basicSubjects = state.subjects.filter(s => checkIsBasic(s));
       const totalBasicCredits = basicSubjects.reduce((acc, curr) => acc + calculateCredits(curr), 0);
@@ -579,9 +589,9 @@
       if (totalSummaryEl) { totalSummaryEl.innerHTML = `🎓 Total Créditos Malla: <b>${grandTotalCredits}</b>`; }
     }
 
+    // --- MANEJO DE CACHÉ ---
     function init() {
       const savedMemory = localStorage.getItem('malla_espol_autosave');
-      
       if (savedMemory) {
         tempSavedState = savedMemory;
         document.getElementById('restore-modal-overlay').style.display = 'flex';
@@ -608,12 +618,10 @@
       if (tempSavedState) {
         try {
           const parsed = JSON.parse(tempSavedState);
-          // Verificar si el guardado viejo tenía el formato { stateData, linePreference }
-          if(parsed.stateData) {
+          if (parsed.stateData) {
             state = parsed.stateData;
             if(parsed.linePreference) lineType = parsed.linePreference;
           } else {
-            // Retrocompatibilidad con guardados súper antiguos (solo JSON directo de state)
             state = parsed;
           }
         } catch(e){}
@@ -631,9 +639,7 @@
     }
 
     function finishInit() {
-      updateSubtitleUI();
-      applyLineTypeUI();
-      renderBoard(); 
+      updateSubtitleUI(); applyLineTypeUI(); renderBoard(); 
       setTimeout(drawConnections, 100); 
       window.addEventListener('resize', drawConnections); 
       updateUndoRedoButtons();
@@ -676,10 +682,14 @@
       const card = document.createElement('div'); const isBasic = checkIsBasic(subj); const isPinned = (pinnedSubjectId === subj.id);
       card.className = `subject-card ${isBasic ? 'basic-math' : ''} ${isPinned ? 'pinned' : ''}`; card.id = `card-${subj.id}`; card.draggable = (currentMode === 'drag');
       const credits = calculateCredits(subj).toFixed(1).replace('.0', '');
+      
+      const parsedName = parseNameReq(subj.name);
+      const displayTitle = parsedName.cleanName + (parsedName.reqNum ? ` (${parsedName.reqNum})` : '');
+
       card.innerHTML = `
         <button class="edit-btn" onclick="openModalForEdit(event, '${subj.id}')">✏️</button>
         <div class="subject-header"><span>${subj.components}</span><span>${subj.sum}</span></div>
-        <div class="subject-title">${subj.name}</div>
+        <div class="subject-title">${displayTitle}</div>
         <div class="subject-footer"><span>${subj.code}</span><span><b>${credits} CR</b></span></div>
       `;
       card.ondragstart = (e) => { e.dataTransfer.setData('text/plain', subj.id); };
@@ -792,13 +802,11 @@
           { "id": "L100-1", "name": "NIVEL 100 - I" }, { "id": "L100-2", "name": "NIVEL 100 - II" }, { "id": "L200-1", "name": "NIVEL 200 - I" }, { "id": "L200-2", "name": "NIVEL 200 - II" },
           { "id": "L300-1", "name": "NIVEL 300 - I" }, { "id": "L300-2", "name": "NIVEL 300 - II" }, { "id": "L400-1", "name": "NIVEL 400 - I" }, { "id": "L400-2", "name": "NIVEL 400 - II" }, { "id": "L500-1", "name": "NIVEL 500 - I" }
         ];
-        
         if (!importedData.baseCareer) {
           pendingImportedData = importedData;
           openCareerModal();
           return; 
         }
-
         applyLoadedData(importedData);
       } else { 
         showToast('El archivo JSON no tiene la estructura válida de una malla.', 'error'); 
@@ -817,12 +825,8 @@
       const file = event.target.files[0]; if (!file) return;
       const reader = new FileReader();
       reader.onload = function(e) { 
-        try { 
-          const importedData = JSON.parse(e.target.result); 
-          loadDataIntoBoard(importedData); 
-        } catch (err) { 
-          showToast('Ocurrió un error al leer el archivo JSON.', 'error'); 
-        } 
+        try { const importedData = JSON.parse(e.target.result); loadDataIntoBoard(importedData); } 
+        catch (err) { showToast('Ocurrió un error al leer el archivo JSON.', 'error'); } 
       };
       reader.readAsText(file); event.target.value = '';
     }
@@ -836,18 +840,12 @@
         importedData.baseCareer = careerName;
         loadDataIntoBoard(importedData);
       } catch (err) { 
-        showToast('Error al cargar la carrera. Verifica el archivo en GitHub.', 'error'); 
-        console.error(err);
+        showToast('Error al cargar la carrera. Verifica el archivo en GitHub.', 'error'); console.error(err);
       }
     }
 
-    function checkAndExportJSON() {
-      if (!state.baseCareer) { pendingExportAction = 'json'; openCareerModal(); } else { exportJSON(); }
-    }
-
-    function checkAndProcessExcel() {
-      if (!state.baseCareer) { pendingExportAction = 'excel'; openCareerModal(); } else { procesarYDescargarExcel(); }
-    }
+    function checkAndExportJSON() { if (!state.baseCareer) { pendingExportAction = 'json'; openCareerModal(); } else { exportJSON(); } }
+    function checkAndProcessExcel() { if (!state.baseCareer) { pendingExportAction = 'excel'; openCareerModal(); } else { procesarYDescargarExcel(); } }
 
     function openCareerModal() {
       const select = document.getElementById('modal-career-select'); select.innerHTML = '';
@@ -864,15 +862,11 @@
     function closeCareerModal() { document.getElementById('career-modal-overlay').style.display = 'none'; }
 
     function confirmCareerSelection() {
-      const select = document.getElementById('modal-career-select');
-      const chosen = select.value;
+      const select = document.getElementById('modal-career-select'); const chosen = select.value;
       if (!chosen) return;
       
-      const action = pendingExportAction;
-      const dataToLoad = pendingImportedData;
-      
-      closeCareerModal();
-      pendingExportAction = null; pendingImportedData = null;
+      const action = pendingExportAction; const dataToLoad = pendingImportedData;
+      closeCareerModal(); pendingExportAction = null; pendingImportedData = null;
 
       if (dataToLoad) {
         dataToLoad.baseCareer = chosen; applyLoadedData(dataToLoad);
@@ -893,7 +887,7 @@
       try {
         showToast('Analizando cruce de datos y procesando matriz...', 'info');
         
-        // 1. Obtener el JSON base para comparar
+        // 1. Obtener JSON Base
         let originalData = { subjects: [], connections: [] };
         if (catalogoGlobal && state.baseCareer) {
           let baseRuta = null;
@@ -904,7 +898,6 @@
           }
         }
 
-        // 2. Extraer conexiones para "La Carambola" de requisitos
         const getConns = (subjs, conns, id) => conns.filter(c => c.to === id).map(c => {
           const fromSubj = subjs.find(s => s.id === c.from);
           const toSubj = subjs.find(s => s.id === c.to);
@@ -915,49 +908,63 @@
         let baseSubjects = originalData.subjects || [];
         let webSubjects = state.subjects || [];
 
-        // Evaluar Cambios, Eliminaciones y Otro
+        // Evaluar Eliminaciones, Cambios y Otro
         baseSubjects.forEach(baseSubj => {
           let webSubj = webSubjects.find(s => s.code === baseSubj.code);
           if (!webSubj) {
-            // ELIMINACIÓN
             modifications.push({ type: 'ELIMINACIÓN', base: baseSubj, web: null, comment: '' });
           } else {
-            let changedHours = (baseSubj.components !== webSubj.components);
+            let hBase = parseHoursComponents(baseSubj.components);
+            let hWeb = parseHoursComponents(webSubj.components);
+            let changedHours = (hBase.acd !== hWeb.acd || hBase.ape !== hWeb.ape || hBase.aa !== hWeb.aa || baseSubj.sum !== webSubj.sum);
             let changedLevel = (baseSubj.level !== webSubj.level);
-            let changedName = (baseSubj.name !== webSubj.name);
             
+            let baseParsed = parseNameReq(baseSubj.name);
+            let webParsed = parseNameReq(webSubj.name);
+            let changedName = (baseParsed.cleanName !== webParsed.cleanName);
+            let changedReqNum = (baseParsed.reqNum !== webParsed.reqNum);
+
             let baseReqs = getConns(baseSubjects, originalData.connections, baseSubj.id);
             let webReqs = getConns(webSubjects, state.connections, webSubj.id);
-            
-            // Lógica simple para comparar si los arreglos de requisitos cambiaron
-            const sortReqs = r => r.sort((a,b) => a.code.localeCompare(b.code));
+            const sortReqs = r => r.slice().sort((a,b) => a.code.localeCompare(b.code));
             let reqsChanged = JSON.stringify(sortReqs(baseReqs)) !== JSON.stringify(sortReqs(webReqs));
 
-            if (changedHours && changedLevel) {
-              modifications.push({ type: 'CAMBIO', base: baseSubj, web: webSubj, comment: `Redistribución y reubicación de asignatura (Pasa de ${baseSubj.level} a ${webSubj.level}).` });
-            } else if (changedHours) {
-              modifications.push({ type: 'CAMBIO', base: baseSubj, web: webSubj, comment: 'Redistribución de componentes' });
-            } else if (changedLevel || changedName || reqsChanged) {
+            if (changedHours || changedLevel || changedName || changedReqNum || reqsChanged) {
               let comments = [];
-              if (changedLevel) comments.push(`Reubicación de asignatura (Pasa de ${baseSubj.level} a ${webSubj.level}).`);
+              let modType = changedHours ? 'CAMBIO' : 'OTRO';
+
+              if (changedHours && changedLevel) {
+                comments.push(`Redistribución y reubicación de asignatura (Pasa de ${formatLevel(baseSubj.level)} a ${formatLevel(webSubj.level)}).`);
+              } else if (changedHours) {
+                comments.push('Redistribución de componentes.');
+              } else if (changedLevel) {
+                comments.push(`Reubicación de asignatura (Pasa de ${formatLevel(baseSubj.level)} a ${formatLevel(webSubj.level)}).`);
+              }
+
               if (changedName) comments.push("Actualización de nombre de asignatura.");
+
+              if (changedReqNum) {
+                if (!baseParsed.reqNum && webParsed.reqNum) comments.push(`Se le agrega el requisito de aprobar ${webParsed.reqNum} materias.`);
+                else if (baseParsed.reqNum && !webParsed.reqNum) comments.push(`Se le quita el requisito de aprobar materias.`);
+                else comments.push(`Se cambia el requisito a aprobar ${webParsed.reqNum} materias.`);
+              }
+
               if (reqsChanged) {
-                // Cálculo fino de la carambola
                 let basePre = baseReqs.filter(r=>!r.isCoreq).map(r=>r.code); let baseCor = baseReqs.filter(r=>r.isCoreq).map(r=>r.code);
                 let webPre = webReqs.filter(r=>!r.isCoreq).map(r=>r.code); let webCor = webReqs.filter(r=>r.isCoreq).map(r=>r.code);
                 
                 let addedPre = webPre.filter(x => !basePre.includes(x));
                 let deletedPre = basePre.filter(x => !webPre.includes(x));
-                let passedToPre = webPre.filter(x => baseCor.includes(x)); // Era coreq, ahora pre
+                let passedToPre = webPre.filter(x => baseCor.includes(x)); 
                 
                 if (addedPre.length > 0 && addedPre.some(x => !passedToPre.includes(x))) comments.push(`Nuevos prerrequisitos: ${addedPre.filter(x=>!passedToPre.includes(x)).join(', ')}.`);
                 if (deletedPre.length > 0 && !deletedPre.some(x => webCor.includes(x))) comments.push(`Prerrequisitos eliminados: ${deletedPre.join(', ')}.`);
                 if (passedToPre.length > 0) comments.push(`El requisito ${passedToPre.join(', ')} pasó de ser correquisito a prerrequisito.`);
                 
-                // Si la lógica fina falla, respaldo genérico:
-                if(comments.length === 0 && changedLevel === false && changedName === false) comments.push("Actualización de requisitos.");
+                if (comments.length === 0 && !changedLevel && !changedName && !changedReqNum) comments.push("Actualización de requisitos.");
               }
-              modifications.push({ type: 'OTRO', base: baseSubj, web: webSubj, comment: comments.join(' ') });
+
+              modifications.push({ type: modType, base: baseSubj, web: webSubj, comment: comments.join(' ').trim() });
             }
           }
         });
@@ -968,10 +975,14 @@
             let webReqs = getConns(webSubjects, state.connections, webSubj.id);
             let pre = webReqs.filter(r => !r.isCoreq).map(r=>r.code).join(', ');
             let cor = webReqs.filter(r => r.isCoreq).map(r=>r.code).join(', ');
+            let webParsed = parseNameReq(webSubj.name);
+            
             let commentParts = [];
             if (pre) commentParts.push(`Prerrequisitos: ${pre}.`);
             if (cor) commentParts.push(`Correquisitos: ${cor}.`);
-            modifications.push({ type: 'CREACIÓN', base: null, web: webSubj, comment: commentParts.join(' ') });
+            if (webParsed.reqNum) commentParts.push(`Requiere aprobar ${webParsed.reqNum} materias.`);
+            
+            modifications.push({ type: 'CREACIÓN', base: null, web: webSubj, comment: commentParts.join(' ').trim() });
           }
         });
 
@@ -984,14 +995,13 @@
         const workbook = new ExcelJS.Workbook();
         await workbook.xlsx.load(arrayBuffer);
         
-        // PESTAÑA 1: MODIFICACIONES EN ASIGNATURAS
+        // --- PESTAÑA 1: MODIFICACIONES EN ASIGNATURAS ---
         const sheet1 = workbook.getWorksheet('MODIFICACIONES EN ASIGNATURAS');
         if (!sheet1) throw new Error('La pestaña 1 no existe en la plantilla.');
 
         modifications.forEach((mod, index) => {
-          let startRow = 4 + (index * 5); // Bloques de 5 (4 filas + 1 espacio)
+          let startRow = 4 + (index * 5); 
           
-          // CLONADOR DE FORMATOS: Si nos pasamos del límite original del excel, copiamos el formato del Bloque 1
           if (startRow > 34) {
             for (let offset = 0; offset < 5; offset++) {
               const srcRow = sheet1.getRow(4 + offset);
@@ -1000,38 +1010,35 @@
               srcRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
                 const destCell = destRow.getCell(colNumber);
                 destCell.style = Object.assign({}, cell.style);
-                destCell.value = cell.value; // Copia las etiquetas (CAMBIO, ACD...)
+                destCell.value = cell.value;
               });
             }
-            // Re-aplicar combinaciones (Merges) visuales estándar del bloque
-            sheet1.mergeCells(`A${startRow}:A${startRow+3}`);
-            sheet1.mergeCells(`B${startRow}:B${startRow+3}`);
-            sheet1.mergeCells(`C${startRow}:C${startRow+3}`);
-            sheet1.mergeCells(`F${startRow}:G${startRow}`);
-            sheet1.mergeCells(`J${startRow}:K${startRow}`);
-            sheet1.mergeCells(`H${startRow+1}:H${startRow+3}`);
-            sheet1.mergeCells(`I${startRow+1}:I${startRow+3}`);
-            sheet1.mergeCells(`L${startRow+1}:L${startRow+3}`);
-            sheet1.mergeCells(`M${startRow+1}:M${startRow+3}`);
-            sheet1.mergeCells(`N${startRow+1}:N${startRow+3}`);
+            sheet1.mergeCells(`A${startRow}:A${startRow+3}`); sheet1.mergeCells(`B${startRow}:B${startRow+3}`);
+            sheet1.mergeCells(`C${startRow}:C${startRow+3}`); sheet1.mergeCells(`F${startRow}:G${startRow}`);
+            sheet1.mergeCells(`J${startRow}:K${startRow}`); sheet1.mergeCells(`H${startRow+1}:H${startRow+3}`);
+            sheet1.mergeCells(`I${startRow+1}:I${startRow+3}`); sheet1.mergeCells(`L${startRow+1}:L${startRow+3}`);
+            sheet1.mergeCells(`M${startRow+1}:M${startRow+3}`); sheet1.mergeCells(`N${startRow+1}:N${startRow+3}`);
           }
 
           let targetSubj = mod.web || mod.base;
-          
-          // Escribir datos fijos
-          sheet1.getCell(`A${startRow}`).value = targetSubj.code;
-          sheet1.getCell(`B${startRow}`).value = targetSubj.level; 
-          sheet1.getCell(`C${startRow}`).value = targetSubj.name;
-          sheet1.getCell(`N${startRow+1}`).value = mod.comment;
+          let cleanTargetName = parseNameReq(targetSubj.name).cleanName;
 
-          // Borrar "X" viejas de la plantilla base y marcar la nueva
-          for(let i=0; i<4; i++) sheet1.getCell(`E${startRow+i}`).value = '';
+          // Borrado estricto (Limpieza de "fantasmas" de la plantilla)
+          sheet1.getCell(`A${startRow}`).value = null; sheet1.getCell(`B${startRow}`).value = null;
+          sheet1.getCell(`C${startRow}`).value = null; sheet1.getCell(`N${startRow+1}`).value = null;
+          for(let i=0; i<4; i++) sheet1.getCell(`E${startRow+i}`).value = null;
+
+          // Llenar Datos Celdas Combinadas
+          sheet1.getCell(`A${startRow}`).value = targetSubj.code;
+          sheet1.getCell(`B${startRow}`).value = formatLevel(targetSubj.level); 
+          sheet1.getCell(`C${startRow}`).value = cleanTargetName;
+          sheet1.getCell(`N${startRow+1}`).value = mod.comment || null;
+
           if (mod.type === 'CAMBIO') sheet1.getCell(`E${startRow}`).value = 'X';
           if (mod.type === 'ELIMINACIÓN') sheet1.getCell(`E${startRow+1}`).value = 'X';
           if (mod.type === 'CREACIÓN') sheet1.getCell(`E${startRow+2}`).value = 'X';
           if (mod.type === 'OTRO') sheet1.getCell(`E${startRow+3}`).value = 'X';
 
-          // Llenar Lado VIGENTE
           if (mod.base) {
             let h = parseHoursComponents(mod.base.components);
             sheet1.getCell(`G${startRow+1}`).value = h.acd; sheet1.getCell(`G${startRow+2}`).value = h.ape; sheet1.getCell(`G${startRow+3}`).value = h.aa;
@@ -1041,7 +1048,6 @@
             sheet1.getCell(`H${startRow+1}`).value = 0; sheet1.getCell(`I${startRow+1}`).value = 0;
           }
 
-          // Llenar Lado PROPUESTO
           if (mod.web) {
             let h = parseHoursComponents(mod.web.components);
             sheet1.getCell(`K${startRow+1}`).value = h.acd; sheet1.getCell(`K${startRow+2}`).value = h.ape; sheet1.getCell(`K${startRow+3}`).value = h.aa;
@@ -1052,21 +1058,15 @@
           }
         });
 
-        // Limpieza de bloques sobrantes si hay menos de 7 modificaciones en la plantilla original
+        // 4. ELIMINAR bloques sobrantes (Deep Clean con spliceRows)
         if (modifications.length < 7) {
-            for (let i = modifications.length; i < 7; i++) {
-                let startClear = 4 + (i * 5);
-                sheet1.getCell(`A${startClear}`).value = ''; sheet1.getCell(`B${startClear}`).value = ''; sheet1.getCell(`C${startClear}`).value = '';
-                sheet1.getCell(`E${startClear}`).value = ''; sheet1.getCell(`E${startClear+1}`).value = ''; sheet1.getCell(`E${startClear+2}`).value = ''; sheet1.getCell(`E${startClear+3}`).value = '';
-                sheet1.getCell(`G${startClear+1}`).value = ''; sheet1.getCell(`G${startClear+2}`).value = ''; sheet1.getCell(`G${startClear+3}`).value = '';
-                sheet1.getCell(`H${startClear+1}`).value = ''; sheet1.getCell(`I${startClear+1}`).value = '';
-                sheet1.getCell(`K${startClear+1}`).value = ''; sheet1.getCell(`K${startClear+2}`).value = ''; sheet1.getCell(`K${startClear+3}`).value = '';
-                sheet1.getCell(`L${startClear+1}`).value = ''; sheet1.getCell(`M${startClear+1}`).value = '';
-                sheet1.getCell(`N${startClear+1}`).value = '';
-            }
+            // Cada bloque y su separador ocupa 5 filas. 7 bloques = 35 filas.
+            let startDelete = 4 + (modifications.length * 5);
+            let countDelete = (7 - modifications.length) * 5;
+            sheet1.spliceRows(startDelete, countDelete);
         }
 
-        // PESTAÑA 2: MALLA CURRICULAR
+        // --- PESTAÑA 2: MALLA CURRICULAR ---
         const worksheet = workbook.getWorksheet('MALLA CURRICULAR');
         for (let lvlIdx = 0; lvlIdx < state.levels.length; lvlIdx++) {
           const levelId = state.levels[lvlIdx].id;
@@ -1075,14 +1075,16 @@
           for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
             const startCol = 7 + (colIdx * 9); 
             const subject = state.subjects.find(s => s.level === levelId && s.col === colIdx);
+            
             if (subject) {
               const hours = parseHoursComponents(subject.components);
-              worksheet.getCell(nameRow, startCol).value = subject.name;   
+              const cleanName = parseNameReq(subject.name).cleanName;
+              worksheet.getCell(nameRow, startCol).value = cleanName;   
               worksheet.getCell(hoursRow, startCol + 1).value = hours.acd;   
               worksheet.getCell(hoursRow, startCol + 3).value = hours.ape;   
               worksheet.getCell(hoursRow, startCol + 5).value = hours.aa;    
             } else {
-              worksheet.getCell(nameRow, startCol).value = "";
+              worksheet.getCell(nameRow, startCol).value = null;
               worksheet.getCell(hoursRow, startCol + 1).value = 0;
               worksheet.getCell(hoursRow, startCol + 3).value = 0;
               worksheet.getCell(hoursRow, startCol + 5).value = 0;
@@ -1092,7 +1094,7 @@
         
         const buffer = await workbook.xlsx.writeBuffer();
         const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-        saveAs(blob, `Reporte_Modificaciones_${state.baseCareer}.xlsx`);
+        saveAs(blob, `Reporte_Modificaciones_${state.baseCareer.replace(/ /g, '_')}.xlsx`);
         
         showToast('Malla exportada a Excel con éxito.', 'success');
       } catch (error) {
