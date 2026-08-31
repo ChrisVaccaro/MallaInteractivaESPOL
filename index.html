@@ -359,7 +359,7 @@
         <li><b>Visualización de Requisitos:</b> Al pasar el cursor sobre cualquier materia, se resaltará su ruta académica en rojo (prerrequisitos) y verde (materias futuras).</li>
         <li><b>Estilo de Conexiones:</b> Puedes alternar la visualización entre líneas curvas o rectas por defecto.</li>
         <li><b>Atajos de Teclado:</b> Utiliza Ctrl + Z para Deshacer un cambio y Ctrl + Y para Rehacer.</li>
-        <li><b>Exportación de Reportes:</b> El motor comparará tu avance contra la malla base elegida. En la pestaña 1 (Modificaciones) clonará automáticamente el primer bloque tantas veces como sea necesario.</li>
+        <li><b>Exportación de Reportes:</b> El motor comparará tu avance contra la malla base elegida. En la pestaña 1 clonará inteligentemente el primer bloque de tu plantilla base.</li>
       </ul>
       <div class="modal-actions" style="justify-content: flex-end; margin-top: 25px;">
         <button onclick="closeHelpModal()" style="background-color: var(--accent-color); color: white; padding: 10px 20px;">Entendido</button>
@@ -390,7 +390,6 @@
     let pendingImportedData = null;
     let tempSavedState = null; 
 
-    // --- FUNCIONES UTILITARIAS Y FORMATO ---
     function formatLevel(lvl) {
       return lvl ? lvl.replace('L', '') : '';
     }
@@ -599,7 +598,6 @@
       if (totalSummaryEl) { totalSummaryEl.innerHTML = `🎓 Total Créditos Malla: <b>${grandTotalCredits}</b>`; }
     }
 
-    // --- MANEJO DE CACHÉ ---
     function init() {
       const savedMemory = localStorage.getItem('malla_espol_autosave');
       if (savedMemory) {
@@ -1010,30 +1008,32 @@
         const sheet1 = workbook.getWorksheet('MODIFICACIONES EN ASIGNATURAS');
         if (!sheet1) throw new Error('La pestaña 1 no existe en la plantilla.');
 
-        // FASE 1: PRE-CLONAR LA ESTRUCTURA 
-        // Generamos tantos bloques vacíos como sean necesarios copiando la fila 4 a la 8
+        // FASE 1: PRE-CLONAR LA ESTRUCTURA EXACTA (SIN CORROMPER)
         for (let i = 1; i < modifications.length; i++) {
           let destStartRow = 4 + (i * 5);
+          
+          // Clonar solo estilos y valores simples (no formulas ni celdas esclavas)
           for (let offset = 0; offset < 5; offset++) {
             const srcRow = sheet1.getRow(4 + offset);
             const destRow = sheet1.getRow(destStartRow + offset);
             destRow.height = srcRow.height;
             
-            srcRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-              const destCell = destRow.getCell(colNumber);
-              if (cell.font) destCell.font = Object.assign({}, cell.font);
-              if (cell.fill) destCell.fill = Object.assign({}, cell.fill);
-              if (cell.alignment) destCell.alignment = Object.assign({}, cell.alignment);
-              if (cell.border) destCell.border = JSON.parse(JSON.stringify(cell.border));
+            for (let col = 1; col <= 14; col++) {
+              const srcCell = srcRow.getCell(col);
+              const destCell = destRow.getCell(col);
               
-              // Copiar el texto estático ("CAMBIO", "ACD", "VIGENTE")
-              if (cell.value && !cell.value.formula && !cell.value.sharedFormula) {
-                 destCell.value = cell.value;
+              if (srcCell.style) {
+                destCell.style = JSON.parse(JSON.stringify(srcCell.style));
               }
-            });
+              
+              // Evitamos el tipo 1 (Merge) y el 6 (Formula) para no corromper Excel
+              if (srcCell.type !== 1 && srcCell.type !== 6 && srcCell.value !== null) {
+                destCell.value = srcCell.value;
+              }
+            }
           }
-          
-          // Combinar celdas del nuevo bloque
+
+          // Aplicar Combinaciones Matemáticamente
           sheet1.mergeCells(`A${destStartRow}:A${destStartRow+3}`);
           sheet1.mergeCells(`B${destStartRow}:B${destStartRow+3}`);
           sheet1.mergeCells(`C${destStartRow}:C${destStartRow+3}`);
@@ -1045,14 +1045,14 @@
           sheet1.mergeCells(`M${destStartRow+1}:M${destStartRow+3}`);
           sheet1.mergeCells(`N${destStartRow+1}:N${destStartRow+3}`);
 
-          // Insertar fórmulas dinámicamente con coordenadas relativas al nuevo bloque
+          // Inyectar las fórmulas apuntando a la fila nueva
           sheet1.getCell(`H${destStartRow+1}`).value = { formula: `=(G${destStartRow+1}+G${destStartRow+2}+G${destStartRow+3})*16` };
           sheet1.getCell(`I${destStartRow+1}`).value = { formula: `=H${destStartRow+1}/48` };
           sheet1.getCell(`L${destStartRow+1}`).value = { formula: `=(K${destStartRow+1}+K${destStartRow+2}+K${destStartRow+3})*16` };
           sheet1.getCell(`M${destStartRow+1}`).value = { formula: `=L${destStartRow+1}/48` };
         }
 
-        // FASE 2: LLENAR LOS DATOS Y LIMPIAR
+        // FASE 2: LLENAR LOS DATOS 
         if (modifications.length === 0) {
             let startRow = 4;
             sheet1.getCell(`A${startRow}`).value = null; sheet1.getCell(`B${startRow}`).value = null;
