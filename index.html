@@ -1034,6 +1034,12 @@
             sheet1.mergeCells(`J${startRow}:K${startRow}`); sheet1.mergeCells(`H${startRow+1}:H${startRow+3}`);
             sheet1.mergeCells(`I${startRow+1}:I${startRow+3}`); sheet1.mergeCells(`L${startRow+1}:L${startRow+3}`);
             sheet1.mergeCells(`M${startRow+1}:M${startRow+3}`); sheet1.mergeCells(`N${startRow+1}:N${startRow+3}`);
+
+            // NUEVO: Corregir las fórmulas copiadas para que apunten a las filas de este nuevo bloque
+            sheet1.getCell(`H${startRow+1}`).value = { formula: `=(G${startRow+1}+G${startRow+2}+G${startRow+3})*16` };
+            sheet1.getCell(`I${startRow+1}`).value = { formula: `=H${startRow+1}/48` };
+            sheet1.getCell(`L${startRow+1}`).value = { formula: `=(K${startRow+1}+K${startRow+2}+K${startRow+3})*16` };
+            sheet1.getCell(`M${startRow+1}`).value = { formula: `=L${startRow+1}/48` };
           }
 
           ['A','B','C','D','E','F','G','H','I','J','K','L','M','N'].forEach(col => {
@@ -1092,6 +1098,7 @@
           }
         });
 
+        // 4. ELIMINAR bloques sobrantes
         if (modifications.length < 7) {
             let startDelete = 4 + (modifications.length * 5);
             let countDelete = (7 - modifications.length) * 5;
