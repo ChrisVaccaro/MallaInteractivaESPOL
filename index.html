@@ -359,7 +359,7 @@
         <li><b>Visualización de Requisitos:</b> Al pasar el cursor sobre cualquier materia, se resaltará su ruta académica en rojo (prerrequisitos) y verde (materias futuras).</li>
         <li><b>Estilo de Conexiones:</b> Puedes alternar la visualización entre líneas curvas o rectas por defecto.</li>
         <li><b>Atajos de Teclado:</b> Utiliza Ctrl + Z para Deshacer un cambio y Ctrl + Y para Rehacer.</li>
-        <li><b>Exportación de Reportes:</b> El motor comparará tu avance contra la malla base elegida. En la pestaña 1 (Modificaciones) creará dinámicamente todos los recuadros que hagan falta si te pasas de 7 cambios, llenando las justificaciones y los cruces de horas.</li>
+        <li><b>Exportación de Reportes:</b> El motor comparará tu avance contra la malla base elegida. En la pestaña 1 (Modificaciones) clonará automáticamente el primer bloque tantas veces como sea necesario.</li>
       </ul>
       <div class="modal-actions" style="justify-content: flex-end; margin-top: 25px;">
         <button onclick="closeHelpModal()" style="background-color: var(--accent-color); color: white; padding: 10px 20px;">Entendido</button>
@@ -424,7 +424,6 @@
       return isBasicMathSubject(parseNameReq(subj.name).cleanName);
     }
 
-    // Función para inyectar cálculos en caché (Vista Protegida Excel)
     function setCachedResult(sheet, cellRef, numericResult) {
       let cell = sheet.getCell(cellRef);
       if (cell.value && (cell.value.formula || cell.value.sharedFormula)) {
@@ -436,7 +435,6 @@
       }
     }
 
-    // --- SISTEMA DE TOAST NOTIFICATIONS ---
     function showToast(message, type = 'info') {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
@@ -887,7 +885,7 @@
 
     function exportJSON() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
-      const downloadAnchor = document.createElement('a'); downloadAnchor.setAttribute("href", dataStr); downloadAnchor.setAttribute("download", "malla_espol_personalizada.json"); document.body.appendChild(downloadAnchor); document.click(); downloadAnchor.remove();
+      const downloadAnchor = document.createElement('a'); downloadAnchor.setAttribute("href", dataStr); downloadAnchor.setAttribute("download", "malla_espol_personalizada.json"); document.body.appendChild(downloadAnchor); downloadAnchor.click(); downloadAnchor.remove();
       showToast('Archivo JSON exportado correctamente.', 'success');
     }
 
@@ -1012,105 +1010,101 @@
         const sheet1 = workbook.getWorksheet('MODIFICACIONES EN ASIGNATURAS');
         if (!sheet1) throw new Error('La pestaña 1 no existe en la plantilla.');
 
-        modifications.forEach((mod, index) => {
-          let startRow = 4 + (index * 5); 
+        // FASE 1: PRE-CLONAR LA ESTRUCTURA 
+        // Generamos tantos bloques vacíos como sean necesarios copiando la fila 4 a la 8
+        for (let i = 1; i < modifications.length; i++) {
+          let destStartRow = 4 + (i * 5);
+          for (let offset = 0; offset < 5; offset++) {
+            const srcRow = sheet1.getRow(4 + offset);
+            const destRow = sheet1.getRow(destStartRow + offset);
+            destRow.height = srcRow.height;
+            
+            srcRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+              const destCell = destRow.getCell(colNumber);
+              if (cell.font) destCell.font = Object.assign({}, cell.font);
+              if (cell.fill) destCell.fill = Object.assign({}, cell.fill);
+              if (cell.alignment) destCell.alignment = Object.assign({}, cell.alignment);
+              if (cell.border) destCell.border = JSON.parse(JSON.stringify(cell.border));
+              
+              // Copiar el texto estático ("CAMBIO", "ACD", "VIGENTE")
+              if (cell.value && !cell.value.formula && !cell.value.sharedFormula) {
+                 destCell.value = cell.value;
+              }
+            });
+          }
           
-          if (startRow > 34) {
-            for (let offset = 0; offset < 5; offset++) {
-              const srcRow = sheet1.getRow(4 + offset);
-              const destRow = sheet1.getRow(startRow + offset);
-              destRow.height = srcRow.height;
-              srcRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-                const destCell = destRow.getCell(colNumber);
-                if (cell.font) destCell.font = Object.assign({}, cell.font);
-                if (cell.fill) destCell.fill = Object.assign({}, cell.fill);
-                if (cell.alignment) destCell.alignment = Object.assign({}, cell.alignment);
-                if (cell.border) destCell.border = JSON.parse(JSON.stringify(cell.border));
-                destCell.value = cell.value;
-              });
-            }
-            sheet1.mergeCells(`A${startRow}:A${startRow+3}`); sheet1.mergeCells(`B${startRow}:B${startRow+3}`);
-            sheet1.mergeCells(`C${startRow}:C${startRow+3}`); sheet1.mergeCells(`F${startRow}:G${startRow}`);
-            sheet1.mergeCells(`J${startRow}:K${startRow}`); sheet1.mergeCells(`H${startRow+1}:H${startRow+3}`);
-            sheet1.mergeCells(`I${startRow+1}:I${startRow+3}`); sheet1.mergeCells(`L${startRow+1}:L${startRow+3}`);
-            sheet1.mergeCells(`M${startRow+1}:M${startRow+3}`); sheet1.mergeCells(`N${startRow+1}:N${startRow+3}`);
+          // Combinar celdas del nuevo bloque
+          sheet1.mergeCells(`A${destStartRow}:A${destStartRow+3}`);
+          sheet1.mergeCells(`B${destStartRow}:B${destStartRow+3}`);
+          sheet1.mergeCells(`C${destStartRow}:C${destStartRow+3}`);
+          sheet1.mergeCells(`F${destStartRow}:G${destStartRow}`);
+          sheet1.mergeCells(`J${destStartRow}:K${destStartRow}`);
+          sheet1.mergeCells(`H${destStartRow+1}:H${destStartRow+3}`);
+          sheet1.mergeCells(`I${destStartRow+1}:I${destStartRow+3}`);
+          sheet1.mergeCells(`L${destStartRow+1}:L${destStartRow+3}`);
+          sheet1.mergeCells(`M${destStartRow+1}:M${destStartRow+3}`);
+          sheet1.mergeCells(`N${destStartRow+1}:N${destStartRow+3}`);
 
-            sheet1.getCell(`H${startRow+1}`).value = { formula: `=(G${startRow+1}+G${startRow+2}+G${startRow+3})*16` };
-            sheet1.getCell(`I${startRow+1}`).value = { formula: `=H${startRow+1}/48` };
-            sheet1.getCell(`L${startRow+1}`).value = { formula: `=(K${startRow+1}+K${startRow+2}+K${startRow+3})*16` };
-            sheet1.getCell(`M${startRow+1}`).value = { formula: `=L${startRow+1}/48` };
-          }
+          // Insertar fórmulas dinámicamente con coordenadas relativas al nuevo bloque
+          sheet1.getCell(`H${destStartRow+1}`).value = { formula: `=(G${destStartRow+1}+G${destStartRow+2}+G${destStartRow+3})*16` };
+          sheet1.getCell(`I${destStartRow+1}`).value = { formula: `=H${destStartRow+1}/48` };
+          sheet1.getCell(`L${destStartRow+1}`).value = { formula: `=(K${destStartRow+1}+K${destStartRow+2}+K${destStartRow+3})*16` };
+          sheet1.getCell(`M${destStartRow+1}`).value = { formula: `=L${destStartRow+1}/48` };
+        }
 
-          ['A','B','C','D','E','F','G','H','I','J','K','L','M','N'].forEach(col => {
-            let topCell = sheet1.getCell(`${col}${startRow}`);
-            let topB = topCell.border ? JSON.parse(JSON.stringify(topCell.border)) : {};
-            topB.top = { style: 'thin', color: { argb: 'FF000000' } };
-            topCell.border = topB;
-
-            let botCell = sheet1.getCell(`${col}${startRow+3}`);
-            let botB = botCell.border ? JSON.parse(JSON.stringify(botCell.border)) : {};
-            botB.bottom = { style: 'thin', color: { argb: 'FF000000' } };
-            botCell.border = botB;
-
-            let sepCell = sheet1.getCell(`${col}${startRow+4}`);
-            sepCell.border = {}; 
-          });
-
-          let targetSubj = mod.web || mod.base;
-
-          sheet1.getCell(`A${startRow}`).value = null; sheet1.getCell(`B${startRow}`).value = null;
-          sheet1.getCell(`C${startRow}`).value = null; sheet1.getCell(`N${startRow+1}`).value = null;
-          for(let i=0; i<4; i++) sheet1.getCell(`E${startRow+i}`).value = null;
-
-          sheet1.getCell(`A${startRow}`).value = targetSubj.code;
-          sheet1.getCell(`B${startRow}`).value = formatLevel(targetSubj.level); 
-          sheet1.getCell(`C${startRow}`).value = targetSubj.name;
-          sheet1.getCell(`N${startRow+1}`).value = mod.comment || null;
-
-          if (mod.type === 'CAMBIO') sheet1.getCell(`E${startRow}`).value = 'X';
-          if (mod.type === 'ELIMINACIÓN') sheet1.getCell(`E${startRow+1}`).value = 'X';
-          if (mod.type === 'CREACIÓN') sheet1.getCell(`E${startRow+2}`).value = 'X';
-          if (mod.type === 'OTRO') sheet1.getCell(`E${startRow+3}`).value = 'X';
-
-          if (mod.base) {
-            let h = parseHoursComponents(mod.base.components);
-            sheet1.getCell(`G${startRow+1}`).value = h.acd; sheet1.getCell(`G${startRow+2}`).value = h.ape; sheet1.getCell(`G${startRow+3}`).value = h.aa;
-            let sumHBase = (h.acd + h.ape + h.aa) * 16;
-            setCachedResult(sheet1, `H${startRow+1}`, sumHBase);
-            setCachedResult(sheet1, `I${startRow+1}`, sumHBase / 48);
-          } else {
+        // FASE 2: LLENAR LOS DATOS Y LIMPIAR
+        if (modifications.length === 0) {
+            let startRow = 4;
+            sheet1.getCell(`A${startRow}`).value = null; sheet1.getCell(`B${startRow}`).value = null;
+            sheet1.getCell(`C${startRow}`).value = null; sheet1.getCell(`N${startRow+1}`).value = null;
+            for(let i=0; i<4; i++) sheet1.getCell(`E${startRow+i}`).value = null;
             sheet1.getCell(`G${startRow+1}`).value = 0; sheet1.getCell(`G${startRow+2}`).value = 0; sheet1.getCell(`G${startRow+3}`).value = 0;
-            setCachedResult(sheet1, `H${startRow+1}`, 0);
-            setCachedResult(sheet1, `I${startRow+1}`, 0);
-          }
-
-          if (mod.web) {
-            let h = parseHoursComponents(mod.web.components);
-            sheet1.getCell(`K${startRow+1}`).value = h.acd; sheet1.getCell(`K${startRow+2}`).value = h.ape; sheet1.getCell(`K${startRow+3}`).value = h.aa;
-            let sumHWeb = (h.acd + h.ape + h.aa) * 16;
-            setCachedResult(sheet1, `L${startRow+1}`, sumHWeb);
-            setCachedResult(sheet1, `M${startRow+1}`, sumHWeb / 48);
-          } else {
             sheet1.getCell(`K${startRow+1}`).value = 0; sheet1.getCell(`K${startRow+2}`).value = 0; sheet1.getCell(`K${startRow+3}`).value = 0;
-            setCachedResult(sheet1, `L${startRow+1}`, 0);
-            setCachedResult(sheet1, `M${startRow+1}`, 0);
-          }
-        });
+            setCachedResult(sheet1, `H${startRow+1}`, 0); setCachedResult(sheet1, `I${startRow+1}`, 0);
+            setCachedResult(sheet1, `L${startRow+1}`, 0); setCachedResult(sheet1, `M${startRow+1}`, 0);
+        } else {
+            modifications.forEach((mod, index) => {
+              let startRow = 4 + (index * 5); 
+              let targetSubj = mod.web || mod.base;
 
-        // 4. ELIMINAR bloques sobrantes (Deep Clean visual)
-        if (modifications.length < 7) {
-            for (let i = modifications.length; i < 7; i++) {
-                let startClear = 4 + (i * 5);
-                for (let offset = 0; offset < 5; offset++) {
-                    let row = sheet1.getRow(startClear + offset);
-                    ['A','B','C','D','E','F','G','H','I','J','K','L','M','N'].forEach(col => {
-                        let cell = row.getCell(col);
-                        cell.value = null;      
-                        cell.border = {};       
-                        cell.fill = { type: 'pattern', pattern: 'none' }; 
-                    });
-                }
-            }
+              sheet1.getCell(`A${startRow}`).value = null; sheet1.getCell(`B${startRow}`).value = null;
+              sheet1.getCell(`C${startRow}`).value = null; sheet1.getCell(`N${startRow+1}`).value = null;
+              for(let i=0; i<4; i++) sheet1.getCell(`E${startRow+i}`).value = null;
+
+              sheet1.getCell(`A${startRow}`).value = targetSubj.code;
+              sheet1.getCell(`B${startRow}`).value = formatLevel(targetSubj.level); 
+              sheet1.getCell(`C${startRow}`).value = targetSubj.name;
+              sheet1.getCell(`N${startRow+1}`).value = mod.comment || null;
+
+              if (mod.type === 'CAMBIO') sheet1.getCell(`E${startRow}`).value = 'X';
+              if (mod.type === 'ELIMINACIÓN') sheet1.getCell(`E${startRow+1}`).value = 'X';
+              if (mod.type === 'CREACIÓN') sheet1.getCell(`E${startRow+2}`).value = 'X';
+              if (mod.type === 'OTRO') sheet1.getCell(`E${startRow+3}`).value = 'X';
+
+              if (mod.base) {
+                let h = parseHoursComponents(mod.base.components);
+                sheet1.getCell(`G${startRow+1}`).value = h.acd; sheet1.getCell(`G${startRow+2}`).value = h.ape; sheet1.getCell(`G${startRow+3}`).value = h.aa;
+                let sumHBase = (h.acd + h.ape + h.aa) * 16;
+                setCachedResult(sheet1, `H${startRow+1}`, sumHBase);
+                setCachedResult(sheet1, `I${startRow+1}`, sumHBase / 48);
+              } else {
+                sheet1.getCell(`G${startRow+1}`).value = 0; sheet1.getCell(`G${startRow+2}`).value = 0; sheet1.getCell(`G${startRow+3}`).value = 0;
+                setCachedResult(sheet1, `H${startRow+1}`, 0);
+                setCachedResult(sheet1, `I${startRow+1}`, 0);
+              }
+
+              if (mod.web) {
+                let h = parseHoursComponents(mod.web.components);
+                sheet1.getCell(`K${startRow+1}`).value = h.acd; sheet1.getCell(`K${startRow+2}`).value = h.ape; sheet1.getCell(`K${startRow+3}`).value = h.aa;
+                let sumHWeb = (h.acd + h.ape + h.aa) * 16;
+                setCachedResult(sheet1, `L${startRow+1}`, sumHWeb);
+                setCachedResult(sheet1, `M${startRow+1}`, sumHWeb / 48);
+              } else {
+                sheet1.getCell(`K${startRow+1}`).value = 0; sheet1.getCell(`K${startRow+2}`).value = 0; sheet1.getCell(`K${startRow+3}`).value = 0;
+                setCachedResult(sheet1, `L${startRow+1}`, 0);
+                setCachedResult(sheet1, `M${startRow+1}`, 0);
+              }
+            });
         }
 
         // --- PESTAÑA 2: MALLA CURRICULAR ---
