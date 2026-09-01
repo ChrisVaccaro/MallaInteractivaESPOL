@@ -330,6 +330,7 @@
       <div class="form-group">
         <label>Componentes (Horas semanales ACD/APE/AA):</label>
         <select id="edit-components" onchange="updateSumFromSelect()">
+          <option value="2/0/1">1 Crédito - (2 ACD / 0 APE / 1 AA)</option>
           <option value="2/0/4">2 Créditos - (2 ACD / 0 APE / 4 AA)</option>
           <option value="2/1/3">2 Créditos - (2 ACD / 1 APE / 3 AA)</option>
           <option value="2/2/2">2 Créditos - (2 ACD / 2 APE / 2 AA)</option>
@@ -397,7 +398,7 @@
       "subjects": [], "connections": []
     };
 
-    const allowedCombinations = ["2/0/4", "2/1/3", "2/2/2", "3/0/3", "3/0/6", "3/1/5", "3/2/4", "4/0/5", "4/0/8"];
+    const allowedCombinations = ["2/0/1", "2/0/4", "2/1/3", "2/2/2", "3/0/3", "3/0/6", "3/1/5", "3/2/4", "4/0/5", "4/0/8"];
 
     function isValidCombination(compStr) {
       if (!compStr) return false;
@@ -722,7 +723,14 @@
       const credits = calculateCredits(subj).toFixed(1).replace('.0', '');
       
       const validHours = isValidCombination(subj.components);
-      const warningHTML = !validHours ? `<span class="warning-icon" title="Distribución de horas no permitida. Debe editar la materia">⚠️</span>` : '';
+      
+      // Quitamos el tooltip del ícono
+      const warningHTML = !validHours ? `<span class="warning-icon">⚠️</span>` : '';
+
+      // Y le pasamos el tooltip a TODA la tarjeta si no cumple las horas
+      if (!validHours) {
+        card.title = "Distribución de horas no permitida. Debe editar la materia";
+      }
 
       card.innerHTML = `
         <button class="edit-btn" onclick="openModalForEdit(event, '${subj.id}')">✏️</button>
