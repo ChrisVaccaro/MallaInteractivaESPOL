@@ -180,10 +180,12 @@
     svg#connections-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5 !important; }
     .board { display: flex; flex-direction: column; gap: 32px; position: relative; }
 
-    .level-row { display: flex; background: #ffffff; border-radius: 8px; border: 1px solid var(--border-color); min-height: 125px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; }
+    .level-row { display: flex; background: #ffffff; border-radius: 8px; border: 1px solid var(--border-color); min-height: 135px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; }
     .level-header { width: 170px; min-width: 170px; background-color: #f1f5f9; border-right: 1px solid var(--border-color); border-radius: 8px 0 0 8px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 8px; font-weight: bold; color: var(--primary-color); font-size: 0.80em; text-align: center; }
     .level-credits { font-size: 0.85em; color: #0369a1; background: #e0f2fe; padding: 3px 8px; border-radius: 12px; margin-top: 4px; margin-bottom: 4px; }
-    .level-hours { font-size: 0.75em; color: #475569; line-height: 1.3; margin-top: 2px; font-weight: 600; }
+    .level-hours { font-size: 0.75em; color: #475569; line-height: 1.3; margin-top: 2px; font-weight: 600; width: 100%; }
+    .level-total-hours { margin-top: 4px; border-top: 1px solid #cbd5e1; padding-top: 4px; font-weight: bold; color: #0f172a; text-align: center; }
+    
     .level-content-grid { flex: 1; display: grid; grid-template-columns: repeat(8, 1fr); gap: 14px; padding: 16px; background-color: #fafafa; align-items: center; }
     .grid-cell { border: 1px dashed #cbd5e1; border-radius: 6px; min-height: 90px; display: flex; justify-content: center; align-items: center; background-color: rgba(255, 255, 255, 0.5); transition: background-color 0.2s; }
     .grid-cell.drag-over { background-color: #e0f2fe; border-color: var(--accent-color); }
@@ -195,6 +197,10 @@
     .subject-header { display: flex; justify-content: space-between; font-size: 0.7em; font-weight: bold; color: #475569; }
     .subject-title { font-size: 0.7em; font-weight: 700; text-align: center; text-transform: uppercase; line-height: 1.1; margin: 2px 0; color: #0f172a; }
     .subject-footer { display: flex; justify-content: space-between; font-size: 0.65em; color: #64748b; }
+    
+    .warning-icon { cursor: help; margin-left: 2px; font-size: 1.1em; display: inline-flex; align-items: center; }
+    .invalid-opt { color: #dc2626; font-weight: bold; }
+
     .edit-btn { position: absolute; top: -6px; right: -6px; background: #3b82f6; color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.3); z-index: 20; }
     .subject-card:hover .edit-btn { display: flex; }
 
@@ -322,11 +328,21 @@
       <div class="form-group"><label>Nombre de la Materia:</label><input type="text" id="edit-name" placeholder="Ej: CÁLCULO VECTORIAL & 3"></div>
       <div class="form-group"><label>Código:</label><input type="text" id="edit-code" placeholder="Ej: MATG1046"></div>
       <div class="form-group">
-        <label>Componentes (Horas CD/CP/AA):</label>
-        <input type="text" id="edit-components" placeholder="Ej: 3/2/4">
+        <label>Componentes (Horas semanales ACD/APE/AA):</label>
+        <select id="edit-components" onchange="updateSumFromSelect()">
+          <option value="2/0/4">2 Créditos - (2 ACD / 0 APE / 4 AA)</option>
+          <option value="2/1/3">2 Créditos - (2 ACD / 1 APE / 3 AA)</option>
+          <option value="2/2/2">2 Créditos - (2 ACD / 2 APE / 2 AA)</option>
+          <option value="3/0/3">2 Créditos - (3 ACD / 0 APE / 3 AA)</option>
+          <option value="3/0/6">3 Créditos - (3 ACD / 0 APE / 6 AA)</option>
+          <option value="3/1/5" selected>3 Créditos - (3 ACD / 1 APE / 5 AA)</option>
+          <option value="3/2/4">3 Créditos - (3 ACD / 2 APE / 4 AA)</option>
+          <option value="4/0/5">3 Créditos - (4 ACD / 0 APE / 5 AA)</option>
+          <option value="4/0/8">4 Créditos - (4 ACD / 0 APE / 8 AA)</option>
+        </select>
       </div>
       <div class="form-group">
-        <label>Horas Totales (Cálculo Automático):</label>
+        <label>Horas Totales Semanales:</label>
         <input type="number" id="edit-sum" placeholder="Calculado automáticamente" readonly style="background-color: #f1f5f9; cursor: not-allowed; font-weight: bold; color: #475569;">
       </div>
       <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-top: 15px; margin-bottom: 15px; background: #f0f9ff; padding: 10px; border-radius: 6px; border: 1px solid #bae6fd;">
@@ -356,7 +372,7 @@
       <h2 style="margin-top: 0; color: var(--primary-color);">Guía de Uso: Malla Curricular Interactiva</h2>
       <ul style="padding-left: 20px; color: #475569; font-size: 0.95em; line-height: 1.6; text-align: justify;">
         <li><b>Modos de Interacción:</b> Puedes alternar con el botón entre Mover materias (arrastrar y soltar libremente) y Modo Requisitos (hacer clic en dos materias para conectarlas).</li>
-        <li><b>Visualización de Requisitos:</b> Al pasar el cursor sobre cualquier materia, se resaltará su ruta académica en rojo (prerrequisitos) y verde (materias futuras).</li>
+        <li><b>Validación de Horas:</b> El motor restringe las configuraciones de horas para que cumplan con la malla reglamentaria. Las materias antiguas que no cumplan mostrarán una advertencia ⚠️ y no se podrá exportar a Excel hasta editarlas.</li>
         <li><b>Estilo de Conexiones:</b> Puedes alternar la visualización entre líneas curvas o rectas por defecto.</li>
         <li><b>Atajos de Teclado:</b> Utiliza Ctrl + Z para Deshacer un cambio y Ctrl + Y para Rehacer.</li>
         <li><b>Exportación de Reportes:</b> El motor comparará tu avance contra la malla base elegida. En la pestaña 1 clonará inteligentemente el primer bloque de tu plantilla base.</li>
@@ -381,6 +397,13 @@
       "subjects": [], "connections": []
     };
 
+    const allowedCombinations = ["2/0/4", "2/1/3", "2/2/2", "3/0/3", "3/0/6", "3/1/5", "3/2/4", "4/0/5", "4/0/8"];
+
+    function isValidCombination(compStr) {
+      if (!compStr) return false;
+      return allowedCombinations.includes(compStr.replace(/\s/g, ''));
+    }
+
     let state = JSON.parse(JSON.stringify(initialData));
     let currentMode = 'drag'; let selectedSourceId = null; let pinnedSubjectId = null; 
     let lineType = 'orthogonal'; 
@@ -390,9 +413,7 @@
     let pendingImportedData = null;
     let tempSavedState = null; 
 
-    function formatLevel(lvl) {
-      return lvl ? lvl.replace('L', '') : '';
-    }
+    function formatLevel(lvl) { return lvl ? lvl.replace('L', '') : ''; }
 
     function parseNameReq(name) {
       if (!name) return { cleanName: '', reqNum: null };
@@ -414,7 +435,7 @@
 
     function isBasicMathSubject(name) {
       const n = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      const keywords = ["calculo", "fisica", "algebra", "estadistica", "ecuaciones", "matematica", "quimica"];
+      const keywords = ["calculo", "fisica", "algebra", "estadistica", "ecuaciones", "matematicas", "quimica", "evaluacion"];
       return keywords.some(kw => n.includes(kw));
     }
 
@@ -598,6 +619,14 @@
       if (totalSummaryEl) { totalSummaryEl.innerHTML = `🎓 Total Créditos Malla: <b>${grandTotalCredits}</b>`; }
     }
 
+    window.updateSumFromSelect = function() {
+      const val = document.getElementById('edit-components').value;
+      const parts = val.split('/');
+      let sum = 0;
+      parts.forEach(p => sum += parseFloat(p) || 0);
+      document.getElementById('edit-sum').value = sum;
+    };
+
     function init() {
       const savedMemory = localStorage.getItem('malla_espol_autosave');
       if (savedMemory) {
@@ -607,11 +636,6 @@
         finishInit();
       }
       loadCatalogo();
-
-      document.getElementById('edit-components').addEventListener('input', function(e) {
-        const value = e.target.value; const parts = value.split('/'); let sum = 0;
-        parts.forEach(p => { sum += parseFloat(p) || 0; }); document.getElementById('edit-sum').value = sum;
-      });
 
       document.body.addEventListener('click', (e) => {
         if (!e.target.closest('.dropbtn') && !e.target.closest('.dropdown-content') && !e.target.closest('.subtitle-dropdown')) { closeAllDropdowns(); }
@@ -660,14 +684,20 @@
         const subjectsInLevel = state.subjects.filter(s => s.level === level.id);
         const totalCredits = subjectsInLevel.reduce((acc, curr) => acc + calculateCredits(curr), 0);
         let totalACD = 0; let totalAPE = 0; let totalAA = 0;
+        
         subjectsInLevel.forEach(subj => {
           const hours = parseHoursComponents(subj.components); 
           totalACD += hours.acd; totalAPE += hours.ape; totalAA += hours.aa;
         });
+        
+        let totalHoursLevel = totalACD + totalAPE + totalAA;
 
         row.innerHTML = `
           <div class="level-header"><span>${level.name}</span><span class="level-credits">${totalCredits} Créditos</span>
-            <div class="level-hours"><div>ACD: ${totalACD}h</div><div>APE: ${totalAPE}h</div><div>AA: ${totalAA}h</div></div>
+            <div class="level-hours">
+              <div style="display: flex; justify-content: space-between;"><span>ACD: ${totalACD}h</span><span>APE: ${totalAPE}h</span><span>AA: ${totalAA}h</span></div>
+              <div class="level-total-hours">Total: ${totalHoursLevel}h</div>
+            </div>
           </div>
           <div class="level-content-grid" id="grid-${level.id}"></div>
         `;
@@ -691,9 +721,12 @@
       card.className = `subject-card ${isBasic ? 'basic-math' : ''} ${isPinned ? 'pinned' : ''}`; card.id = `card-${subj.id}`; card.draggable = (currentMode === 'drag');
       const credits = calculateCredits(subj).toFixed(1).replace('.0', '');
       
+      const validHours = isValidCombination(subj.components);
+      const warningHTML = !validHours ? `<span class="warning-icon" title="Distribución de horas no permitida. Debe editar la materia">⚠️</span>` : '';
+
       card.innerHTML = `
         <button class="edit-btn" onclick="openModalForEdit(event, '${subj.id}')">✏️</button>
-        <div class="subject-header"><span>${subj.components}</span><span>${subj.sum}</span></div>
+        <div class="subject-header"><span>${subj.components}${warningHTML}</span><span>${subj.sum}</span></div>
         <div class="subject-title">${subj.name}</div>
         <div class="subject-footer"><span>${subj.code}</span><span><b>${credits} CR</b></span></div>
       `;
@@ -850,7 +883,23 @@
     }
 
     function checkAndExportJSON() { if (!state.baseCareer) { pendingExportAction = 'json'; openCareerModal(); } else { exportJSON(); } }
-    function checkAndProcessExcel() { if (!state.baseCareer) { pendingExportAction = 'excel'; openCareerModal(); } else { procesarYDescargarExcel(); } }
+    
+    // Alcabala bloqueadora para la exportación de Excel
+    function checkAndProcessExcel() { 
+      const invalidSubjects = state.subjects.filter(s => !isValidCombination(s.components));
+      if (invalidSubjects.length > 0) {
+        const namesList = invalidSubjects.map(s => `[${s.code} - ${s.name}]`).join('\n');
+        alert(`NO SE PUEDE EXPORTAR EL EXCEL\n\nLas siguientes materias tienen una distribución de horas antigua o no permitida:\n\n${namesList}\n\nPor favor, edítelas para seleccionar una distribución de horas válida antes de continuar.`);
+        return;
+      }
+
+      if (!state.baseCareer) { 
+        pendingExportAction = 'excel'; 
+        openCareerModal(); 
+      } else { 
+        procesarYDescargarExcel(); 
+      } 
+    }
 
     function openCareerModal() {
       const select = document.getElementById('modal-career-select'); select.innerHTML = '';
@@ -1004,15 +1053,11 @@
         const workbook = new ExcelJS.Workbook();
         await workbook.xlsx.load(arrayBuffer);
         
-        // --- PESTAÑA 1: MODIFICACIONES EN ASIGNATURAS ---
         const sheet1 = workbook.getWorksheet('MODIFICACIONES EN ASIGNATURAS');
         if (!sheet1) throw new Error('La pestaña 1 no existe en la plantilla.');
 
-        // FASE 1: PRE-CLONAR LA ESTRUCTURA EXACTA (SIN CORROMPER)
         for (let i = 1; i < modifications.length; i++) {
           let destStartRow = 4 + (i * 5);
-          
-          // Clonar solo estilos y valores simples (no formulas ni celdas esclavas)
           for (let offset = 0; offset < 5; offset++) {
             const srcRow = sheet1.getRow(4 + offset);
             const destRow = sheet1.getRow(destStartRow + offset);
@@ -1022,37 +1067,22 @@
               const srcCell = srcRow.getCell(col);
               const destCell = destRow.getCell(col);
               
-              if (srcCell.style) {
-                destCell.style = JSON.parse(JSON.stringify(srcCell.style));
-              }
-              
-              // Evitamos el tipo 1 (Merge) y el 6 (Formula) para no corromper Excel
-              if (srcCell.type !== 1 && srcCell.type !== 6 && srcCell.value !== null) {
-                destCell.value = srcCell.value;
-              }
+              if (srcCell.style) { destCell.style = JSON.parse(JSON.stringify(srcCell.style)); }
+              if (srcCell.type !== 1 && srcCell.type !== 6 && srcCell.value !== null) { destCell.value = srcCell.value; }
             }
           }
+          sheet1.mergeCells(`A${destStartRow}:A${destStartRow+3}`); sheet1.mergeCells(`B${destStartRow}:B${destStartRow+3}`);
+          sheet1.mergeCells(`C${destStartRow}:C${destStartRow+3}`); sheet1.mergeCells(`F${destStartRow}:G${destStartRow}`);
+          sheet1.mergeCells(`J${destStartRow}:K${destStartRow}`); sheet1.mergeCells(`H${destStartRow+1}:H${destStartRow+3}`);
+          sheet1.mergeCells(`I${destStartRow+1}:I${destStartRow+3}`); sheet1.mergeCells(`L${destStartRow+1}:L${destStartRow+3}`);
+          sheet1.mergeCells(`M${destStartRow+1}:M${destStartRow+3}`); sheet1.mergeCells(`N${destStartRow+1}:N${destStartRow+3}`);
 
-          // Aplicar Combinaciones Matemáticamente
-          sheet1.mergeCells(`A${destStartRow}:A${destStartRow+3}`);
-          sheet1.mergeCells(`B${destStartRow}:B${destStartRow+3}`);
-          sheet1.mergeCells(`C${destStartRow}:C${destStartRow+3}`);
-          sheet1.mergeCells(`F${destStartRow}:G${destStartRow}`);
-          sheet1.mergeCells(`J${destStartRow}:K${destStartRow}`);
-          sheet1.mergeCells(`H${destStartRow+1}:H${destStartRow+3}`);
-          sheet1.mergeCells(`I${destStartRow+1}:I${destStartRow+3}`);
-          sheet1.mergeCells(`L${destStartRow+1}:L${destStartRow+3}`);
-          sheet1.mergeCells(`M${destStartRow+1}:M${destStartRow+3}`);
-          sheet1.mergeCells(`N${destStartRow+1}:N${destStartRow+3}`);
-
-          // Inyectar las fórmulas apuntando a la fila nueva
           sheet1.getCell(`H${destStartRow+1}`).value = { formula: `=(G${destStartRow+1}+G${destStartRow+2}+G${destStartRow+3})*16` };
           sheet1.getCell(`I${destStartRow+1}`).value = { formula: `=H${destStartRow+1}/48` };
           sheet1.getCell(`L${destStartRow+1}`).value = { formula: `=(K${destStartRow+1}+K${destStartRow+2}+K${destStartRow+3})*16` };
           sheet1.getCell(`M${destStartRow+1}`).value = { formula: `=L${destStartRow+1}/48` };
         }
 
-        // FASE 2: LLENAR LOS DATOS 
         if (modifications.length === 0) {
             let startRow = 4;
             sheet1.getCell(`A${startRow}`).value = null; sheet1.getCell(`B${startRow}`).value = null;
@@ -1109,20 +1139,17 @@
 
         // --- PESTAÑA 2: MALLA CURRICULAR ---
         const worksheet = workbook.getWorksheet('MALLA CURRICULAR');
-        
         let globalACD = 0; let globalAPE = 0; let globalAA = 0;
 
         for (let lvlIdx = 0; lvlIdx < state.levels.length; lvlIdx++) {
           const levelId = state.levels[lvlIdx].id;
           const nameRow = 6 + (lvlIdx * 4);
           const hoursRow = 7 + (lvlIdx * 4);
-          
           let levelACD = 0; let levelAPE = 0; let levelAA = 0;
 
           for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
             const startCol = 7 + (colIdx * 9); 
             const subject = state.subjects.find(s => s.level === levelId && s.col === colIdx);
-            
             let targetHours = { acd: 0, ape: 0, aa: 0 };
             
             if (subject) {
@@ -1151,9 +1178,7 @@
           setCachedResult(worksheet, `CF${hoursRow + 1}`, lvlTotalHoras); 
           setCachedResult(worksheet, `CF${hoursRow + 2}`, lvlTotalHoras / 48); 
 
-          globalACD += levelACD;
-          globalAPE += levelAPE;
-          globalAA += levelAA;
+          globalACD += levelACD; globalAPE += levelAPE; globalAA += levelAA;
         }
         
         setCachedResult(worksheet, `CF46`, globalACD);
@@ -1176,21 +1201,48 @@
     }
 
     function openModalForCreate(e) {
-      document.getElementById('modal-title').innerText = 'Agregar Nueva Materia'; document.getElementById('edit-id').value = ''; document.getElementById('edit-name').value = ''; document.getElementById('edit-code').value = ''; document.getElementById('edit-components').value = '3/1/5'; document.getElementById('edit-sum').value = 9; document.getElementById('edit-is-basic').checked = false; document.getElementById('level-select-group').style.display = 'block'; document.getElementById('btn-delete').style.display = 'none';
+      document.getElementById('modal-title').innerText = 'Agregar Nueva Materia'; 
+      document.getElementById('edit-id').value = ''; document.getElementById('edit-name').value = ''; document.getElementById('edit-code').value = ''; 
+      
+      const compSelect = document.getElementById('edit-components');
+      Array.from(compSelect.options).forEach(opt => { if(opt.classList.contains('invalid-opt')) opt.remove(); });
+      compSelect.value = '3/1/5';
+      
+      document.getElementById('edit-sum').value = 9; document.getElementById('edit-is-basic').checked = false; document.getElementById('level-select-group').style.display = 'block'; document.getElementById('btn-delete').style.display = 'none';
       const modalBox = document.getElementById('edit-modal-box'); let yPos = e && e.clientY ? e.clientY - 50 : 30; const maxH = window.innerHeight; if (yPos + 480 > maxH) { yPos = maxH - 480; } if (yPos < 30) yPos = 30; modalBox.style.marginTop = yPos + 'px'; document.getElementById('modal-overlay').style.display = 'flex';
+      updateSumFromSelect();
     }
 
     function openModalForEdit(e, id) {
       e.stopPropagation(); const subj = state.subjects.find(s => s.id === id); if (!subj) return;
-      document.getElementById('modal-title').innerText = 'Editar Materia'; document.getElementById('edit-id').value = subj.id; document.getElementById('edit-name').value = subj.name; document.getElementById('edit-code').value = subj.code; document.getElementById('edit-components').value = subj.components; document.getElementById('edit-sum').value = subj.sum; document.getElementById('edit-is-basic').checked = checkIsBasic(subj); document.getElementById('level-select-group').style.display = 'none'; document.getElementById('btn-delete').style.display = 'block';
+      document.getElementById('modal-title').innerText = 'Editar Materia'; document.getElementById('edit-id').value = subj.id; document.getElementById('edit-name').value = subj.name; document.getElementById('edit-code').value = subj.code; 
+      
+      const compSelect = document.getElementById('edit-components');
+      Array.from(compSelect.options).forEach(opt => { if(opt.classList.contains('invalid-opt')) opt.remove(); });
+      if (subj.components && !isValidCombination(subj.components)) {
+        const newOpt = document.createElement('option');
+        newOpt.value = subj.components;
+        newOpt.text = `⚠️ Actual (${subj.components}) - DEBE SELECCIONAR OTRA OPCIÓN`;
+        newOpt.classList.add('invalid-opt');
+        compSelect.insertBefore(newOpt, compSelect.firstChild);
+        compSelect.value = subj.components;
+      } else {
+        compSelect.value = subj.components || '3/1/5';
+      }
+      
+      document.getElementById('edit-sum').value = subj.sum; document.getElementById('edit-is-basic').checked = checkIsBasic(subj); document.getElementById('level-select-group').style.display = 'none'; document.getElementById('btn-delete').style.display = 'block';
       const modalBox = document.getElementById('edit-modal-box'); let yPos = e.clientY - 50; const maxH = window.innerHeight; if (yPos + 480 > maxH) { yPos = maxH - 480; } if (yPos < 30) yPos = 30; modalBox.style.marginTop = yPos + 'px'; document.getElementById('modal-overlay').style.display = 'flex';
+      updateSumFromSelect();
     }
 
     function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
 
     function saveSubjectFromModal() {
       const id = document.getElementById('edit-id').value; const name = document.getElementById('edit-name').value.trim(); const code = document.getElementById('edit-code').value.trim(); const components = document.getElementById('edit-components').value.trim(); const sum = parseFloat(document.getElementById('edit-sum').value) || 0; const isBasic = document.getElementById('edit-is-basic').checked;
+      
       if (!name || !code) { showToast('Por favor ingresa un nombre y código válidos.', 'error'); return; }
+      if (!isValidCombination(components)) { showToast('Debe seleccionar una distribución de horas permitida.', 'error'); return; }
+
       saveStateToHistory();
       if (id) { const subj = state.subjects.find(s => s.id === id); if (subj) { subj.name = name; subj.code = code; subj.components = components; subj.sum = sum; subj.isBasic = isBasic; } } 
       else { const levelId = document.getElementById('edit-level').value; const newId = 'CUSTOM_' + Date.now(); const usedCols = state.subjects.filter(s => s.level === levelId).map(s => s.col); let freeCol = 0; for (let i = 0; i < NUM_COLUMNS; i++) { if (!usedCols.includes(i)) { freeCol = i; break; } } state.subjects.push({ id: newId, code: code, name: name, components: components, sum: sum, level: levelId, col: freeCol, isBasic: isBasic }); }
