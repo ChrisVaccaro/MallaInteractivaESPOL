@@ -198,8 +198,43 @@
     .subject-title { font-size: 0.7em; font-weight: 700; text-align: center; text-transform: uppercase; line-height: 1.1; margin: 2px 0; color: #0f172a; }
     .subject-footer { display: flex; justify-content: space-between; font-size: 0.65em; color: #64748b; }
     
-    .warning-icon { cursor: help; margin-left: 2px; font-size: 1.1em; display: inline-flex; align-items: center; }
+    .warning-icon { margin-left: 2px; font-size: 1.1em; display: inline-flex; align-items: center; }
     .invalid-opt { color: #dc2626; font-weight: bold; }
+
+    .custom-tooltip {
+      position: absolute;
+      bottom: 105%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      text-align: center;
+      width: 160px;
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.15s ease-out;
+      pointer-events: none;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+    }
+    .custom-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: #1e293b transparent transparent transparent;
+    }
+    .subject-card:hover .custom-tooltip {
+      opacity: 1;
+      visibility: visible;
+    }
 
     .edit-btn { position: absolute; top: -6px; right: -6px; background: #3b82f6; color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.3); z-index: 20; }
     .subject-card:hover .edit-btn { display: flex; }
@@ -317,6 +352,20 @@
       <div class="modal-actions">
         <button onclick="closeCareerModal()">Cancelar</button>
         <button onclick="confirmCareerSelection()" style="background-color: var(--accent-color); color: white;">Confirmar y Continuar</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="modal-overlay" id="invalid-export-modal-overlay">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h2 style="color: #dc2626; margin-top: 0;">⚠️ Exportación Bloqueada</h2>
+      <p style="font-size: 0.9em; color: #475569; line-height: 1.4;">
+        No se puede exportar. Las siguientes materias tienen una distribución de horas antigua o no permitida. Por favor, edítelas antes de continuar:
+      </p>
+      <ul id="invalid-subjects-list" style="font-size: 0.85em; color: #0f172a; max-height: 180px; overflow-y: auto; background: #fef2f2; padding: 12px 12px 12px 30px; border-radius: 6px; border: 1px solid #fca5a5; margin-bottom: 0;">
+      </ul>
+      <div class="modal-actions" style="justify-content: flex-end; margin-top: 20px;">
+        <button onclick="closeInvalidModal()" style="background-color: var(--accent-color); color: white; padding: 8px 16px;">Entendido</button>
       </div>
     </div>
   </div>
@@ -724,15 +773,11 @@
       
       const validHours = isValidCombination(subj.components);
       
-      // Quitamos el tooltip del ícono
       const warningHTML = !validHours ? `<span class="warning-icon">⚠️</span>` : '';
-
-      // Y le pasamos el tooltip a TODA la tarjeta si no cumple las horas
-      if (!validHours) {
-        card.title = "Distribución de horas no permitida. Debe editar la materia";
-      }
+      const customTooltipHTML = !validHours ? `<div class="custom-tooltip">Distribución de horas no permitida. Debe editar la materia.</div>` : '';
 
       card.innerHTML = `
+        ${customTooltipHTML}
         <button class="edit-btn" onclick="openModalForEdit(event, '${subj.id}')">✏️</button>
         <div class="subject-header"><span>${subj.components}${warningHTML}</span><span>${subj.sum}</span></div>
         <div class="subject-title">${subj.name}</div>
@@ -892,12 +937,13 @@
 
     function checkAndExportJSON() { if (!state.baseCareer) { pendingExportAction = 'json'; openCareerModal(); } else { exportJSON(); } }
     
-    // Alcabala bloqueadora para la exportación de Excel
     function checkAndProcessExcel() { 
       const invalidSubjects = state.subjects.filter(s => !isValidCombination(s.components));
+      
       if (invalidSubjects.length > 0) {
-        const namesList = invalidSubjects.map(s => `[${s.code} - ${s.name}]`).join('\n');
-        alert(`NO SE PUEDE EXPORTAR EL EXCEL\n\nLas siguientes materias tienen una distribución de horas antigua o no permitida:\n\n${namesList}\n\nPor favor, edítelas para seleccionar una distribución de horas válida antes de continuar.`);
+        const listEl = document.getElementById('invalid-subjects-list');
+        listEl.innerHTML = invalidSubjects.map(s => `<li><b>${s.code}</b> - ${s.name}</li>`).join('');
+        document.getElementById('invalid-export-modal-overlay').style.display = 'flex';
         return;
       }
 
@@ -907,6 +953,10 @@
       } else { 
         procesarYDescargarExcel(); 
       } 
+    }
+
+    function closeInvalidModal() {
+      document.getElementById('invalid-export-modal-overlay').style.display = 'none';
     }
 
     function openCareerModal() {
