@@ -174,7 +174,7 @@
     .toast.error { border-left: 5px solid #ef4444; }
     .toast.info { border-left: 5px solid #3b82f6; }
 
-    .board-container { width: 100%; overflow-x: auto; padding-top: 25px; padding-bottom: 25px; }
+    .board-container { width: 100%; overflow-x: auto; padding-top: 60px; padding-bottom: 25px; }
     .board-wrapper { position: relative; min-width: 1450px; }
 
     svg#connections-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5 !important; }
@@ -356,7 +356,7 @@
     </div>
   </div>
   
-  <div class="modal-overlay" id="invalid-export-modal-overlay">
+  <div class="modal-overlay" id="invalid-export-modal-overlay" onclick="closeInvalidModal()">
     <div class="modal" onclick="event.stopPropagation()">
       <h2 style="color: #dc2626; margin-top: 0;">⚠️ Exportación Bloqueada</h2>
       <p style="font-size: 0.9em; color: #475569; line-height: 1.4;">
