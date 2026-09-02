@@ -740,13 +740,13 @@
           totalACD += hours.acd; totalAPE += hours.ape; totalAA += hours.aa;
         });
         
-        let totalHoursLevel = totalACD + totalAPE + totalAA;
+        let totalHoursSemester = (totalACD + totalAPE + totalAA) * 16;
 
         row.innerHTML = `
           <div class="level-header"><span>${level.name}</span><span class="level-credits">${totalCredits} Créditos</span>
             <div class="level-hours">
               <div style="display: flex; justify-content: space-between;"><span>ACD: ${totalACD}h</span><span>APE: ${totalAPE}h</span><span>AA: ${totalAA}h</span></div>
-              <div class="level-total-hours">Total: ${totalHoursLevel}h</div>
+              <div class="level-total-hours">Total de horas (semestrales): ${totalHoursSemester}h</div>
             </div>
           </div>
           <div class="level-content-grid" id="grid-${level.id}"></div>
@@ -994,7 +994,6 @@
       showToast('Archivo JSON exportado correctamente.', 'success');
     }
 
-    // --- MOTOR CARAMBOLA: LÓGICA DE EXPORTACIÓN EXCEL ---
     async function procesarYDescargarExcel() {
       try {
         showToast('Analizando cruce de datos y procesando matriz...', 'info');
@@ -1195,7 +1194,6 @@
             });
         }
 
-        // --- PESTAÑA 2: MALLA CURRICULAR ---
         const worksheet = workbook.getWorksheet('MALLA CURRICULAR');
         let globalACD = 0; let globalAPE = 0; let globalAA = 0;
 
