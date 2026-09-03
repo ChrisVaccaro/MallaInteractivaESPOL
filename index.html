@@ -189,7 +189,6 @@
     .level-content-grid { flex: 1; display: grid; grid-template-columns: repeat(8, 1fr); gap: 14px; padding: 16px; background-color: #fafafa; align-items: center; }
     .grid-cell { border: 1px dashed #cbd5e1; border-radius: 6px; min-height: 90px; display: flex; justify-content: center; align-items: center; background-color: rgba(255, 255, 255, 0.5); transition: background-color 0.2s, border-color 0.2s; }
     .grid-cell.drag-over { background-color: #e0f2fe; border-color: var(--accent-color); }
-    .grid-cell.drag-over-connect { background-color: #ecfdf5; border-color: #10b981; }
 
     .subject-card { width: 100%; height: 90px; background-color: #ffffff !important; border: 2px solid #64748b; border-radius: 8px; padding: 6px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; cursor: grab; position: relative !important; z-index: 10 !important; transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .subject-card:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.15); transform: translateY(-2px); z-index: 15 !important; }
@@ -248,6 +247,24 @@
   </style>
 </head>
 <body>
+
+  <!-- SVG DEFS OCULTO PARA LAS PUNTAS DE FLECHA -->
+  <svg style="width:0; height:0; position:absolute;" aria-hidden="true">
+    <defs>
+      <marker id="arrowhead" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
+      </marker>
+      <marker id="arrowhead-coreq" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b5cf6" />
+      </marker>
+      <marker id="arrowhead-req" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" />
+      </marker>
+      <marker id="arrowhead-next" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" />
+      </marker>
+    </defs>
+  </svg>
 
   <div id="toast-container"></div>
 
@@ -399,6 +416,7 @@
         <label>Componentes (Horas semanales ACD/APE/AA):</label>
         <select id="edit-components" onchange="updateSumFromSelect()">
           <option value="2/0/1">1 Crédito - (2 ACD / 0 APE / 1 AA)</option>
+          <option value="4/0/2">2 Créditos - (4 ACD / 0 APE / 2 AA)</option>
           <option value="2/0/4">2 Créditos - (2 ACD / 0 APE / 4 AA)</option>
           <option value="2/1/3">2 Créditos - (2 ACD / 1 APE / 3 AA)</option>
           <option value="2/2/2">2 Créditos - (2 ACD / 2 APE / 2 AA)</option>
@@ -408,6 +426,8 @@
           <option value="3/2/4">3 Créditos - (3 ACD / 2 APE / 4 AA)</option>
           <option value="4/0/5">3 Créditos - (4 ACD / 0 APE / 5 AA)</option>
           <option value="4/0/8">4 Créditos - (4 ACD / 0 APE / 8 AA)</option>
+          <option value="4/1/7">4 Créditos - (4 ACD / 1 APE / 7 AA)</option>
+          <option value="5/0/7">4 Créditos - (5 ACD / 0 APE / 7 AA)</option>
         </select>
       </div>
       <div class="form-group">
@@ -440,10 +460,10 @@
     <div class="modal" id="help-modal-box" style="width: 580px;" onclick="event.stopPropagation()">
       <h2 style="margin-top: 0; color: var(--primary-color);">Guía de Uso: Malla Curricular Interactiva</h2>
       <ul style="padding-left: 20px; color: #475569; font-size: 0.95em; line-height: 1.6; text-align: justify;">
-        <li><b>Mover vs Conectar:</b> Arrastra la materia desde cualquier parte blanca para moverla. Para crear un requisito, arrastra el botón <b>"+"</b> verde de la parte superior hacia la materia destino.</li>
-        <li><b>Validación Inteligente:</b> Si mueves una materia con requisitos a un semestre que rompa la lógica del tiempo, el sistema te alertará para que decidas qué hacer con esas conexiones.</li>
+        <li><b>Mover vs Conectar:</b> Arrastra la materia desde cualquier parte blanca para moverla. Para crear un requisito, arrastra o haz un clic en el botón <b>"+"</b> verde de la parte superior hacia la materia destino.</li>
+        <li><b>Validación Inteligente:</b> Si mueves una materia con requisitos a un semestre que rompa la lógica del tiempo, el sistema te alertará con sus respectivos nombres para que decidas qué hacer con esas conexiones.</li>
         <li><b>Estilo de Conexiones:</b> Puedes alternar la visualización entre líneas curvas o rectas por defecto.</li>
-        <li><b>Atajos de Teclado:</b> Utiliza Ctrl + Z para Deshacer un cambio y Ctrl + Y para Rehacer.</li>
+        <li><b>Atajos de Teclado:</b> Utiliza Ctrl + Z para Deshacer un cambio y Ctrl + Y para Rehacer. Presiona <b>ESC</b> para cancelar la creación de una línea.</li>
       </ul>
       <div class="modal-actions" style="justify-content: flex-end; margin-top: 25px;">
         <button onclick="closeHelpModal()" style="background-color: var(--accent-color); color: white; padding: 10px 20px;">Entendido</button>
@@ -465,7 +485,7 @@
       "subjects": [], "connections": []
     };
 
-    const allowedCombinations = ["2/0/1", "2/0/4", "2/1/3", "2/2/2", "3/0/3", "3/0/6", "3/1/5", "3/2/4", "4/0/5", "4/0/8"];
+    const allowedCombinations = ["2/0/1", "4/0/2", "2/0/4", "2/1/3", "2/2/2", "3/0/3", "3/0/6", "3/1/5", "3/2/4", "4/0/5", "4/0/8", "4/1/7", "5/0/7"];
 
     function isValidCombination(compStr) {
       if (!compStr) return false;
@@ -480,9 +500,14 @@
     let pendingExportAction = null;
     let pendingImportedData = null;
     let tempSavedState = null; 
-    let pendingMove = null; // Controla la lógica de los nuevos modales
+    let pendingMove = null; 
 
-    window.dragAction = null; // Controla si se está moviendo o conectando
+    // Variables globales para la lógica de la línea fantasma (draw.io)
+    let ghostState = 'IDLE'; // IDLE, DRAGGING, CLICKED
+    let ghostSourceId = null;
+    let ghostPath = null;
+    let ghostStartX = 0;
+    let ghostStartY = 0;
 
     function formatLevel(lvl) { return lvl ? lvl.replace('L', '') : ''; }
 
@@ -662,17 +687,94 @@
       document.getElementById('btn-undo').disabled = (historyStack.length === 0); document.getElementById('btn-redo').disabled = (redoStack.length === 0);
     }
 
+    // --- LÓGICA DE EVENTOS GENERALES DEL RATÓN Y TECLADO ---
     document.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { if (e.shiftKey) { redo(); } else { undo(); } } 
+      if (e.key === 'Escape') { cancelGhostConnection(); }
+      else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { if (e.shiftKey) { redo(); } else { undo(); } } 
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { redo(); }
     });
 
-    document.addEventListener('dragend', () => {
-      window.dragAction = null;
-      document.querySelectorAll('.grid-cell').forEach(c => {
-          c.classList.remove('drag-over', 'drag-over-connect');
-      });
+    document.addEventListener('mousemove', (e) => {
+        if (ghostState !== 'IDLE') { updateGhostLine(e.clientX, e.clientY); }
     });
+
+    // Capturar mousedown en capture phase para evitar drag nativo si estamos en modo CLICKED
+    document.addEventListener('mousedown', (e) => {
+        if (ghostState === 'CLICKED') {
+            e.preventDefault();
+            let targetCard = e.target.closest('.subject-card');
+            if (targetCard) {
+                let targetId = targetCard.id.replace('card-', '');
+                createConnection(ghostSourceId, targetId);
+            }
+            cancelGhostConnection();
+        }
+    }, { capture: true });
+
+    document.addEventListener('mouseup', (e) => {
+        if (ghostState === 'DRAGGING') {
+            const dist = Math.hypot(e.clientX - ghostStartX, e.clientY - ghostStartY);
+            if (dist < 5) { 
+                ghostState = 'CLICKED'; 
+                return; // Se mantiene la línea
+            }
+            
+            let targetCard = e.target.closest('.subject-card');
+            if (targetCard) {
+                let targetId = targetCard.id.replace('card-', '');
+                createConnection(ghostSourceId, targetId);
+            }
+            cancelGhostConnection();
+        }
+    });
+
+    document.addEventListener('dragend', () => {
+      document.querySelectorAll('.grid-cell').forEach(c => { c.classList.remove('drag-over'); });
+    });
+
+    // --- FUNCIONES DEL CONECTOR FANTASMA ---
+    window.initGhostConnection = function(e, id) {
+        e.stopPropagation(); e.preventDefault();
+        if (ghostState === 'CLICKED') { cancelGhostConnection(); }
+        ghostState = 'DRAGGING';
+        ghostSourceId = id;
+        ghostStartX = e.clientX; ghostStartY = e.clientY;
+        createGhostLine();
+        updateGhostLine(e.clientX, e.clientY);
+    };
+
+    function createGhostLine() {
+        const svg = document.getElementById('connections-layer');
+        ghostPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        ghostPath.setAttribute('class', 'connection');
+        ghostPath.style.strokeDasharray = '5, 5';
+        ghostPath.style.stroke = '#2563eb';
+        ghostPath.style.pointerEvents = 'none'; // Crucial
+        ghostPath.setAttribute('marker-end', 'url(#arrowhead)');
+        svg.appendChild(ghostPath);
+    }
+
+    function updateGhostLine(mouseX, mouseY) {
+        if (!ghostPath || !ghostSourceId) return;
+        const wrapperEl = document.getElementById('board-wrapper');
+        const wrapperRect = wrapperEl.getBoundingClientRect();
+        const sourceCard = document.getElementById(`card-${ghostSourceId}`);
+        if(!sourceCard) return;
+
+        const rectFrom = sourceCard.getBoundingClientRect();
+        let x1 = (rectFrom.left - wrapperRect.left) + (rectFrom.width / 2);
+        let y1 = (rectFrom.top - wrapperRect.top); // Sale del borde superior
+
+        let x2 = (mouseX - wrapperRect.left);
+        let y2 = (mouseY - wrapperRect.top);
+
+        ghostPath.setAttribute('d', `M ${x1} ${y1} L ${x2} ${y2}`);
+    }
+
+    function cancelGhostConnection() {
+        ghostState = 'IDLE'; ghostSourceId = null;
+        if (ghostPath) { ghostPath.remove(); ghostPath = null; }
+    }
 
     function updateCreditsSummary() {
       const basicSubjects = state.subjects.filter(s => checkIsBasic(s));
@@ -772,16 +874,8 @@
         for (let colIndex = 0; colIndex < NUM_COLUMNS; colIndex++) {
           const cell = document.createElement('div'); cell.className = 'grid-cell'; cell.dataset.levelId = level.id; cell.dataset.col = colIndex;
           
-          cell.ondragover = (e) => { 
-            e.preventDefault(); 
-            if (window.dragAction === 'connect') {
-                cell.classList.add('drag-over-connect');
-            } else {
-                cell.classList.add('drag-over');
-            }
-          };
-          
-          cell.ondragleave = () => cell.classList.remove('drag-over', 'drag-over-connect');
+          cell.ondragover = (e) => { e.preventDefault(); cell.classList.add('drag-over'); };
+          cell.ondragleave = () => cell.classList.remove('drag-over');
           cell.ondrop = (e) => handleDrop(e, level.id, colIndex);
           
           const subject = subjectsInLevel.find(s => s.col === colIndex);
@@ -791,12 +885,6 @@
       });
       updateCreditsSummary();
     }
-
-    window.startConnectDrag = function(e, id) {
-      e.stopPropagation();
-      window.dragAction = 'connect';
-      e.dataTransfer.setData('text/plain', JSON.stringify({ action: 'connect', id: id }));
-    };
 
     function createSubjectCard(subj) {
       const card = document.createElement('div'); const isBasic = checkIsBasic(subj); const isPinned = (pinnedSubjectId === subj.id);
@@ -808,7 +896,7 @@
       const customTooltipHTML = !validHours ? `<div class="custom-tooltip">Distribución de horas no permitida. Debe editar la materia.</div>` : '';
 
       card.innerHTML = `
-        <div class="connector-btn" draggable="true" ondragstart="startConnectDrag(event, '${subj.id}')">+</div>
+        <div class="connector-btn" onmousedown="initGhostConnection(event, '${subj.id}')">+</div>
         ${customTooltipHTML}
         <button class="edit-btn" onclick="openModalForEdit(event, '${subj.id}')">✏️</button>
         <div class="subject-header"><span>${subj.components}${warningHTML}</span><span>${subj.sum}</span></div>
@@ -816,10 +904,7 @@
         <div class="subject-footer"><span>${subj.code}</span><span><b>${credits} CR</b></span></div>
       `;
       
-      card.ondragstart = (e) => { 
-        window.dragAction = 'move';
-        e.dataTransfer.setData('text/plain', JSON.stringify({ action: 'move', id: subj.id })); 
-      };
+      card.ondragstart = (e) => { e.dataTransfer.setData('text/plain', JSON.stringify({ action: 'move', id: subj.id })); };
       card.onclick = (e) => { e.stopPropagation(); handleCardClick(subj.id); };
       card.onmouseenter = () => { if (!pinnedSubjectId) highlightConnections(subj.id); };
       card.onmouseleave = () => { if (!pinnedSubjectId) clearHighlights(); };
@@ -857,7 +942,7 @@
 
     function handleDrop(e, targetLevelId, targetCol) {
       e.preventDefault(); 
-      document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('drag-over', 'drag-over-connect'));
+      document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('drag-over'));
       
       const dataStr = e.dataTransfer.getData('text/plain');
       if (!dataStr) return;
@@ -872,15 +957,8 @@
               } else {
                   showToast('El espacio de destino ya está ocupado.', 'error');
               }
-          } else if (data.action === 'connect') {
-              if (targetSubj) {
-                  createConnection(data.id, targetSubj.id);
-              } else {
-                  showToast('Debes soltar el conector sobre una materia de destino.', 'error');
-              }
           }
       } catch (err) { console.error(err); }
-      window.dragAction = null;
     }
 
     // --- LÓGICA DE VALIDACIÓN DE MOVIMIENTOS ---
@@ -909,10 +987,10 @@
                const newToIdx = c.to === subject.id ? newLvlIdxForSubj : oldToIdx;
 
                if (newFromIdx > newToIdx) {
-                   conflicts.push({ conn: c, fromCode: fromSubj.code, toCode: toSubj.code, fromName: fromSubj.name, toName: toSubj.name });
+                   conflicts.push({ conn: c, fromName: fromSubj.name, toName: toSubj.name });
                } else if ((oldFromIdx === oldToIdx) !== (newFromIdx === newToIdx)) {
                    natureChanges.push({
-                       conn: c, fromCode: fromSubj.code, toCode: toSubj.code, wasCoreq: (oldFromIdx === oldToIdx)
+                       conn: c, fromName: fromSubj.name, toName: toSubj.name, wasCoreq: (oldFromIdx === oldToIdx)
                    });
                }
            }
@@ -931,7 +1009,7 @@
 
     function showConflictModal() {
         const listEl = document.getElementById('conflict-list');
-        listEl.innerHTML = pendingMove.conflicts.map(c => `<li><b>${c.fromCode}</b> es requisito de <b>${c.toCode}</b></li>`).join('');
+        listEl.innerHTML = pendingMove.conflicts.map(c => `<li><b>${c.fromName}</b> es requisito de <b>${c.toName}</b></li>`).join('');
         document.getElementById('conflict-modal-overlay').style.display = 'flex';
     }
 
@@ -939,7 +1017,7 @@
         const listEl = document.getElementById('nature-list');
         listEl.innerHTML = pendingMove.natureChanges.map(n => {
             const type = n.wasCoreq ? "Prerrequisito" : "Correquisito";
-            return `<li><b>${n.fromCode}</b> y <b>${n.toCode}</b> pasarán a ser <b>${type}s</b></li>`;
+            return `<li><b>${n.fromName}</b> y <b>${n.toName}</b> pasarán a ser <b>${type}s</b></li>`;
         }).join('');
         document.getElementById('nature-modal-overlay').style.display = 'flex';
     }
@@ -1039,7 +1117,14 @@
           }
         }
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('d', pathData); path.setAttribute('class', `connection ${isSameLevel ? 'corequisite' : ''}`); path.style.strokeLinejoin = "round"; path.style.strokeLinecap = "round"; path.dataset.from = conn.from; path.dataset.to = conn.to;
+        path.setAttribute('d', pathData); 
+        path.setAttribute('class', `connection ${isSameLevel ? 'corequisite' : ''}`); 
+        path.style.strokeLinejoin = "round"; path.style.strokeLinecap = "round"; 
+        path.dataset.from = conn.from; path.dataset.to = conn.to;
+        
+        // Puntas de flecha para las conexiones activas
+        path.setAttribute('marker-end', isSameLevel ? 'url(#arrowhead-coreq)' : 'url(#arrowhead)');
+        
         svg.appendChild(path);
       });
       if (pinnedSubjectId) { highlightConnections(pinnedSubjectId); }
@@ -1052,13 +1137,24 @@
         if (c.from === id) { const el = document.getElementById(`card-${c.to}`); if (el) el.classList.add('highlight-next'); }
       });
       document.querySelectorAll('path.connection').forEach(path => {
-        if (path.dataset.to === id) path.classList.add('highlight-req'); if (path.dataset.from === id) path.classList.add('highlight-next');
+        if (path.dataset.to === id) {
+            path.classList.add('highlight-req');
+            path.setAttribute('marker-end', 'url(#arrowhead-req)');
+        }
+        if (path.dataset.from === id) {
+            path.classList.add('highlight-next');
+            path.setAttribute('marker-end', 'url(#arrowhead-next)');
+        }
       });
     }
 
     function clearHighlights() {
       document.querySelectorAll('.subject-card').forEach(el => { el.classList.remove('highlight-req', 'highlight-next'); });
-      document.querySelectorAll('path.connection').forEach(path => { path.classList.remove('highlight-req', 'highlight-next'); });
+      document.querySelectorAll('path.connection').forEach(path => { 
+          path.classList.remove('highlight-req', 'highlight-next');
+          const isSameLevel = path.classList.contains('corequisite');
+          path.setAttribute('marker-end', isSameLevel ? 'url(#arrowhead-coreq)' : 'url(#arrowhead)');
+      });
     }
 
     function loadDataIntoBoard(importedData) {
@@ -1116,7 +1212,7 @@
       
       if (invalidSubjects.length > 0) {
         const listEl = document.getElementById('invalid-subjects-list');
-        listEl.innerHTML = invalidSubjects.map(s => `<li><b>${s.code}</b> - ${s.name}</li>`).join('');
+        listEl.innerHTML = invalidSubjects.map(s => `<li><b>${s.name}</b></li>`).join('');
         document.getElementById('invalid-export-modal-overlay').style.display = 'flex';
         return;
       }
