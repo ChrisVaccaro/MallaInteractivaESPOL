@@ -174,7 +174,7 @@
     .toast.error { border-left: 5px solid #ef4444; }
     .toast.info { border-left: 5px solid #3b82f6; }
 
-    .board-container { width: 100%; overflow-x: auto; padding-top: 40px; padding-bottom: 25px; }
+    .board-container { width: 100%; overflow-x: auto; padding-top: 60px; padding-bottom: 25px; }
     .board-wrapper { position: relative; min-width: 1450px; }
 
     svg#connections-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5 !important; }
@@ -187,8 +187,9 @@
     .level-total-hours { margin-top: 10px; border-top: 1px solid #cbd5e1; padding-top: 6px; font-weight: bold; color: #0f172a; text-align: center; }
     
     .level-content-grid { flex: 1; display: grid; grid-template-columns: repeat(8, 1fr); gap: 14px; padding: 16px; background-color: #fafafa; align-items: center; }
-    .grid-cell { border: 1px dashed #cbd5e1; border-radius: 6px; min-height: 90px; display: flex; justify-content: center; align-items: center; background-color: rgba(255, 255, 255, 0.5); transition: background-color 0.2s; }
+    .grid-cell { border: 1px dashed #cbd5e1; border-radius: 6px; min-height: 90px; display: flex; justify-content: center; align-items: center; background-color: rgba(255, 255, 255, 0.5); transition: background-color 0.2s, border-color 0.2s; }
     .grid-cell.drag-over { background-color: #e0f2fe; border-color: var(--accent-color); }
+    .grid-cell.drag-over-connect { background-color: #ecfdf5; border-color: #10b981; }
 
     .subject-card { width: 100%; height: 90px; background-color: #ffffff !important; border: 2px solid #64748b; border-radius: 8px; padding: 6px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; cursor: grab; position: relative !important; z-index: 10 !important; transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .subject-card:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.15); transform: translateY(-2px); z-index: 15 !important; }
@@ -201,40 +202,27 @@
     .warning-icon { margin-left: 2px; font-size: 1.1em; display: inline-flex; align-items: center; }
     .invalid-opt { color: #dc2626; font-weight: bold; }
 
+    .connector-btn {
+      position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      width: 24px; height: 24px; background-color: #10b981; color: white;
+      border-radius: 50%; display: none; justify-content: center; align-items: center;
+      font-size: 16px; font-weight: bold; cursor: crosshair;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 20; border: 2px solid white;
+    }
+    .subject-card:hover .connector-btn { display: flex; }
+
     .custom-tooltip {
-      position: absolute;
-      bottom: 105%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #1e293b;
-      color: #fff;
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 500;
-      text-align: center;
-      width: 160px;
-      z-index: 100;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.15s ease-out;
-      pointer-events: none;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+      position: absolute; bottom: 105%; left: 50%; transform: translateX(-50%);
+      background: #1e293b; color: #fff; padding: 6px 10px; border-radius: 6px;
+      font-size: 11px; font-weight: 500; text-align: center; width: 160px;
+      z-index: 100; opacity: 0; visibility: hidden; transition: opacity 0.15s ease-out;
+      pointer-events: none; box-shadow: 0 4px 6px rgba(0,0,0,0.15);
     }
     .custom-tooltip::after {
-      content: '';
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      margin-left: -5px;
-      border-width: 5px;
-      border-style: solid;
-      border-color: #1e293b transparent transparent transparent;
+      content: ''; position: absolute; top: 100%; left: 50%; margin-left: -5px;
+      border-width: 5px; border-style: solid; border-color: #1e293b transparent transparent transparent;
     }
-    .subject-card:hover .custom-tooltip {
-      opacity: 1;
-      visibility: visible;
-    }
+    .subject-card:hover .custom-tooltip { opacity: 1; visibility: visible; }
 
     .edit-btn { position: absolute; top: -6px; right: -6px; background: #3b82f6; color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.3); z-index: 20; }
     .subject-card:hover .edit-btn { display: flex; }
@@ -284,7 +272,6 @@
 
   <div class="toolbar">
     <div class="toolbar-group">
-      <button id="btn-mode-toggle" class="active" onclick="toggleInteractionMode()">🖐️ Modo: Mover</button>
       <button id="btn-toggle-lines" class="active" onclick="toggleLineType()">📐 Líneas: Rectas</button>
       <button class="btn-add" onclick="openModalForCreate(event)">➕ Nueva Materia</button>
     </div>
@@ -370,6 +357,38 @@
     </div>
   </div>
 
+  <!-- NUEVOS MODALES DE CONFLICTO Y NATURALEZA -->
+  <div class="modal-overlay" id="conflict-modal-overlay">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h2 style="color: #dc2626; margin-top: 0;">⚠️ Conflicto de Niveles</h2>
+      <p style="font-size: 0.9em; color: #475569; line-height: 1.4;">
+        Este movimiento ubicaría un prerrequisito en un nivel superior al de su materia dependiente. 
+      </p>
+      <ul id="conflict-list" style="font-size: 0.85em; color: #0f172a; max-height: 150px; overflow-y: auto; background: #fef2f2; padding: 12px 12px 12px 30px; border-radius: 6px; border: 1px solid #fca5a5; margin-bottom: 20px;">
+      </ul>
+      <div class="modal-actions">
+        <button onclick="cancelPendingMove()">Cancelar movimiento</button>
+        <button onclick="processConflictsAndCheckNature()" style="background-color: #dc2626; color: white;">Eliminar relación y mover</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="nature-modal-overlay">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h2 style="color: #f59e0b; margin-top: 0;">🔄 Cambio de Relación</h2>
+      <p style="font-size: 0.9em; color: #475569; line-height: 1.4;">
+        Este movimiento cambiará la naturaleza de las siguientes conexiones (Prerrequisito ↔ Correquisito):
+      </p>
+      <ul id="nature-list" style="font-size: 0.85em; color: #0f172a; max-height: 150px; overflow-y: auto; background: #fffbeb; padding: 12px 12px 12px 30px; border-radius: 6px; border: 1px solid #fcd34d; margin-bottom: 20px;">
+      </ul>
+      <div class="modal-actions">
+        <button onclick="cancelPendingMove()">Cancelar</button>
+        <button onclick="processNature(false)" style="color: #dc2626; background: #fef2f2; border-color: #fca5a5;">Eliminar relación</button>
+        <button onclick="processNature(true)" style="background-color: var(--accent-color); color: white;">Aceptar cambio</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="modal-overlay" onclick="closeModal()">
     <div class="modal" id="edit-modal-box" onclick="event.stopPropagation()">
       <h2 id="modal-title">Agregar Nueva Materia</h2>
@@ -421,11 +440,10 @@
     <div class="modal" id="help-modal-box" style="width: 580px;" onclick="event.stopPropagation()">
       <h2 style="margin-top: 0; color: var(--primary-color);">Guía de Uso: Malla Curricular Interactiva</h2>
       <ul style="padding-left: 20px; color: #475569; font-size: 0.95em; line-height: 1.6; text-align: justify;">
-        <li><b>Modos de Interacción:</b> Puedes alternar con el botón entre Mover materias (arrastrar y soltar libremente) y Modo Requisitos (hacer clic en dos materias para conectarlas).</li>
-        <li><b>Validación de Horas:</b> El motor restringe las configuraciones de horas para que cumplan con la malla reglamentaria. Las materias antiguas que no cumplan mostrarán una advertencia ⚠️ y no se podrá exportar a Excel hasta editarlas.</li>
+        <li><b>Mover vs Conectar:</b> Arrastra la materia desde cualquier parte blanca para moverla. Para crear un requisito, arrastra el botón <b>"+"</b> verde de la parte superior hacia la materia destino.</li>
+        <li><b>Validación Inteligente:</b> Si mueves una materia con requisitos a un semestre que rompa la lógica del tiempo, el sistema te alertará para que decidas qué hacer con esas conexiones.</li>
         <li><b>Estilo de Conexiones:</b> Puedes alternar la visualización entre líneas curvas o rectas por defecto.</li>
         <li><b>Atajos de Teclado:</b> Utiliza Ctrl + Z para Deshacer un cambio y Ctrl + Y para Rehacer.</li>
-        <li><b>Exportación de Reportes:</b> El motor comparará tu avance contra la malla base elegida. En la pestaña 1 clonará inteligentemente el primer bloque de tu plantilla base.</li>
       </ul>
       <div class="modal-actions" style="justify-content: flex-end; margin-top: 25px;">
         <button onclick="closeHelpModal()" style="background-color: var(--accent-color); color: white; padding: 10px 20px;">Entendido</button>
@@ -455,13 +473,16 @@
     }
 
     let state = JSON.parse(JSON.stringify(initialData));
-    let currentMode = 'drag'; let selectedSourceId = null; let pinnedSubjectId = null; 
+    let pinnedSubjectId = null; 
     let lineType = 'orthogonal'; 
     let historyStack = []; let redoStack = [];
     let catalogoGlobal = null;
     let pendingExportAction = null;
     let pendingImportedData = null;
     let tempSavedState = null; 
+    let pendingMove = null; // Controla la lógica de los nuevos modales
+
+    window.dragAction = null; // Controla si se está moviendo o conectando
 
     function formatLevel(lvl) { return lvl ? lvl.replace('L', '') : ''; }
 
@@ -609,18 +630,6 @@
     function openHelpModal() { document.getElementById('help-modal-box').style.marginTop = '30px'; document.getElementById('help-modal-overlay').style.display = 'flex'; }
     function closeHelpModal() { document.getElementById('help-modal-overlay').style.display = 'none'; }
 
-    function toggleInteractionMode() { if (currentMode === 'drag') { setMode('connect'); } else { setMode('drag'); } }
-
-    function setMode(mode) {
-      currentMode = mode; selectedSourceId = null; pinnedSubjectId = null;
-      const btnMode = document.getElementById('btn-mode-toggle');
-      if (btnMode) {
-        if (mode === 'drag') { btnMode.innerHTML = '🖐️ Modo: Mover'; } else { btnMode.innerHTML = '🔗 Modo: Requisitos'; }
-        btnMode.className = 'active'; 
-      }
-      clearHighlights(); renderBoard(); drawConnections();
-    }
-
     function toggleLineType() {
       const btn = document.getElementById('btn-toggle-lines');
       if (lineType === 'orthogonal') { lineType = 'curved'; } else { lineType = 'orthogonal'; }
@@ -656,6 +665,13 @@
     document.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { if (e.shiftKey) { redo(); } else { undo(); } } 
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { redo(); }
+    });
+
+    document.addEventListener('dragend', () => {
+      window.dragAction = null;
+      document.querySelectorAll('.grid-cell').forEach(c => {
+          c.classList.remove('drag-over', 'drag-over-connect');
+      });
     });
 
     function updateCreditsSummary() {
@@ -755,9 +771,19 @@
         const gridContainer = row.querySelector('.level-content-grid');
         for (let colIndex = 0; colIndex < NUM_COLUMNS; colIndex++) {
           const cell = document.createElement('div'); cell.className = 'grid-cell'; cell.dataset.levelId = level.id; cell.dataset.col = colIndex;
-          cell.ondragover = (e) => { e.preventDefault(); cell.classList.add('drag-over'); };
-          cell.ondragleave = () => cell.classList.remove('drag-over');
+          
+          cell.ondragover = (e) => { 
+            e.preventDefault(); 
+            if (window.dragAction === 'connect') {
+                cell.classList.add('drag-over-connect');
+            } else {
+                cell.classList.add('drag-over');
+            }
+          };
+          
+          cell.ondragleave = () => cell.classList.remove('drag-over', 'drag-over-connect');
           cell.ondrop = (e) => handleDrop(e, level.id, colIndex);
+          
           const subject = subjectsInLevel.find(s => s.col === colIndex);
           if (subject) { cell.appendChild(createSubjectCard(subject)); }
           gridContainer.appendChild(cell);
@@ -766,62 +792,210 @@
       updateCreditsSummary();
     }
 
+    window.startConnectDrag = function(e, id) {
+      e.stopPropagation();
+      window.dragAction = 'connect';
+      e.dataTransfer.setData('text/plain', JSON.stringify({ action: 'connect', id: id }));
+    };
+
     function createSubjectCard(subj) {
       const card = document.createElement('div'); const isBasic = checkIsBasic(subj); const isPinned = (pinnedSubjectId === subj.id);
-      card.className = `subject-card ${isBasic ? 'basic-math' : ''} ${isPinned ? 'pinned' : ''}`; card.id = `card-${subj.id}`; card.draggable = (currentMode === 'drag');
+      card.className = `subject-card ${isBasic ? 'basic-math' : ''} ${isPinned ? 'pinned' : ''}`; card.id = `card-${subj.id}`; card.draggable = true;
       const credits = calculateCredits(subj).toFixed(1).replace('.0', '');
       
       const validHours = isValidCombination(subj.components);
-      
       const warningHTML = !validHours ? `<span class="warning-icon">⚠️</span>` : '';
       const customTooltipHTML = !validHours ? `<div class="custom-tooltip">Distribución de horas no permitida. Debe editar la materia.</div>` : '';
 
       card.innerHTML = `
+        <div class="connector-btn" draggable="true" ondragstart="startConnectDrag(event, '${subj.id}')">+</div>
         ${customTooltipHTML}
         <button class="edit-btn" onclick="openModalForEdit(event, '${subj.id}')">✏️</button>
         <div class="subject-header"><span>${subj.components}${warningHTML}</span><span>${subj.sum}</span></div>
         <div class="subject-title">${subj.name}</div>
         <div class="subject-footer"><span>${subj.code}</span><span><b>${credits} CR</b></span></div>
       `;
-      card.ondragstart = (e) => { e.dataTransfer.setData('text/plain', subj.id); };
+      
+      card.ondragstart = (e) => { 
+        window.dragAction = 'move';
+        e.dataTransfer.setData('text/plain', JSON.stringify({ action: 'move', id: subj.id })); 
+      };
       card.onclick = (e) => { e.stopPropagation(); handleCardClick(subj.id); };
       card.onmouseenter = () => { if (!pinnedSubjectId) highlightConnections(subj.id); };
       card.onmouseleave = () => { if (!pinnedSubjectId) clearHighlights(); };
       return card;
     }
 
-    function handleDrop(e, targetLevelId, targetCol) {
-      e.preventDefault(); document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('drag-over'));
-      const subjectId = e.dataTransfer.getData('text/plain'); const subject = state.subjects.find(s => s.id === subjectId);
-      const occupied = state.subjects.find(s => s.level === targetLevelId && s.col === targetCol && s.id !== subjectId);
-      if (subject && !occupied && (subject.level !== targetLevelId || subject.col !== targetCol)) {
-        saveStateToHistory(); subject.level = targetLevelId; subject.col = targetCol; 
-        persistState();
-        renderBoard(); drawConnections();
-        if (pinnedSubjectId) highlightConnections(pinnedSubjectId);
+    function createConnection(sourceId, targetId) {
+      if (sourceId === targetId) return;
+      const subj1 = state.subjects.find(s => s.id === sourceId);
+      const subj2 = state.subjects.find(s => s.id === targetId);
+      const levelIdx1 = state.levels.findIndex(l => l.id === subj1.level);
+      const levelIdx2 = state.levels.findIndex(l => l.id === subj2.level);
+
+      let prereqId, dependentId;
+      if (levelIdx1 <= levelIdx2) {
+          prereqId = sourceId; dependentId = targetId;
+      } else {
+          prereqId = targetId; dependentId = sourceId;
+      }
+
+      const existingIdx = state.connections.findIndex(c =>
+          (c.from === prereqId && c.to === dependentId) || (c.from === dependentId && c.to === prereqId)
+      );
+
+      if (existingIdx === -1) {
+          saveStateToHistory();
+          state.connections.push({ from: prereqId, to: dependentId });
+          persistState();
+          drawConnections();
+          showToast('Conexión agregada exitosamente.', 'success');
+      } else {
+          showToast('Esta conexión ya existe.', 'info');
       }
     }
 
-    function handleCardClick(id) {
-      if (currentMode === 'connect') {
-        if (!selectedSourceId) { selectedSourceId = id; document.getElementById(`card-${id}`).classList.add('connecting-source'); } 
-        else if (selectedSourceId === id) { document.getElementById(`card-${id}`).classList.remove('connecting-source'); selectedSourceId = null; } 
-        else {
-          const subj1 = state.subjects.find(s => s.id === selectedSourceId); const subj2 = state.subjects.find(s => s.id === id);
-          const levelIdx1 = state.levels.findIndex(l => l.id === subj1.level); const levelIdx2 = state.levels.findIndex(l => l.id === subj2.level);
-          let prereqId, targetId;
-          if (levelIdx1 < levelIdx2) { prereqId = selectedSourceId; targetId = id; } else if (levelIdx2 < levelIdx1) { prereqId = id; targetId = selectedSourceId; } else { prereqId = selectedSourceId; targetId = id; }
-          saveStateToHistory();
-          const existingIdx = state.connections.findIndex(c => (c.from === prereqId && c.to === targetId) || (c.from === targetId && c.to === prereqId));
-          if (existingIdx >= 0) { state.connections.splice(existingIdx, 1); } else { state.connections.push({ from: prereqId, to: targetId }); }
-          
-          persistState();
-          document.getElementById(`card-${selectedSourceId}`).classList.remove('connecting-source'); selectedSourceId = null; drawConnections();
+    function handleDrop(e, targetLevelId, targetCol) {
+      e.preventDefault(); 
+      document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('drag-over', 'drag-over-connect'));
+      
+      const dataStr = e.dataTransfer.getData('text/plain');
+      if (!dataStr) return;
+      
+      try {
+          const data = JSON.parse(dataStr);
+          const targetSubj = state.subjects.find(s => s.level === targetLevelId && s.col === targetCol);
+
+          if (data.action === 'move') {
+              if (!targetSubj || targetSubj.id === data.id) {
+                  validateAndMove(data.id, targetLevelId, targetCol);
+              } else {
+                  showToast('El espacio de destino ya está ocupado.', 'error');
+              }
+          } else if (data.action === 'connect') {
+              if (targetSubj) {
+                  createConnection(data.id, targetSubj.id);
+              } else {
+                  showToast('Debes soltar el conector sobre una materia de destino.', 'error');
+              }
+          }
+      } catch (err) { console.error(err); }
+      window.dragAction = null;
+    }
+
+    // --- LÓGICA DE VALIDACIÓN DE MOVIMIENTOS ---
+    function validateAndMove(subjectId, targetLevelId, targetCol) {
+        const subject = state.subjects.find(s => s.id === subjectId);
+        const oldLevel = subject.level;
+        const oldCol = subject.col;
+
+        if (oldLevel === targetLevelId && oldCol === targetCol) return;
+
+        const conflicts = [];
+        const natureChanges = [];
+
+        const newLvlIdxForSubj = state.levels.findIndex(l => l.id === targetLevelId);
+        const oldLvlIdxForSubj = state.levels.findIndex(l => l.id === oldLevel);
+
+        state.connections.forEach(c => {
+           if (c.from === subject.id || c.to === subject.id) {
+               const fromSubj = state.subjects.find(s => s.id === c.from);
+               const toSubj = state.subjects.find(s => s.id === c.to);
+
+               const oldFromIdx = state.levels.findIndex(l => l.id === fromSubj.level);
+               const oldToIdx = state.levels.findIndex(l => l.id === toSubj.level);
+
+               const newFromIdx = c.from === subject.id ? newLvlIdxForSubj : oldFromIdx;
+               const newToIdx = c.to === subject.id ? newLvlIdxForSubj : oldToIdx;
+
+               if (newFromIdx > newToIdx) {
+                   conflicts.push({ conn: c, fromCode: fromSubj.code, toCode: toSubj.code, fromName: fromSubj.name, toName: toSubj.name });
+               } else if ((oldFromIdx === oldToIdx) !== (newFromIdx === newToIdx)) {
+                   natureChanges.push({
+                       conn: c, fromCode: fromSubj.code, toCode: toSubj.code, wasCoreq: (oldFromIdx === oldToIdx)
+                   });
+               }
+           }
+        });
+
+        pendingMove = { subject, oldLevel, oldCol, targetLevelId, targetCol, conflicts, natureChanges };
+
+        if (conflicts.length > 0) {
+            showConflictModal();
+        } else if (natureChanges.length > 0) {
+            showNatureModal();
+        } else {
+            executePendingMove();
         }
-      } else {
-        if (pinnedSubjectId === id) { pinnedSubjectId = null; clearHighlights(); document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned')); } 
-        else { pinnedSubjectId = id; document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned')); const cardEl = document.getElementById(`card-${id}`); if (cardEl) cardEl.classList.add('pinned'); highlightConnections(id); }
-      }
+    }
+
+    function showConflictModal() {
+        const listEl = document.getElementById('conflict-list');
+        listEl.innerHTML = pendingMove.conflicts.map(c => `<li><b>${c.fromCode}</b> es requisito de <b>${c.toCode}</b></li>`).join('');
+        document.getElementById('conflict-modal-overlay').style.display = 'flex';
+    }
+
+    function showNatureModal() {
+        const listEl = document.getElementById('nature-list');
+        listEl.innerHTML = pendingMove.natureChanges.map(n => {
+            const type = n.wasCoreq ? "Prerrequisito" : "Correquisito";
+            return `<li><b>${n.fromCode}</b> y <b>${n.toCode}</b> pasarán a ser <b>${type}s</b></li>`;
+        }).join('');
+        document.getElementById('nature-modal-overlay').style.display = 'flex';
+    }
+
+    function closeMoveModals() {
+        document.getElementById('conflict-modal-overlay').style.display = 'none';
+        document.getElementById('nature-modal-overlay').style.display = 'none';
+    }
+
+    function processConflictsAndCheckNature() {
+        pendingMove.deleteConflicts = true;
+        document.getElementById('conflict-modal-overlay').style.display = 'none';
+        if (pendingMove.natureChanges.length > 0) {
+            showNatureModal();
+        } else {
+            executePendingMove(true, false);
+        }
+    }
+
+    function processNature(accept) {
+        executePendingMove(pendingMove.deleteConflicts || false, !accept);
+    }
+
+    function executePendingMove(deleteConflicts = false, deleteNatureChanges = false) {
+        saveStateToHistory(); 
+
+        if (deleteConflicts) {
+            pendingMove.conflicts.forEach(conf => { state.connections = state.connections.filter(c => c !== conf.conn); });
+        }
+        if (deleteNatureChanges) {
+            pendingMove.natureChanges.forEach(nat => { state.connections = state.connections.filter(c => c !== nat.conn); });
+        }
+
+        pendingMove.subject.level = pendingMove.targetLevelId;
+        pendingMove.subject.col = pendingMove.targetCol;
+
+        persistState();
+        closeMoveModals();
+        renderBoard();
+        drawConnections();
+        if (pinnedSubjectId) highlightConnections(pinnedSubjectId);
+        pendingMove = null;
+    }
+
+    function cancelPendingMove() {
+        pendingMove = null;
+        closeMoveModals();
+    }
+    // --- FIN LÓGICA MODALES ---
+
+    function handleCardClick(id) {
+        if (pinnedSubjectId === id) { 
+            pinnedSubjectId = null; clearHighlights(); document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned')); 
+        } else { 
+            pinnedSubjectId = id; document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned')); const cardEl = document.getElementById(`card-${id}`); if (cardEl) cardEl.classList.add('pinned'); highlightConnections(id); 
+        }
     }
 
     function drawConnections() {
@@ -994,6 +1168,7 @@
       showToast('Archivo JSON exportado correctamente.', 'success');
     }
 
+    // --- MOTOR CARAMBOLA: LÓGICA DE EXPORTACIÓN EXCEL ---
     async function procesarYDescargarExcel() {
       try {
         showToast('Analizando cruce de datos y procesando matriz...', 'info');
@@ -1194,6 +1369,7 @@
             });
         }
 
+        // --- PESTAÑA 2: MALLA CURRICULAR ---
         const worksheet = workbook.getWorksheet('MALLA CURRICULAR');
         let globalACD = 0; let globalAPE = 0; let globalAA = 0;
 
