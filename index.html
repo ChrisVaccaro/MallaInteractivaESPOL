@@ -231,8 +231,8 @@
 
     path.connection { fill: none; stroke: #64748b; stroke-width: 2.5; opacity: 0.7; transition: stroke 0.2s, stroke-width 0.2s, opacity: 0.2s; }
     path.connection.corequisite { stroke: var(--coreq-color); stroke-width: 2.5; stroke-dasharray: 5, 4; opacity: 0.85; }
-    path.connection.highlight-req { stroke: var(--highlight-req) !important; stroke-width: 4 !important; stroke-dasharray: none !important; opacity: 1 !important; }
-    path.connection.highlight-next { stroke: var(--highlight-next) !important; stroke-width: 4 !important; stroke-dasharray: none !important; opacity: 1 !important; }
+    path.connection.highlight-req { stroke: var(--highlight-req) !important; stroke-width: 4 !important; opacity: 1 !important; }
+    path.connection.highlight-next { stroke: var(--highlight-next) !important; stroke-width: 4 !important; opacity: 1 !important; }
     
     path.connection.drawn { pointer-events: stroke; cursor: pointer; }
     path.connection.drawn:hover { stroke: #ef4444 !important; stroke-width: 4px !important; opacity: 1 !important; }
@@ -1182,18 +1182,18 @@
 
     function highlightConnections(id) {
       clearHighlights();
-      // 1. Resaltar las tarjetas (materias)
+      
       state.connections.forEach(c => {
         if (c.to === id) { 
-            const cardReq = document.getElementById(`card-${c.from}`); 
+            const cardReq = document.getElementById('card-' + c.from); 
             if (cardReq) cardReq.classList.add('highlight-req'); 
         }
         if (c.from === id) { 
-            const cardNext = document.getElementById(`card-${c.to}`); 
+            const cardNext = document.getElementById('card-' + c.to); 
             if (cardNext) cardNext.classList.add('highlight-next'); 
         }
       });
-      // 2. Resaltar las líneas y cambiar el color de las flechas
+
       document.querySelectorAll('path.connection.drawn').forEach(path => {
         if (path.dataset.to === id) {
             path.classList.add('highlight-req');
@@ -1205,7 +1205,7 @@
         }
       });
     }
-
+    
     function clearHighlights() {
       // 1. Limpiar colores de las tarjetas
       document.querySelectorAll('.subject-card').forEach(el => { 
