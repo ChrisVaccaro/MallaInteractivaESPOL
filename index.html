@@ -257,16 +257,16 @@
   <!-- SVG DEFS OCULTO PARA LAS PUNTAS DE FLECHA -->
   <svg style="width:0; height:0; position:absolute;" aria-hidden="true">
     <defs>
-      <marker id="arrowhead" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto">
+      <marker id="arrowhead" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto">
         <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
       </marker>
-      <marker id="arrowhead-coreq" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto">
+      <marker id="arrowhead-coreq" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto">
         <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b5cf6" />
       </marker>
-      <marker id="arrowhead-req" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto">
+      <marker id="arrowhead-req" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto">
         <path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" />
       </marker>
-      <marker id="arrowhead-next" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto">
+      <marker id="arrowhead-next" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto">
         <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" />
       </marker>
     </defs>
@@ -773,13 +773,17 @@
         if(!sourceCard) return;
 
         const rectFrom = sourceCard.getBoundingClientRect();
+        
+        // Coordenadas de la materia
         let x1 = (rectFrom.left - wrapperRect.left) + (rectFrom.width / 2);
         let y1 = (rectFrom.top - wrapperRect.top); 
 
+        // Coordenadas del cursor
         let x2 = (mouseX - wrapperRect.left);
         let y2 = (mouseY - wrapperRect.top);
 
-        ghostPath.setAttribute('d', `M ${x1} ${y1} L ${x2} ${y2}`);
+        // ¡Invertimos el orden! Empieza en el cursor (M x2 y2) y termina en la materia (L x1 y1)
+        ghostPath.setAttribute('d', `M ${x2} ${y2} L ${x1} ${y1}`);
     }
 
     function cancelGhostConnection() {
