@@ -1045,8 +1045,9 @@
     function showNatureModal() {
         const listEl = document.getElementById('nature-list');
         listEl.innerHTML = pendingMove.natureChanges.map(n => {
-            const type = n.wasCoreq ? "Prerrequisito" : "Correquisito";
-            return `<li><b>${n.fromName}</b> y <b>${n.toName}</b> pasarán a ser <b>${type}s</b></li>`;
+            // Si antes era corequisito, ahora es prerrequisito. Y viceversa.
+            const type = n.wasCoreq ? "prerrequisito" : "correquisito";
+            return `<li><b>${n.fromName}</b> pasa a ser ${type} de <b>${n.toName}</b></li>`;
         }).join('');
         document.getElementById('nature-modal-overlay').style.display = 'flex';
     }
@@ -1181,10 +1182,18 @@
 
     function highlightConnections(id) {
       clearHighlights();
+      // 1. Resaltar las tarjetas (materias)
       state.connections.forEach(c => {
-        if (c.to === id) { const el = document.getElementById(`card-${c.from}`); if (el) el.classList.add('highlight-req'); }
-        if (c.from === id) { const el = document.getElementById(`card-${c.to}`); if (el) el.classList.add('highlight-next'); }
+        if (c.to === id) { 
+            const cardReq = document.getElementById(`card-${c.from}`); 
+            if (cardReq) cardReq.classList.add('highlight-req'); 
+        }
+        if (c.from === id) { 
+            const cardNext = document.getElementById(`card-${c.to}`); 
+            if (cardNext) cardNext.classList.add('highlight-next'); 
+        }
       });
+      // 2. Resaltar las líneas y cambiar el color de las flechas
       document.querySelectorAll('path.connection.drawn').forEach(path => {
         if (path.dataset.to === id) {
             path.classList.add('highlight-req');
@@ -1198,7 +1207,11 @@
     }
 
     function clearHighlights() {
-      document.querySelectorAll('.subject-card').forEach(el => { el.classList.remove('highlight-req', 'highlight-next'); });
+      // 1. Limpiar colores de las tarjetas
+      document.querySelectorAll('.subject-card').forEach(el => { 
+          el.classList.remove('highlight-req', 'highlight-next'); 
+      });
+      // 2. Limpiar colores de las líneas y resetear flechas
       document.querySelectorAll('path.connection.drawn').forEach(path => { 
           path.classList.remove('highlight-req', 'highlight-next');
           const isSameLevel = path.classList.contains('corequisite');
