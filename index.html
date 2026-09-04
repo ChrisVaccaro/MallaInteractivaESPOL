@@ -131,8 +131,6 @@
 
     .btn-add { background-color: #10b981; color: white; border-color: #10b981; }
     .btn-add:hover { background-color: #059669; }
-    .btn-col { background-color: #f8fafc; color: #475569; padding: 8px 10px; font-size: 0.9em; }
-    .btn-col:hover { background-color: #e2e8f0; }
     .btn-help { background-color: #f8fafc; color: #3b82f6; border: 1px solid #93c5fd; font-weight: 700; }
     .btn-help:hover { background-color: #eff6ff; color: #1d4ed8; border-color: #3b82f6; }
     .btn-icon-only { padding: 8px; width: 36px; display: flex; justify-content: center; align-items: center; }
@@ -196,7 +194,7 @@
     .level-hours { font-size: 0.75em; color: #475569; line-height: 1.3; margin-top: 2px; font-weight: 600; width: 100%; }
     .level-total-hours { margin-top: 10px; border-top: 1px solid #cbd5e1; padding-top: 6px; font-weight: bold; color: #0f172a; text-align: center; }
     
-    .level-content-grid { flex: 1; display: grid; gap: 14px; padding: 16px; background-color: #fafafa; align-items: center; }
+    .level-content-grid { flex: 1; display: grid; grid-template-columns: repeat(8, 1fr); gap: 14px; padding: 16px; background-color: #fafafa; align-items: center; }
     .grid-cell { border: 1px dashed #cbd5e1; border-radius: 6px; min-height: 90px; display: flex; justify-content: center; align-items: center; background-color: rgba(255, 255, 255, 0.5); transition: background-color 0.2s, border-color 0.2s; }
     .grid-cell.drag-over { background-color: #e0f2fe; border-color: var(--accent-color); }
     .grid-cell.drag-over-connect { background-color: #ecfdf5; border-color: #10b981; }
@@ -328,8 +326,6 @@
     <div class="toolbar-group">
       <button id="btn-toggle-lines" class="active" onclick="toggleLineType()">📐 Líneas: Rectas</button>
       <button class="btn-add" onclick="openModalForCreate(event)">➕ Nueva Materia</button>
-      <button class="btn-col" onclick="addColumn()" title="Añadir una columna al final">➕ Col</button>
-      <button class="btn-col" onclick="removeColumn()" title="Quitar última columna">➖ Col</button>
     </div>
     <div class="toolbar-divider"></div>
 
@@ -475,13 +471,16 @@
           <option value="2/2/2">2 Créditos - (2 ACD / 2 APE / 2 AA)</option>
           <option value="3/0/3">2 Créditos - (3 ACD / 0 APE / 3 AA)</option>
           <option value="3/0/6">3 Créditos - (3 ACD / 0 APE / 6 AA)</option>
+          <option value="0/0/6">2 Créditos - (0 ACD / 0 APE / 6 AA)</option>
           <option value="3/1/5" selected>3 Créditos - (3 ACD / 1 APE / 5 AA)</option>
           <option value="3/2/4">3 Créditos - (3 ACD / 2 APE / 4 AA)</option>
           <option value="4/0/5">3 Créditos - (4 ACD / 0 APE / 5 AA)</option>
           <option value="4/1/4">3 Créditos - (4 ACD / 1 APE / 4 AA)</option>
+          <option value="0/0/9">3 Créditos - (0 ACD / 0 APE / 9 AA)</option>
           <option value="4/0/8">4 Créditos - (4 ACD / 0 APE / 8 AA)</option>
           <option value="4/1/7">4 Créditos - (4 ACD / 1 APE / 7 AA)</option>
           <option value="5/0/7">4 Créditos - (5 ACD / 0 APE / 7 AA)</option>
+          <option value="0/0/15">5 Créditos - (0 ACD / 0 APE / 15 AA)</option>
         </select>
       </div>
       <div class="form-group">
@@ -516,7 +515,6 @@
       <ul style="padding-left: 20px; color: #475569; font-size: 0.95em; line-height: 1.6; text-align: justify;">
         <li><b>Desplazamiento Horizontal:</b> Puedes moverte arrastrando el fondo blanco con el ratón, o girando la rueda del ratón mientras mantienes presionada la tecla <b>Shift</b>.</li>
         <li><b>Mover vs Conectar:</b> Arrastra la materia desde cualquier parte blanca para moverla. Para crear un requisito, arrastra o haz clic en el botón <b>"+"</b> verde hacia la materia destino.</li>
-        <li><b>Columnas Dinámicas:</b> Usa los botones <b>+ Col</b> y <b>- Col</b> para agregar o quitar espacios horizontales según el tamaño que necesite la malla.</li>
         <li><b>Eliminar Conexiones:</b> Pasa el ratón sobre cualquier línea de conexión para resaltarla y haz <b>doble clic</b> sobre ella para eliminarla.</li>
         <li><b>Materias Nuevas:</b> Si agregas una materia cuyo código no existe en la malla original de la carrera, se le agregará automáticamente una etiqueta verde de "NUEVA".</li>
         <li><b>Validación Inteligente:</b> Si mueves una materia con requisitos a un semestre que rompa la lógica temporal, el sistema te alertará.</li>
@@ -528,9 +526,9 @@
   </div>
 
   <script>
+    const NUM_COLUMNS = 8;
     const initialData = {
       "baseCareer": null,
-      "numColumns": 8,
       "levels": [
         { "id": "L100-1", "name": "NIVEL 100 - I" }, { "id": "L100-2", "name": "NIVEL 100 - II" },
         { "id": "L200-1", "name": "NIVEL 200 - I" }, { "id": "L200-2", "name": "NIVEL 200 - II" },
@@ -541,7 +539,7 @@
       "subjects": [], "connections": []
     };
 
-    const allowedCombinations = ["1/1/1", "2/0/1", "4/0/2", "2/0/4", "2/1/3", "2/2/2", "3/0/3", "3/0/6", "3/1/5", "3/2/4", "4/0/5", "4/1/4", "4/0/8", "4/1/7", "5/0/7"];
+    const allowedCombinations = ["1/1/1", "2/0/1", "4/0/2", "2/0/4", "2/1/3", "2/2/2", "3/0/3", "3/0/6", "0/0/6", "3/1/5", "3/2/4", "4/0/5", "4/1/4", "0/0/9", "4/0/8", "4/1/7", "5/0/7", "0/0/15"];
 
     function isValidCombination(compStr) {
       if (!compStr) return false;
@@ -596,34 +594,6 @@
         boardContainer.scrollLeft = scrollLeftPos - walk;
     });
     // --- FIN LÓGICA PANNING ---
-
-    // --- LÓGICA DE COLUMNAS DINÁMICAS ---
-    function addColumn() {
-        saveStateToHistory();
-        state.numColumns = (state.numColumns || 8) + 1;
-        persistState();
-        renderBoard();
-        setTimeout(drawConnections, 50);
-    }
-
-    function removeColumn() {
-        let currentCols = state.numColumns || 8;
-        if (currentCols <= 1) return;
-        
-        const lastColIdx = currentCols - 1;
-        const isOccupied = state.subjects.some(s => s.col === lastColIdx);
-        if (isOccupied) {
-            showToast('No se puede eliminar la columna porque contiene materias. Muévelas primero.', 'error');
-            return;
-        }
-
-        saveStateToHistory();
-        state.numColumns = currentCols - 1;
-        persistState();
-        renderBoard();
-        setTimeout(drawConnections, 50);
-    }
-    // --- FIN LÓGICA COLUMNAS ---
 
 
     function formatLevel(lvl) { return lvl ? lvl.replace('L', '') : ''; }
@@ -1020,8 +990,7 @@
       updateSubtitleUI(); 
       applyLineTypeUI(); 
       
-      // Si no existe, seteamos a 8 por defecto
-      if (!state.numColumns) state.numColumns = 8;
+      // Eliminada variable de columnas dinámicas y regresado a NUM_COLUMNS
 
       if (state.baseCareer) { 
           loadBaseCareerCodes(state.baseCareer); 
@@ -1036,7 +1005,6 @@
 
     function renderBoard() {
       const board = document.getElementById('board'); board.innerHTML = '';
-      const currentCols = state.numColumns || 8;
 
       state.levels.forEach(level => {
         const row = document.createElement('div'); row.className = 'level-row';
@@ -1058,12 +1026,12 @@
               <div class="level-total-hours">Total de horas (semestrales): ${totalHoursSemester}h</div>
             </div>
           </div>
-          <div class="level-content-grid" id="grid-${level.id}" style="grid-template-columns: repeat(${currentCols}, 1fr);"></div>
+          <div class="level-content-grid" id="grid-${level.id}" style="grid-template-columns: repeat(${NUM_COLUMNS}, 1fr);"></div>
         `;
         board.appendChild(row);
         const gridContainer = row.querySelector('.level-content-grid');
         
-        for (let colIndex = 0; colIndex < currentCols; colIndex++) {
+        for (let colIndex = 0; colIndex < NUM_COLUMNS; colIndex++) {
           const cell = document.createElement('div'); cell.className = 'grid-cell'; cell.dataset.levelId = level.id; cell.dataset.col = colIndex;
           
           cell.ondragover = (e) => { 
@@ -1427,8 +1395,6 @@
           { "id": "L300-1", "name": "NIVEL 300 - I" }, { "id": "L300-2", "name": "NIVEL 300 - II" }, { "id": "L400-1", "name": "NIVEL 400 - I" }, { "id": "L400-2", "name": "NIVEL 400 - II" }, { "id": "L500-1", "name": "NIVEL 500 - I" }
         ];
         
-        importedData.numColumns = importedData.numColumns || 8;
-
         if (!importedData.baseCareer) {
           pendingImportedData = importedData;
           openCareerModal();
@@ -1746,8 +1712,6 @@
         // --- PESTAÑA 2: MALLA CURRICULAR ---
         const worksheet = workbook.getWorksheet('MALLA CURRICULAR');
         let globalACD = 0; let globalAPE = 0; let globalAA = 0;
-        
-        const currentCols = state.numColumns || 8;
 
         for (let lvlIdx = 0; lvlIdx < state.levels.length; lvlIdx++) {
           const levelId = state.levels[lvlIdx].id;
@@ -1755,7 +1719,7 @@
           const hoursRow = 7 + (lvlIdx * 4);
           let levelACD = 0; let levelAPE = 0; let levelAA = 0;
 
-          for (let colIdx = 0; colIdx < currentCols; colIdx++) {
+          for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
             const startCol = 7 + (colIdx * 9); 
             const subject = state.subjects.find(s => s.level === levelId && s.col === colIdx);
             let targetHours = { acd: 0, ape: 0, aa: 0 };
@@ -1863,8 +1827,6 @@
           return;
       }
 
-      const currentCols = state.numColumns || 8;
-
       saveStateToHistory();
       if (id) { 
           const subj = state.subjects.find(s => s.id === id); 
@@ -1874,7 +1836,7 @@
           const newId = 'CUSTOM_' + Date.now(); 
           const usedCols = state.subjects.filter(s => s.level === levelId).map(s => s.col); 
           let freeCol = 0; 
-          for (let i = 0; i < currentCols; i++) { 
+          for (let i = 0; i < NUM_COLUMNS; i++) { 
               if (!usedCols.includes(i)) { freeCol = i; break; } 
           } 
           state.subjects.push({ id: newId, code: code, name: name, components: components, sum: sum, level: levelId, col: freeCol, isBasic: isBasic }); 
