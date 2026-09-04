@@ -205,6 +205,24 @@
     .warning-icon { margin-left: 2px; font-size: 1.1em; display: inline-flex; align-items: center; }
     .invalid-opt { color: #dc2626; font-weight: bold; }
 
+    /* Etiqueta de Nueva Materia */
+    .badge-new {
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      background-color: #10b981;
+      color: white;
+      font-size: 0.6em;
+      font-weight: 800;
+      padding: 3px 7px;
+      border-radius: 4px;
+      z-index: 25;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border: 1px solid #059669;
+    }
+
     /* Colores para resaltar materias enlazadas */
     .subject-card.highlight-req { border: 3.5px solid var(--highlight-req) !important; background-color: #fef2f2 !important; color: #0f172a !important; box-shadow: 0 0 10px rgba(239, 68, 68, 0.4) !important; }
     .subject-card.highlight-req * { color: #0f172a !important; }
@@ -446,7 +464,7 @@
       <h2 id="modal-title">Agregar Nueva Materia</h2>
       <input type="hidden" id="edit-id">
       <div class="form-group"><label>Nombre de la Materia:</label><input type="text" id="edit-name" placeholder="Ej: CÁLCULO VECTORIAL & 3"></div>
-      <div class="form-group"><label>Código:</label><input type="text" id="edit-code" placeholder="Ej: MATG1046"></div>
+      <div class="form-group"><label>Código:</label><input type="text" id="edit-code" placeholder="Ej: MATG1046" style="text-transform: uppercase;"></div>
       <div class="form-group">
         <label>Componentes (Horas semanales ACD/APE/AA):</label>
         <select id="edit-components" onchange="updateSumFromSelect()">
@@ -497,8 +515,8 @@
       <ul style="padding-left: 20px; color: #475569; font-size: 0.95em; line-height: 1.6; text-align: justify;">
         <li><b>Mover vs Conectar:</b> Arrastra la materia desde cualquier parte blanca para moverla. Para crear un requisito, arrastra o haz un clic en el botón <b>"+"</b> verde de la parte superior hacia la materia destino.</li>
         <li><b>Eliminar Conexiones:</b> Pasa el ratón sobre cualquier línea de conexión para resaltarla y haz <b>doble clic</b> sobre ella para eliminarla.</li>
+        <li><b>Materias Nuevas:</b> Si agregas una materia cuyo código no existe en la malla original de la carrera, se le agregará automáticamente una etiqueta verde de "NUEVA".</li>
         <li><b>Validación Inteligente:</b> Si mueves una materia con requisitos a un semestre que rompa la lógica del tiempo, el sistema te alertará para que decidas qué hacer con esas conexiones.</li>
-        <li><b>Estilo de Conexiones:</b> Puedes alternar la visualización entre líneas curvas o rectas por defecto.</li>
         <li><b>Atajos de Teclado:</b> Utiliza Ctrl + Z para Deshacer, Ctrl + Y para Rehacer, y presiona <b>ESC</b> para cancelar la creación de una línea.</li>
       </ul>
       <div class="modal-actions" style="justify-content: flex-end; margin-top: 25px;">
@@ -538,6 +556,9 @@
     let tempSavedState = null; 
     let pendingMove = null; 
     let pendingDeleteConn = null;
+    
+    // Array global para almacenar los códigos originales de la malla base
+    let baseSubjectCodes = [];
 
     // Variables globales para la lógica de la línea fantasma (draw.io)
     let ghostState = 'IDLE'; // IDLE, DRAGGING, CLICKED
@@ -620,6 +641,31 @@
       }
     }
 
+    // --- FUNCIÓN PARA CARGAR LA LISTA DE CÓDIGOS DE LA MALLA BASE ---
+    async function loadBaseCareerCodes(careerName) {
+        baseSubjectCodes = [];
+        if (!catalogoGlobal || !careerName) { renderBoard(); return; }
+        
+        let baseRuta = null;
+        catalogoGlobal.facultades.forEach(f => f.carreras.forEach(c => { 
+            if(c.nombre === careerName) baseRuta = c.ruta; 
+        }));
+        
+        if (baseRuta) {
+            try {
+                const resp = await fetch(baseRuta);
+                if (resp.ok) {
+                    const baseData = await resp.json();
+                    baseSubjectCodes = (baseData.subjects || []).map(s => s.code.toUpperCase());
+                    renderBoard();
+                    setTimeout(drawConnections, 100);
+                }
+            } catch(e) { 
+                console.error("Error cargando malla base para la etiqueta:", e); 
+            }
+        }
+    }
+
     function renderMenuFacultades() {
       const container = document.getElementById('dropdown-json');
       if (!catalogoGlobal) return;
@@ -676,7 +722,11 @@
 
     function changeBaseCareerFromSubmenu(careerName, event) {
       if (event) { event.preventDefault(); event.stopPropagation(); }
-      state.baseCareer = careerName; persistState(); updateSubtitleUI(); closeAllDropdowns();
+      state.baseCareer = careerName; 
+      persistState(); 
+      updateSubtitleUI(); 
+      closeAllDropdowns();
+      loadBaseCareerCodes(careerName);
       showToast(`Malla base actualizada a: ${careerName}`, 'success');
     }
 
@@ -863,15 +913,19 @@
       document.getElementById('edit-sum').value = sum;
     };
 
-    function init() {
+    async function init() {
       const savedMemory = localStorage.getItem('malla_espol_autosave');
       if (savedMemory) {
         tempSavedState = savedMemory;
         document.getElementById('restore-modal-overlay').style.display = 'flex';
-      } else {
-        finishInit();
       }
-      loadCatalogo();
+      
+      // Esperar a que se cargue el catálogo antes de continuar
+      await loadCatalogo();
+      
+      if (!savedMemory) {
+          finishInit();
+      }
 
       document.body.addEventListener('click', (e) => {
         if (!e.target.closest('.dropbtn') && !e.target.closest('.dropdown-content') && !e.target.closest('.subtitle-dropdown')) { closeAllDropdowns(); }
@@ -907,8 +961,16 @@
     }
 
     function finishInit() {
-      updateSubtitleUI(); applyLineTypeUI(); renderBoard(); 
-      setTimeout(drawConnections, 100); 
+      updateSubtitleUI(); 
+      applyLineTypeUI(); 
+      
+      if (state.baseCareer) { 
+          loadBaseCareerCodes(state.baseCareer); 
+      } else { 
+          renderBoard(); 
+          setTimeout(drawConnections, 100); 
+      }
+      
       window.addEventListener('resize', drawConnections); 
       updateUndoRedoButtons();
     }
@@ -977,7 +1039,12 @@
       const warningHTML = !validHours ? `<span class="warning-icon">⚠️</span>` : '';
       const customTooltipHTML = !validHours ? `<div class="custom-tooltip">Distribución de horas no permitida. Debe editar la materia.</div>` : '';
 
+      // --- LÓGICA DE ETIQUETA "NUEVA" ---
+      const isNew = state.baseCareer && baseSubjectCodes.length > 0 && !baseSubjectCodes.includes(subj.code.toUpperCase());
+      const newBadgeHTML = isNew ? `<div class="badge-new" title="Materia creada en esta versión de la malla">NUEVA</div>` : '';
+
       card.innerHTML = `
+        ${newBadgeHTML}
         <div class="connector-btn" onmousedown="initGhostConnection(event, '${subj.id}')" draggable="true" ondragstart="startConnectDrag(event, '${subj.id}')">+</div>
         ${customTooltipHTML}
         <button class="edit-btn" onclick="openModalForEdit(event, '${subj.id}')">✏️</button>
@@ -1309,8 +1376,19 @@
     }
 
     function applyLoadedData(dataToApply) {
-      saveStateToHistory(); state = dataToApply; persistState(); pinnedSubjectId = null; 
-      updateSubtitleUI(); renderBoard(); drawConnections();
+      saveStateToHistory(); 
+      state = dataToApply; 
+      persistState(); 
+      pinnedSubjectId = null; 
+      updateSubtitleUI(); 
+      
+      if (state.baseCareer) { 
+          loadBaseCareerCodes(state.baseCareer); 
+      } else { 
+          renderBoard(); 
+          drawConnections(); 
+      }
+      
       showToast('Malla cargada con éxito.', 'success');
     }
 
@@ -1388,6 +1466,7 @@
         dataToLoad.baseCareer = chosen; applyLoadedData(dataToLoad);
       } else {
         state.baseCareer = chosen; persistState(); updateSubtitleUI();
+        loadBaseCareerCodes(chosen);
         if (action === 'json') { exportJSON(); } else if (action === 'excel') { procesarYDescargarExcel(); }
       }
     }
@@ -1700,14 +1779,37 @@
     function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
 
     function saveSubjectFromModal() {
-      const id = document.getElementById('edit-id').value; const name = document.getElementById('edit-name').value.trim(); const code = document.getElementById('edit-code').value.trim(); const components = document.getElementById('edit-components').value.trim(); const sum = parseFloat(document.getElementById('edit-sum').value) || 0; const isBasic = document.getElementById('edit-is-basic').checked;
+      const id = document.getElementById('edit-id').value; 
+      const name = document.getElementById('edit-name').value.trim(); 
+      const code = document.getElementById('edit-code').value.trim().toUpperCase(); 
+      const components = document.getElementById('edit-components').value.trim(); 
+      const sum = parseFloat(document.getElementById('edit-sum').value) || 0; 
+      const isBasic = document.getElementById('edit-is-basic').checked;
       
       if (!name || !code) { showToast('Por favor ingresa un nombre y código válidos.', 'error'); return; }
       if (!isValidCombination(components)) { showToast('Debe seleccionar una distribución de horas permitida.', 'error'); return; }
 
+      // --- VALIDACIÓN DE DUPLICADOS ---
+      const codeExists = state.subjects.some(s => s.code.toUpperCase() === code && s.id !== id);
+      if (codeExists) {
+          showToast(`El código ${code} ya está asignado a otra materia.`, 'error');
+          return;
+      }
+
       saveStateToHistory();
-      if (id) { const subj = state.subjects.find(s => s.id === id); if (subj) { subj.name = name; subj.code = code; subj.components = components; subj.sum = sum; subj.isBasic = isBasic; } } 
-      else { const levelId = document.getElementById('edit-level').value; const newId = 'CUSTOM_' + Date.now(); const usedCols = state.subjects.filter(s => s.level === levelId).map(s => s.col); let freeCol = 0; for (let i = 0; i < NUM_COLUMNS; i++) { if (!usedCols.includes(i)) { freeCol = i; break; } } state.subjects.push({ id: newId, code: code, name: name, components: components, sum: sum, level: levelId, col: freeCol, isBasic: isBasic }); }
+      if (id) { 
+          const subj = state.subjects.find(s => s.id === id); 
+          if (subj) { subj.name = name; subj.code = code; subj.components = components; subj.sum = sum; subj.isBasic = isBasic; } 
+      } else { 
+          const levelId = document.getElementById('edit-level').value; 
+          const newId = 'CUSTOM_' + Date.now(); 
+          const usedCols = state.subjects.filter(s => s.level === levelId).map(s => s.col); 
+          let freeCol = 0; 
+          for (let i = 0; i < NUM_COLUMNS; i++) { 
+              if (!usedCols.includes(i)) { freeCol = i; break; } 
+          } 
+          state.subjects.push({ id: newId, code: code, name: name, components: components, sum: sum, level: levelId, col: freeCol, isBasic: isBasic }); 
+      }
       
       persistState(); closeModal(); renderBoard(); drawConnections();
       showToast(id ? 'Materia actualizada.' : 'Nueva materia agregada.', 'success');
@@ -1725,6 +1827,7 @@
     function resetLayout() {
       if (confirm('¿Deseas vaciar la malla y borrar todo el contenido?')) { 
         saveStateToHistory(); state = JSON.parse(JSON.stringify(initialData)); persistState();
+        baseSubjectCodes = [];
         pinnedSubjectId = null; updateSubtitleUI(); renderBoard(); drawConnections(); 
         showToast('Malla vaciada exitosamente.', 'info');
       }
