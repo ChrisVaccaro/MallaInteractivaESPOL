@@ -112,35 +112,39 @@
     /* Contenedores de la malla */
     .board-container { width: 100%; overflow-x: auto; padding-top: 5px; padding-bottom: 25px; cursor: grab; }
     .board-container:active { cursor: grabbing; }
-    /* Ancho mínimo adaptado para 8 columnas de 225px + espaciados (Aprox 1950px) */
-    .board-wrapper { position: relative; min-width: 1950px; }
+    /* Ancho mínimo adaptado para 8 columnas de 180px + panel izq + espaciados (Aprox 1780px) */
+    .board-wrapper { position: relative; min-width: 1780px; }
 
     svg#connections-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5 !important; }
     svg#ghost-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50 !important; }
     
     .board { display: flex; flex-direction: column; gap: 32px; position: relative; padding-top: 45px; }
 
-    /* --- NUEVO DISEÑO DEL NIVEL (ENCABEZADO SUPERIOR) --- */
+    /* --- NUEVO DISEÑO DEL NIVEL (PANEL IZQUIERDO ESTILO TARJETA) --- */
     .level-row { 
-        display: flex; flex-direction: column; background: #ffffff; border-radius: 8px; 
-        border: 1px solid var(--border-color); box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
-        position: relative; 
+      display: flex; flex-direction: row; background: #ffffff; border-radius: 8px; 
+      border: 1px solid var(--border-color); min-height: 135px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+      position: relative; 
     }
     
     .level-header { 
-        width: 100%; background-color: #f8fafc; border-bottom: 1px solid var(--border-color); 
-        border-radius: 8px 8px 0 0; display: flex; flex-direction: row; justify-content: flex-start; 
-        align-items: center; padding: 12px 20px; box-sizing: border-box; gap: 15px; 
+      width: 220px; min-width: 220px; background-color: #f8fafc; 
+      border-right: 1px solid var(--border-color); border-radius: 8px 0 0 8px; 
+      display: flex; flex-direction: column; justify-content: center; align-items: center; 
+      padding: 15px; text-align: center; box-sizing: border-box;
     }
 
-    .level-title { font-weight: 800; color: var(--primary-color); font-size: 1.05em; text-transform: uppercase; }
-    .level-stats { font-size: 0.85em; color: #64748b; display: flex; align-items: center; gap: 8px; font-weight: 500; }
-    .level-stats .highlight-text { color: #0369a1; font-weight: 600; }
+    .level-title { font-weight: 800; color: var(--primary-color); font-size: 1.05em; text-transform: uppercase; margin-bottom: 8px; }
+    .level-badge { background-color: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 0.85em; margin-bottom: 8px; }
+    .level-hours-week { font-weight: 700; font-size: 0.9em; color: #334155; margin-bottom: 4px; }
+    .level-hours-breakdown { font-size: 0.7em; color: #64748b; margin-bottom: 8px; font-weight: 600;}
+    .level-divider { width: 80%; height: 1px; background-color: #cbd5e1; margin-bottom: 8px; }
+    .level-hours-total { font-size: 0.8em; color: #64748b; font-weight: 600; }
     
     .level-content-grid { 
-        flex: 1; display: grid; 
-        grid-template-columns: repeat(8, 225px); /* PROPORCIÓN 2.5 EXACTA (90px alto * 2.5 = 225px) */
-        gap: 14px; padding: 16px; background-color: #fafafa; border-radius: 0 0 8px 8px;
+      flex: 1; display: grid; 
+      grid-template-columns: repeat(8, 180px); /* PROPORCIÓN 2.0 EXACTA (90px alto * 2.0 = 180px) */
+      gap: 14px; padding: 16px; background-color: #fafafa; align-items: center; border-radius: 0 8px 8px 0;
     }
 
     .grid-cell { border: 1px dashed #cbd5e1; border-radius: 6px; min-height: 90px; display: flex; justify-content: center; align-items: center; background-color: rgba(255, 255, 255, 0.5); transition: background-color 0.2s, border-color 0.2s; }
@@ -468,11 +472,10 @@
     <div class="modal" id="help-modal-box" style="width: 580px;" onclick="event.stopPropagation()">
       <h2 style="margin-top: 0; color: var(--primary-color);">Guía de Uso: Malla Curricular Interactiva</h2>
       <ul style="padding-left: 20px; color: #475569; font-size: 0.95em; line-height: 1.6; text-align: justify;">
-        <li><b>Desplazamiento Horizontal:</b> Puedes moverte arrastrando el fondo blanco con el ratón, o girando la rueda del ratón mientras mantienes presionada la tecla <b>Shift</b>. Al conectar materias, la pantalla se moverá sola si te acercas a los bordes.</li>
+        <li><b>Desplazamiento Multi-Direccional:</b> Puedes moverte arrastrando el fondo blanco con el ratón. Al conectar materias, la pantalla se moverá sola si te acercas a los bordes laterales o a la parte superior/inferior de la pantalla.</li>
         <li><b>Mover vs Conectar:</b> Arrastra la materia desde cualquier parte blanca para moverla. Para crear un requisito, arrastra o haz clic en el botón <b>"+"</b> de la parte INFERIOR hacia la materia destino.</li>
         <li><b>Eliminar Conexiones:</b> Pasa el ratón sobre cualquier línea de conexión para resaltarla y haz <b>doble clic</b> sobre ella para eliminarla.</li>
         <li><b>Materias Nuevas:</b> Si agregas una materia cuyo código no existe en la malla original de la carrera, se le agregará automáticamente una etiqueta verde de "NUEVA".</li>
-        <li><b>Validación Inteligente:</b> Si mueves una materia con requisitos a un semestre que rompa la lógica temporal, el sistema te alertará.</li>
       </ul>
       <div class="modal-actions" style="justify-content: flex-end; margin-top: 25px;">
         <button onclick="closeHelpModal()" style="background-color: var(--accent-color); color: white; padding: 10px 20px;">Entendido</button>
@@ -533,31 +536,67 @@
     });
     boardContainer.addEventListener('mouseleave', () => { isPanning = false; });
     boardContainer.addEventListener('mouseup', () => { isPanning = false; });
-    boardContainer.addEventListener('mousemove', (e) => {
-        if (!isPanning) return; e.preventDefault();
-        const x = e.pageX - boardContainer.offsetLeft; const walk = (x - startX) * 1.5; boardContainer.scrollLeft = scrollLeftPos - walk;
-    });
-    // --- FIN LÓGICA PANNING ---
-
-    // --- LÓGICA AUTO-SCROLL EN BORDES (EDGE SCROLLING) ---
-    let scrollInterval = null;
     
-    function handleEdgeScroll(clientX) {
-        const threshold = 100; // Píxeles de distancia al borde para activar scroll
-        const speed = 20; // Velocidad del scroll
-        const rightEdge = window.innerWidth;
-        
-        if (clientX < threshold) {
-            if (!scrollInterval) scrollInterval = setInterval(() => { boardContainer.scrollLeft -= speed; }, 20);
-        } else if (clientX > rightEdge - threshold) {
-            if (!scrollInterval) scrollInterval = setInterval(() => { boardContainer.scrollLeft += speed; }, 20);
-        } else {
-            stopEdgeScroll();
+    // Rastreo global del ratón para Auto-Scroll
+    let currentMouseX = 0;
+    let currentMouseY = 0;
+
+    document.addEventListener('mousemove', (e) => {
+        currentMouseX = e.clientX;
+        currentMouseY = e.clientY;
+
+        if (isPanning) {
+            e.preventDefault();
+            const x = e.pageX - boardContainer.offsetLeft; 
+            const walk = (x - startX) * 1.5; 
+            boardContainer.scrollLeft = scrollLeftPos - walk;
         }
+
+        if (ghostState !== 'IDLE') { 
+            updateGhostLine(e.clientX, e.clientY); 
+            startEdgeScroll(); 
+        }
+    });
+
+    // --- LÓGICA AUTO-SCROLL EN BORDES (2D EDGE SCROLLING) ---
+    let edgeScrollInterval = null;
+    
+    function startEdgeScroll() {
+        if (edgeScrollInterval) return;
+        edgeScrollInterval = setInterval(() => {
+            const threshold = 80; // Píxeles de distancia al borde para activar scroll
+            const speed = 15; // Velocidad del scroll
+            let scrolled = false;
+
+            // Scroll Horizontal (Sobre el contenedor)
+            if (currentMouseX < threshold) {
+                boardContainer.scrollLeft -= speed;
+                scrolled = true;
+            } else if (currentMouseX > window.innerWidth - threshold) {
+                boardContainer.scrollLeft += speed;
+                scrolled = true;
+            }
+
+            // Scroll Vertical (Sobre la ventana principal)
+            if (currentMouseY < threshold) {
+                window.scrollBy(0, -speed);
+                scrolled = true;
+            } else if (currentMouseY > window.innerHeight - threshold) {
+                window.scrollBy(0, speed);
+                scrolled = true;
+            }
+
+            // Si se movió la pantalla, redibujamos la línea fantasma
+            if (scrolled && ghostState !== 'IDLE') {
+                updateGhostLine(currentMouseX, currentMouseY);
+            } else if (!scrolled) {
+                stopEdgeScroll();
+            }
+        }, 20);
     }
     
     function stopEdgeScroll() {
-        if (scrollInterval) { clearInterval(scrollInterval); scrollInterval = null; }
+        if (edgeScrollInterval) { clearInterval(edgeScrollInterval); edgeScrollInterval = null; }
     }
     // --- FIN LÓGICA AUTO-SCROLL ---
 
@@ -750,18 +789,10 @@
       document.getElementById('btn-undo').disabled = (historyStack.length === 0); document.getElementById('btn-redo').disabled = (redoStack.length === 0);
     }
 
-    // --- LÓGICA DE EVENTOS GENERALES DEL RATÓN Y TECLADO ---
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') { cancelGhostConnection(); stopEdgeScroll(); }
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { if (e.shiftKey) { redo(); } else { undo(); } } 
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { redo(); }
-    });
-
-    document.addEventListener('mousemove', (e) => {
-        if (ghostState !== 'IDLE') { 
-            updateGhostLine(e.clientX, e.clientY); 
-            handleEdgeScroll(e.clientX); 
-        }
     });
 
     document.addEventListener('mousedown', (e) => {
@@ -815,6 +846,7 @@
         const sourceCard = document.getElementById(`card-${ghostSourceId}`); if(!sourceCard) return;
 
         const rectFrom = sourceCard.getBoundingClientRect();
+        // FLECHA NACE DESDE LA PARTE INFERIOR DE LA MATERIA ORIGEN HACIA EL CURSOR
         let x1 = (rectFrom.left - wrapperRect.left) + (rectFrom.width / 2); 
         let y1 = (rectFrom.bottom - wrapperRect.top); 
         let x2 = (mouseX - wrapperRect.left); 
@@ -906,7 +938,7 @@
       window.addEventListener('resize', drawConnections); updateUndoRedoButtons();
     }
 
-    // --- NUEVO RENDERIZADO DEL TABLERO CON ENCABEZADO SUPERIOR ---
+    // --- NUEVO RENDERIZADO DEL TABLERO CON PANEL IZQUIERDO PULIDO ---
     function renderBoard() {
       const board = document.getElementById('board'); board.innerHTML = '';
 
@@ -925,12 +957,12 @@
 
         row.innerHTML = `
           <div class="level-header">
-            <span class="level-title">${level.name}</span>
-            <span class="level-stats">
-                <span class="highlight-text">${totalCredits} créditos</span> &bull; 
-                <span>${totalHoursWeekly} h/semana (ACD: ${totalACD}h | APE: ${totalAPE}h | AA: ${totalAA}h)</span> &bull; 
-                <span>${totalHoursSemester} h totales</span>
-            </span>
+            <div class="level-title">${level.name}</div>
+            <div class="level-badge">${totalCredits} Créditos</div>
+            <div class="level-hours-week">${totalHoursWeekly} h/semana</div>
+            <div class="level-hours-breakdown">ACD: ${totalACD}h | APE: ${totalAPE}h | AA: ${totalAA}h</div>
+            <div class="level-divider"></div>
+            <div class="level-hours-total">Total: ${totalHoursSemester} h</div>
           </div>
           <div class="level-content-grid" id="grid-${level.id}"></div>
         `;
