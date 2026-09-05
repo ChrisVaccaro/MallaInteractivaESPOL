@@ -112,15 +112,15 @@
     /* Contenedores de la malla */
     .board-container { width: 100%; overflow-x: auto; padding-top: 5px; padding-bottom: 25px; cursor: grab; }
     .board-container:active { cursor: grabbing; }
-    /* Ancho mínimo adaptado para 8 columnas de 180px + panel izq + espaciados (Aprox 1780px) */
-    .board-wrapper { position: relative; min-width: 1780px; }
+    /* Ancho adaptado para 8 columnas de 200px + panel izq (220) + gaps = Aprox 1950px */
+    .board-wrapper { position: relative; min-width: 1950px; }
 
     svg#connections-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5 !important; }
     svg#ghost-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50 !important; }
     
     .board { display: flex; flex-direction: column; gap: 32px; position: relative; padding-top: 45px; }
 
-    /* --- NUEVO DISEÑO DEL NIVEL (PANEL IZQUIERDO ESTILO TARJETA) --- */
+    /* --- DISEÑO DEL NIVEL (PANEL IZQUIERDO ESTILO TARJETA) --- */
     .level-row { 
       display: flex; flex-direction: row; background: #ffffff; border-radius: 8px; 
       border: 1px solid var(--border-color); min-height: 135px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
@@ -143,31 +143,30 @@
     
     .level-content-grid { 
       flex: 1; display: grid; 
-      grid-template-columns: repeat(8, 180px); /* PROPORCIÓN 2.0 EXACTA (90px alto * 2.0 = 180px) */
+      grid-template-columns: repeat(8, 200px); /* NUEVA PROPORCIÓN 2.0 (100px alto * 2.0 = 200px) */
       gap: 14px; padding: 16px; background-color: #fafafa; align-items: center; border-radius: 0 8px 8px 0;
     }
 
-    .grid-cell { border: 1px dashed #cbd5e1; border-radius: 6px; min-height: 90px; display: flex; justify-content: center; align-items: center; background-color: rgba(255, 255, 255, 0.5); transition: background-color 0.2s, border-color 0.2s; }
+    .grid-cell { border: 1px dashed #cbd5e1; border-radius: 6px; min-height: 100px; display: flex; justify-content: center; align-items: center; background-color: rgba(255, 255, 255, 0.5); transition: background-color 0.2s, border-color 0.2s; }
     .grid-cell.drag-over { background-color: #e0f2fe; border-color: var(--accent-color); }
     .grid-cell.drag-over-connect { background-color: #ecfdf5; border-color: #10b981; }
 
-    /* --- TARJETAS: BORDE NEGRO GENERAL --- */
+    /* --- TARJETAS: BORDE NEGRO Y NUEVA ALTURA (100px) --- */
     .subject-card { 
-        width: 100%; height: 90px; background-color: #ffffff !important; 
-        border: 2px solid #000000; /* BORDE NEGRO FIJO PARA TODAS */
-        border-radius: 8px; padding: 6px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; cursor: grab; position: relative !important; z-index: 10 !important; transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+        width: 100%; height: 100px; background-color: #ffffff !important; 
+        border: 2px solid #000000; 
+        border-radius: 8px; padding: 8px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; cursor: grab; position: relative !important; z-index: 10 !important; transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
     }
     .subject-card:active { cursor: grabbing; }
     .subject-card:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.15); transform: translateY(-2px); z-index: 15 !important; }
     
-    /* Resaltados importantes sobreescriben el borde negro */
     .subject-card.pinned { border: 3.5px solid var(--accent-color) !important; box-shadow: 0 0 10px rgba(37, 99, 235, 0.4) !important; }
     
     .subject-header { display: flex; justify-content: space-between; font-size: 0.7em; font-weight: bold; color: #475569; }
-    .subject-title { font-size: 0.7em; font-weight: 700; text-align: center; text-transform: uppercase; line-height: 1.1; margin: 2px 0; color: #0f172a; }
+    .subject-title { font-size: 0.72em; font-weight: 700; text-align: center; text-transform: uppercase; line-height: 1.15; margin: 2px 0; color: #0f172a; }
     .subject-footer { display: flex; justify-content: space-between; font-size: 0.65em; color: #64748b; }
     
-    /* --- ESTILOS DE CATEGORÍAS DE MATERIAS (Solo Fondo y Letra) --- */
+    /* --- ESTILOS DE CATEGORÍAS DE MATERIAS --- */
     .type-matematicas-y-ciencias-basicas { background-color: #ffffff !important; }
     .type-educacion-general { background-color: #e2e8f0 !important; }
     .type-c-de-arte-y-deportes { background-color: #ffedd5 !important; }
@@ -179,10 +178,7 @@
     
     .type-itinerario { background-color: #7ba2c9 !important; }
     .type-practicas-comunitarias { background-color: #fde047 !important; }
-    
-    /* REGLA ESPECIAL: Formación profesional sin bordes curvos */
     .type-formacion-profesional { background-color: #fef08a !important; border-radius: 0 !important; }
-    
     .type-c-de-humanistica { background-color: #9cd4c9 !important; }
     .type-practicas-empresariales { background-color: #fde047 !important; }
 
@@ -558,30 +554,35 @@
         }
     });
 
-    // --- LÓGICA AUTO-SCROLL EN BORDES (2D EDGE SCROLLING) ---
+    // --- LÓGICA AUTO-SCROLL EN BORDES (2D EDGE SCROLLING) MEJORADO ---
     let edgeScrollInterval = null;
     
     function startEdgeScroll() {
         if (edgeScrollInterval) return;
         edgeScrollInterval = setInterval(() => {
-            const threshold = 80; // Píxeles de distancia al borde para activar scroll
-            const speed = 15; // Velocidad del scroll
+            const speed = 15;
             let scrolled = false;
 
-            // Scroll Horizontal (Sobre el contenedor)
-            if (currentMouseX < threshold) {
+            // Scroll Horizontal (Sobre el contenedor de la malla)
+            const containerRect = boardContainer.getBoundingClientRect();
+            if (currentMouseX < containerRect.left + 80) {
                 boardContainer.scrollLeft -= speed;
                 scrolled = true;
-            } else if (currentMouseX > window.innerWidth - threshold) {
+            } else if (currentMouseX > containerRect.right - 80) {
                 boardContainer.scrollLeft += speed;
                 scrolled = true;
             }
 
             // Scroll Vertical (Sobre la ventana principal)
-            if (currentMouseY < threshold) {
+            const headerElement = document.querySelector('.sticky-header');
+            // Calculamos exactamente dónde termina el encabezado fijo para empezar el scroll ahí
+            const topThreshold = headerElement ? headerElement.offsetHeight + 50 : 100;
+            const bottomThreshold = window.innerHeight - 80;
+
+            if (currentMouseY < topThreshold) {
                 window.scrollBy(0, -speed);
                 scrolled = true;
-            } else if (currentMouseY > window.innerHeight - threshold) {
+            } else if (currentMouseY > bottomThreshold) {
                 window.scrollBy(0, speed);
                 scrolled = true;
             }
@@ -938,7 +939,7 @@
       window.addEventListener('resize', drawConnections); updateUndoRedoButtons();
     }
 
-    // --- NUEVO RENDERIZADO DEL TABLERO CON PANEL IZQUIERDO PULIDO ---
+    // --- NUEVO RENDERIZADO DEL TABLERO CON PANEL IZQUIERDO Y TARJETAS AMPLIADAS ---
     function renderBoard() {
       const board = document.getElementById('board'); board.innerHTML = '';
 
@@ -1291,7 +1292,7 @@
               let comments = []; let modType = changedHours ? 'CAMBIO' : 'OTRO';
 
               if (changedHours && changedLevel) { comments.push(`Redistribución y reubicación de asignatura (Pasa de ${formatLevel(baseSubj.level)} a ${formatLevel(webSubj.level)}).`); } 
-              else if (changedHours) { comments.push('Redistribución de componentes.'); } else if (changedLevel) { comments.push(`Reubicación de asignatura (Pasa de ${formatLevel(baseSubj.level)} a ${formatLevel(webSubj.level)}).`); }
+              else if (changedHours) { comments.push('Redistribución de components.'); } else if (changedLevel) { comments.push(`Reubicación de asignatura (Pasa de ${formatLevel(baseSubj.level)} a ${formatLevel(webSubj.level)}).`); }
 
               if (changedName) comments.push("Actualización de nombre de asignatura.");
 
