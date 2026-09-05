@@ -24,7 +24,7 @@
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
-      padding: 0; /* Removido el padding para el sticky header */
+      padding: 0; 
       background-color: var(--bg-color);
       color: #334155;
       user-select: none;
@@ -65,7 +65,7 @@
     .legend-line { width: 30px; height: 3px; display: inline-block; border-radius: 2px; }
     .legend-prereq { background-color: #64748b; }
     .legend-coreq { background-color: transparent; border-top: 3px dashed var(--coreq-color); width: 30px; height: 0px; display: inline-block; }
-    .legend-box-basic { width: 16px; height: 16px; background-color: #ffffff; border: 2px solid #0f172a; border-radius: 4px; }
+    .legend-box-basic { width: 16px; height: 16px; background-color: #ffffff; border: 2px solid #000000; border-radius: 4px; }
 
     .basic-credits-badge { background-color: #ffffff; border: 2px solid #0f172a; color: #0f172a; padding: 5px 12px; border-radius: 16px; font-weight: 700; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
     .total-credits-badge { background-color: #0f172a; border: 2px solid #1e293b; color: #ffffff; padding: 5px 12px; border-radius: 16px; font-weight: 700; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
@@ -109,7 +109,7 @@
     .toast.error { border-left: 5px solid #ef4444; }
     .toast.info { border-left: 5px solid #3b82f6; }
 
-    /* Contenedores de la malla ajustados para espacio exacto y Panning */
+    /* Contenedores de la malla */
     .board-container { width: 100%; overflow-x: auto; padding-top: 5px; padding-bottom: 25px; cursor: grab; }
     .board-container:active { cursor: grabbing; }
     .board-wrapper { position: relative; min-width: 1450px; }
@@ -130,47 +130,59 @@
     .grid-cell.drag-over { background-color: #e0f2fe; border-color: var(--accent-color); }
     .grid-cell.drag-over-connect { background-color: #ecfdf5; border-color: #10b981; }
 
-    .subject-card { width: 100%; height: 90px; background-color: #ffffff !important; border: 2px solid #64748b; border-radius: 8px; padding: 6px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; cursor: grab; position: relative !important; z-index: 10 !important; transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    /* --- TARJETAS: BORDE NEGRO GENERAL --- */
+    .subject-card { 
+        width: 100%; height: 90px; background-color: #ffffff !important; 
+        border: 2px solid #000000; /* BORDE NEGRO FIJO PARA TODAS */
+        border-radius: 8px; padding: 6px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; cursor: grab; position: relative !important; z-index: 10 !important; transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+    }
     .subject-card:active { cursor: grabbing; }
     .subject-card:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.15); transform: translateY(-2px); z-index: 15 !important; }
+    
+    /* Resaltados importantes sobreescriben el borde negro */
     .subject-card.pinned { border: 3.5px solid var(--accent-color) !important; box-shadow: 0 0 10px rgba(37, 99, 235, 0.4) !important; }
     
     .subject-header { display: flex; justify-content: space-between; font-size: 0.7em; font-weight: bold; color: #475569; }
     .subject-title { font-size: 0.7em; font-weight: 700; text-align: center; text-transform: uppercase; line-height: 1.1; margin: 2px 0; color: #0f172a; }
     .subject-footer { display: flex; justify-content: space-between; font-size: 0.65em; color: #64748b; }
     
-    /* --- ESTILOS DE CATEGORÍAS DE MATERIAS --- */
-    .type-matematicas-y-ciencias-basicas { background-color: #ffffff !important; border-color: #0f172a !important; }
-    .type-educacion-general { background-color: #e2e8f0 !important; border-color: #cbd5e1 !important; }
-    .type-c-de-arte-y-deportes { background-color: #ffedd5 !important; border-color: #fdba74 !important; }
+    /* --- ESTILOS DE CATEGORÍAS DE MATERIAS (Solo Fondo y Letra) --- */
+    .type-matematicas-y-ciencias-basicas { background-color: #ffffff !important; }
+    .type-educacion-general { background-color: #e2e8f0 !important; }
+    .type-c-de-arte-y-deportes { background-color: #ffedd5 !important; }
     
-    .type-u-de-integracion-curricular { background-color: #0f172a !important; border-color: #020617 !important; }
+    .type-u-de-integracion-curricular { background-color: #0f172a !important; }
     .type-u-de-integracion-curricular .subject-header, 
     .type-u-de-integracion-curricular .subject-title, 
     .type-u-de-integracion-curricular .subject-footer { color: #ffffff !important; }
     
-    .type-itinerario { background-color: #7ba2c9 !important; border-color: #5c8ab9 !important; }
-    .type-practicas-comunitarias { background-color: #fde047 !important; border-color: #eab308 !important; }
+    .type-itinerario { background-color: #7ba2c9 !important; }
+    .type-practicas-comunitarias { background-color: #fde047 !important; }
     
     /* REGLA ESPECIAL: Formación profesional sin bordes curvos */
-    .type-formacion-profesional { background-color: #fef08a !important; border-color: #ca8a04 !important; border-radius: 0 !important; }
+    .type-formacion-profesional { background-color: #fef08a !important; border-radius: 0 !important; }
     
-    .type-c-de-humanistica { background-color: #9cd4c9 !important; border-color: #6ebfb0 !important; }
-    .type-practicas-empresariales { background-color: #fde047 !important; border-color: #eab308 !important; }
+    .type-c-de-humanistica { background-color: #9cd4c9 !important; }
+    .type-practicas-empresariales { background-color: #fde047 !important; }
 
     .warning-icon { margin-left: 2px; font-size: 1.1em; display: inline-flex; align-items: center; }
     .invalid-opt { color: #dc2626; font-weight: bold; }
 
-    /* Etiqueta de Nueva Materia */
     .badge-new { position: absolute; top: -10px; left: -10px; background-color: #10b981; color: white; font-size: 0.6em; font-weight: 800; padding: 3px 7px; border-radius: 4px; z-index: 25; box-shadow: 0 2px 4px rgba(0,0,0,0.2); text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #059669; }
 
-    /* Colores para resaltar materias enlazadas */
     .subject-card.highlight-req { border: 3.5px solid var(--highlight-req) !important; background-color: #fef2f2 !important; color: #0f172a !important; box-shadow: 0 0 10px rgba(239, 68, 68, 0.4) !important; border-radius: 8px !important;}
     .subject-card.highlight-req * { color: #0f172a !important; }
     .subject-card.highlight-next { border: 3.5px solid var(--highlight-next) !important; background-color: #ecfdf5 !important; color: #0f172a !important; box-shadow: 0 0 10px rgba(16, 185, 129, 0.4) !important; border-radius: 8px !important; }
     .subject-card.highlight-next * { color: #0f172a !important; }
 
-    .connector-btn { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 24px; height: 24px; background-color: #10b981; color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; font-size: 16px; font-weight: bold; cursor: crosshair; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 20; border: 2px solid white; }
+    /* BOTÓN CONECTOR INFERIOR */
+    .connector-btn { 
+        position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); 
+        width: 24px; height: 24px; background-color: #10b981; color: white; 
+        border-radius: 50%; display: none; justify-content: center; align-items: center; 
+        font-size: 16px; font-weight: bold; cursor: crosshair; 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 20; border: 2px solid white; 
+    }
     .subject-card:hover .connector-btn { display: flex; }
 
     .custom-tooltip { position: absolute; bottom: 105%; left: 50%; transform: translateX(-50%); background: #1e293b; color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; text-align: center; width: 160px; z-index: 100; opacity: 0; visibility: hidden; transition: opacity 0.15s ease-out; pointer-events: none; box-shadow: 0 4px 6px rgba(0,0,0,0.15); }
@@ -439,8 +451,8 @@
     <div class="modal" id="help-modal-box" style="width: 580px;" onclick="event.stopPropagation()">
       <h2 style="margin-top: 0; color: var(--primary-color);">Guía de Uso: Malla Curricular Interactiva</h2>
       <ul style="padding-left: 20px; color: #475569; font-size: 0.95em; line-height: 1.6; text-align: justify;">
-        <li><b>Desplazamiento Horizontal:</b> Puedes moverte arrastrando el fondo blanco con el ratón, o girando la rueda del ratón mientras mantienes presionada la tecla <b>Shift</b>.</li>
-        <li><b>Mover vs Conectar:</b> Arrastra la materia desde cualquier parte blanca para moverla. Para crear un requisito, arrastra o haz clic en el botón <b>"+"</b> verde hacia la materia destino.</li>
+        <li><b>Desplazamiento Horizontal:</b> Puedes moverte arrastrando el fondo blanco con el ratón, o girando la rueda del ratón mientras mantienes presionada la tecla <b>Shift</b>. Al conectar materias, la pantalla se moverá sola si te acercas a los bordes.</li>
+        <li><b>Mover vs Conectar:</b> Arrastra la materia desde cualquier parte blanca para moverla. Para crear un requisito, arrastra o haz clic en el botón <b>"+"</b> de la parte INFERIOR hacia la materia destino.</li>
         <li><b>Eliminar Conexiones:</b> Pasa el ratón sobre cualquier línea de conexión para resaltarla y haz <b>doble clic</b> sobre ella para eliminarla.</li>
         <li><b>Materias Nuevas:</b> Si agregas una materia cuyo código no existe en la malla original de la carrera, se le agregará automáticamente una etiqueta verde de "NUEVA".</li>
         <li><b>Validación Inteligente:</b> Si mueves una materia con requisitos a un semestre que rompa la lógica temporal, el sistema te alertará.</li>
@@ -497,6 +509,7 @@
     let startX;
     let scrollLeftPos;
     const boardContainer = document.getElementById('board-container');
+    
     boardContainer.addEventListener('mousedown', (e) => {
         if (e.target.closest('.subject-card') || e.target.closest('button') || e.target.closest('.toolbar') || e.target.tagName.toLowerCase() === 'path') return;
         isPanning = true; startX = e.pageX - boardContainer.offsetLeft; scrollLeftPos = boardContainer.scrollLeft;
@@ -508,6 +521,28 @@
         const x = e.pageX - boardContainer.offsetLeft; const walk = (x - startX) * 1.5; boardContainer.scrollLeft = scrollLeftPos - walk;
     });
     // --- FIN LÓGICA PANNING ---
+
+    // --- LÓGICA AUTO-SCROLL EN BORDES (EDGE SCROLLING) ---
+    let scrollInterval = null;
+    
+    function handleEdgeScroll(clientX) {
+        const threshold = 100; // Píxeles de distancia al borde para activar scroll
+        const speed = 20; // Velocidad del scroll
+        const rightEdge = window.innerWidth;
+        
+        if (clientX < threshold) {
+            if (!scrollInterval) scrollInterval = setInterval(() => { boardContainer.scrollLeft -= speed; }, 20);
+        } else if (clientX > rightEdge - threshold) {
+            if (!scrollInterval) scrollInterval = setInterval(() => { boardContainer.scrollLeft += speed; }, 20);
+        } else {
+            stopEdgeScroll();
+        }
+    }
+    
+    function stopEdgeScroll() {
+        if (scrollInterval) { clearInterval(scrollInterval); scrollInterval = null; }
+    }
+    // --- FIN LÓGICA AUTO-SCROLL ---
 
     function formatLevel(lvl) { return lvl ? lvl.replace('L', '') : ''; }
 
@@ -535,7 +570,6 @@
       return keywords.some(kw => n.includes(kw));
     }
 
-    // Transformar categoría en clase CSS segura
     function getTypeClass(tipo) {
         if (!tipo) return 'type-formacion-profesional';
         return 'type-' + tipo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
@@ -701,13 +735,16 @@
 
     // --- LÓGICA DE EVENTOS GENERALES DEL RATÓN Y TECLADO ---
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') { cancelGhostConnection(); }
+      if (e.key === 'Escape') { cancelGhostConnection(); stopEdgeScroll(); }
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { if (e.shiftKey) { redo(); } else { undo(); } } 
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { redo(); }
     });
 
     document.addEventListener('mousemove', (e) => {
-        if (ghostState !== 'IDLE') { updateGhostLine(e.clientX, e.clientY); }
+        if (ghostState !== 'IDLE') { 
+            updateGhostLine(e.clientX, e.clientY); 
+            handleEdgeScroll(e.clientX); // Activamos Auto-Scroll si estamos creando línea
+        }
     });
 
     document.addEventListener('mousedown', (e) => {
@@ -723,6 +760,7 @@
     }, { capture: true });
 
     document.addEventListener('mouseup', (e) => {
+        stopEdgeScroll(); // Detener Auto-Scroll
         if (ghostState === 'DRAGGING') {
             const dist = Math.hypot(e.clientX - ghostStartX, e.clientY - ghostStartY);
             if (dist < 5) { ghostState = 'CLICKED'; return; }
@@ -735,7 +773,10 @@
         }
     });
 
-    document.addEventListener('dragend', () => { window.dragAction = null; document.querySelectorAll('.grid-cell').forEach(c => { c.classList.remove('drag-over', 'drag-over-connect'); }); });
+    document.addEventListener('dragend', () => { 
+        window.dragAction = null; 
+        document.querySelectorAll('.grid-cell').forEach(c => { c.classList.remove('drag-over', 'drag-over-connect'); }); 
+    });
 
     // --- FUNCIONES DEL CONECTOR FANTASMA ---
     window.initGhostConnection = function(e, id) {
@@ -757,13 +798,19 @@
         const sourceCard = document.getElementById(`card-${ghostSourceId}`); if(!sourceCard) return;
 
         const rectFrom = sourceCard.getBoundingClientRect();
-        let x1 = (rectFrom.left - wrapperRect.left) + (rectFrom.width / 2); let y1 = (rectFrom.top - wrapperRect.top); 
-        let x2 = (mouseX - wrapperRect.left); let y2 = (mouseY - wrapperRect.top);
-        ghostPath.setAttribute('d', `M ${x2} ${y2} L ${x1} ${y1}`);
+        // Nace desde la parte inferior central de la tarjeta (donde está el botón +)
+        let x1 = (rectFrom.left - wrapperRect.left) + (rectFrom.width / 2); 
+        let y1 = (rectFrom.bottom - wrapperRect.top); 
+        // Termina donde esté el ratón
+        let x2 = (mouseX - wrapperRect.left); 
+        let y2 = (mouseY - wrapperRect.top);
+        
+        ghostPath.setAttribute('d', `M ${x1} ${y1} L ${x2} ${y2}`);
     }
 
     function cancelGhostConnection() {
-        ghostState = 'IDLE'; ghostSourceId = null; if (ghostPath) { ghostPath.remove(); ghostPath = null; }
+        ghostState = 'IDLE'; ghostSourceId = null; stopEdgeScroll();
+        if (ghostPath) { ghostPath.remove(); ghostPath = null; }
     }
 
     function openDeleteConnModal(fromId, toId, fromName, toName) {
@@ -1085,7 +1132,6 @@
     }
 
     function applyLoadedData(dataToApply) {
-      // --- MIGRACIÓN EN VIVO DE DATOS ANTIGUOS ---
       if (dataToApply.subjects) {
           dataToApply.subjects.forEach(subj => {
               if (!subj.tipoMateria) {
@@ -1146,31 +1192,17 @@
     }
 
     function exportJSON() {
-      let fileName = "malla_espol_personalizada.json"; 
-
+      let fileName = "malla_espol_personalizada.json";
       if (state.baseCareer && catalogoGlobal) {
         let baseRuta = null;
         catalogoGlobal.facultades.forEach(f => {
-          f.carreras.forEach(c => {
-            if (c.nombre === state.baseCareer) {
-              baseRuta = c.ruta;
-            }
-          });
+          f.carreras.forEach(c => { if (c.nombre === state.baseCareer) { baseRuta = c.ruta; } });
         });
-        
-        if (baseRuta) {
-          fileName = baseRuta.split('/').pop(); 
-        }
+        if (baseRuta) { fileName = baseRuta.split('/').pop(); }
       }
 
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
-      const downloadAnchor = document.createElement('a'); 
-      downloadAnchor.setAttribute("href", dataStr); 
-      downloadAnchor.setAttribute("download", fileName); 
-      document.body.appendChild(downloadAnchor); 
-      downloadAnchor.click(); 
-      downloadAnchor.remove();
-      
+      const downloadAnchor = document.createElement('a'); downloadAnchor.setAttribute("href", dataStr); downloadAnchor.setAttribute("download", fileName); document.body.appendChild(downloadAnchor); downloadAnchor.click(); downloadAnchor.remove();
       showToast(`Archivo ${fileName} exportado correctamente.`, 'success');
     }
 
