@@ -16,8 +16,6 @@
       --border-color: #cbd5e1;
       --primary-color: #0f172a;
       --accent-color: #2563eb;
-      --basic-math-color: #e0f2fe;
-      --basic-math-border: #0284c7;
       --coreq-color: #8b5cf6;
       --highlight-req: #ef4444;
       --highlight-next: #10b981;
@@ -26,105 +24,60 @@
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
-      padding: 20px;
+      padding: 0; /* Removido el padding para el sticky header */
       background-color: var(--bg-color);
       color: #334155;
       user-select: none;
     }
 
-    h1 { text-align: center; margin-bottom: 4px; color: var(--primary-color); }
-    
-    .subtitle { 
-      text-align: center; 
-      font-size: 0.95em; 
-      color: #475569; 
-      margin-bottom: 15px; 
-      font-weight: 600;
-      visibility: hidden;
-      position: relative;
-    }
-    .subtitle.visible {
-      visibility: visible;
-    }
-    .subtitle-dropdown {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      color: var(--accent-color);
-      padding: 2px 8px;
-      border-radius: 4px;
-      transition: background 0.2s;
-    }
-    .subtitle-dropdown:hover {
-      background-color: #eff6ff;
+    /* --- ENCABEZADO FIJO (STICKY HEADER) --- */
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      z-index: 150;
+      background-color: var(--bg-color);
+      padding: 15px 20px 5px 20px;
+      box-shadow: 0 4px 10px -4px rgba(0,0,0,0.1);
+      border-bottom: 1px solid #e2e8f0;
     }
 
+    .app-body {
+      padding: 10px 20px 20px 20px;
+    }
+
+    h1 { text-align: center; margin-top: 0; margin-bottom: 4px; color: var(--primary-color); }
+    
+    .subtitle { 
+      text-align: center; font-size: 0.95em; color: #475569; margin-bottom: 12px; font-weight: 600; visibility: hidden; position: relative;
+    }
+    .subtitle.visible { visibility: visible; }
+    
+    .subtitle-dropdown {
+      display: inline-flex; align-items: center; gap: 6px; cursor: pointer; color: var(--accent-color); padding: 2px 8px; border-radius: 4px; transition: background 0.2s;
+    }
+    .subtitle-dropdown:hover { background-color: #eff6ff; }
+
     .legend-bar {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 15px;
-      margin-bottom: 15px;
-      font-size: 0.85em;
-      font-weight: 600;
+      display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; font-size: 0.85em; font-weight: 600;
     }
 
     .legend-item { display: flex; align-items: center; gap: 8px; }
     .legend-line { width: 30px; height: 3px; display: inline-block; border-radius: 2px; }
     .legend-prereq { background-color: #64748b; }
     .legend-coreq { background-color: transparent; border-top: 3px dashed var(--coreq-color); width: 30px; height: 0px; display: inline-block; }
-    .legend-box-basic { width: 16px; height: 16px; background-color: var(--basic-math-color); border: 2px solid var(--basic-math-border); border-radius: 4px; }
+    .legend-box-basic { width: 16px; height: 16px; background-color: #ffffff; border: 2px solid #0f172a; border-radius: 4px; }
 
-    .basic-credits-badge {
-      background-color: var(--basic-math-color);
-      border: 2px solid var(--basic-math-border);
-      color: #0369a1;
-      padding: 5px 12px;
-      border-radius: 16px;
-      font-weight: 700;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-
-    .total-credits-badge {
-      background-color: #0f172a;
-      border: 2px solid #1e293b;
-      color: #ffffff;
-      padding: 5px 12px;
-      border-radius: 16px;
-      font-weight: 700;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
+    .basic-credits-badge { background-color: #ffffff; border: 2px solid #0f172a; color: #0f172a; padding: 5px 12px; border-radius: 16px; font-weight: 700; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .total-credits-badge { background-color: #0f172a; border: 2px solid #1e293b; color: #ffffff; padding: 5px 12px; border-radius: 16px; font-weight: 700; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 
     .toolbar {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 20px;
-      background: white;
-      padding: 12px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      position: relative; 
+      display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); position: relative; 
     }
 
     .toolbar-group { display: flex; gap: 8px; align-items: center; }
     .toolbar-divider { width: 2px; height: 24px; background-color: #cbd5e1; border-radius: 1px; }
 
-    button {
-      padding: 8px 14px;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      background-color: white;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.2s;
-      color: #334155;
-    }
-
+    button { padding: 8px 14px; border: 1px solid var(--border-color); border-radius: 6px; background-color: white; cursor: pointer; font-weight: 600; transition: all 0.2s; color: #334155; }
     button:hover { background-color: #f1f5f9; }
     button.active { background-color: var(--accent-color); color: white; border-color: var(--accent-color); text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -138,49 +91,27 @@
     .btn-danger:hover { background-color: #fee2e2; }
 
     .dropdown { position: relative; display: inline-block; }
-    .dropdown-content {
-      display: none; position: absolute; background-color: white; min-width: 250px;
-      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); border-radius: 8px;
-      border: 1px solid var(--border-color); z-index: 100; top: 110%; left: 0; overflow-y: auto; max-height: 350px;
-    }
+    .dropdown-content { display: none; position: absolute; background-color: white; min-width: 250px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid var(--border-color); z-index: 100; top: 110%; left: 0; overflow-y: auto; max-height: 350px; }
     .dropdown-content.show { display: block; animation: fadeIn 0.2s; }
     @keyframes fadeIn { from {opacity: 0; transform: translateY(-10px);} to {opacity: 1; transform: translateY(0);} }
-
-    .dropdown-content a {
-      color: #334155; padding: 10px 16px; text-decoration: none; display: flex; justify-content: space-between; align-items: center;
-      font-size: 0.9em; font-weight: 600; transition: background-color 0.2s;
-    }
+    .dropdown-content a { color: #334155; padding: 10px 16px; text-decoration: none; display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; font-weight: 600; transition: background-color 0.2s; }
     .dropdown-content a:hover { background-color: #f1f5f9; color: var(--accent-color); }
-    
-    .dropdown-header {
-      padding: 8px 16px 4px 16px; font-size: 0.75em; font-weight: 800;
-      color: #64748b; text-transform: uppercase; background-color: #f8fafc;
-    }
+    .dropdown-header { padding: 8px 16px 4px 16px; font-size: 0.75em; font-weight: 800; color: #64748b; text-transform: uppercase; background-color: #f8fafc; }
     .dropdown-divider { height: 1px; background-color: var(--border-color); margin: 0; }
     .btn-primary-option { color: #059669 !important; font-weight: 700 !important; }
     .btn-back-option { color: #64748b !important; background-color: #f8fafc; border-bottom: 1px solid var(--border-color); }
     .btn-back-option:hover { color: var(--primary-color) !important; background-color: #e2e8f0 !important; }
 
-    #toast-container {
-      position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none;
-    }
-    .toast {
-      background-color: #1e293b; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      font-weight: 600; font-size: 0.9em; opacity: 0; transform: translateY(20px); transition: opacity 0.3s, transform 0.3s;
-      display: flex; align-items: center; gap: 10px;
-    }
+    #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+    .toast { background-color: #1e293b; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-weight: 600; font-size: 0.9em; opacity: 0; transform: translateY(20px); transition: opacity 0.3s, transform 0.3s; display: flex; align-items: center; gap: 10px; }
     .toast.show { opacity: 1; transform: translateY(0); }
     .toast.success { border-left: 5px solid #10b981; }
     .toast.error { border-left: 5px solid #ef4444; }
     .toast.info { border-left: 5px solid #3b82f6; }
 
     /* Contenedores de la malla ajustados para espacio exacto y Panning */
-    .board-container { 
-        width: 100%; overflow-x: auto; padding-top: 5px; padding-bottom: 25px; 
-        cursor: grab; /* Cursor base para indicar que se puede mover */
-    }
-    .board-container:active { cursor: grabbing; } /* Cursor al arrastrar */
-    
+    .board-container { width: 100%; overflow-x: auto; padding-top: 5px; padding-bottom: 25px; cursor: grab; }
+    .board-container:active { cursor: grabbing; }
     .board-wrapper { position: relative; min-width: 1450px; }
 
     svg#connections-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5 !important; }
@@ -200,52 +131,50 @@
     .grid-cell.drag-over-connect { background-color: #ecfdf5; border-color: #10b981; }
 
     .subject-card { width: 100%; height: 90px; background-color: #ffffff !important; border: 2px solid #64748b; border-radius: 8px; padding: 6px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; cursor: grab; position: relative !important; z-index: 10 !important; transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .subject-card:active { cursor: grabbing; } /* Mantiene el cursor correcto en tarjetas */
+    .subject-card:active { cursor: grabbing; }
     .subject-card:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.15); transform: translateY(-2px); z-index: 15 !important; }
     .subject-card.pinned { border: 3.5px solid var(--accent-color) !important; box-shadow: 0 0 10px rgba(37, 99, 235, 0.4) !important; }
-    .subject-card.basic-math { background-color: var(--basic-math-color) !important; border-color: var(--basic-math-border) !important; }
+    
     .subject-header { display: flex; justify-content: space-between; font-size: 0.7em; font-weight: bold; color: #475569; }
     .subject-title { font-size: 0.7em; font-weight: 700; text-align: center; text-transform: uppercase; line-height: 1.1; margin: 2px 0; color: #0f172a; }
     .subject-footer { display: flex; justify-content: space-between; font-size: 0.65em; color: #64748b; }
     
+    /* --- ESTILOS DE CATEGORÍAS DE MATERIAS --- */
+    .type-matematicas-y-ciencias-basicas { background-color: #ffffff !important; border-color: #0f172a !important; }
+    .type-educacion-general { background-color: #e2e8f0 !important; border-color: #cbd5e1 !important; }
+    .type-c-de-arte-y-deportes { background-color: #ffedd5 !important; border-color: #fdba74 !important; }
+    
+    .type-u-de-integracion-curricular { background-color: #0f172a !important; border-color: #020617 !important; }
+    .type-u-de-integracion-curricular .subject-header, 
+    .type-u-de-integracion-curricular .subject-title, 
+    .type-u-de-integracion-curricular .subject-footer { color: #ffffff !important; }
+    
+    .type-itinerario { background-color: #7ba2c9 !important; border-color: #5c8ab9 !important; }
+    .type-practicas-comunitarias { background-color: #fde047 !important; border-color: #eab308 !important; }
+    
+    /* REGLA ESPECIAL: Formación profesional sin bordes curvos */
+    .type-formacion-profesional { background-color: #fef08a !important; border-color: #ca8a04 !important; border-radius: 0 !important; }
+    
+    .type-c-de-humanistica { background-color: #9cd4c9 !important; border-color: #6ebfb0 !important; }
+    .type-practicas-empresariales { background-color: #fde047 !important; border-color: #eab308 !important; }
+
     .warning-icon { margin-left: 2px; font-size: 1.1em; display: inline-flex; align-items: center; }
     .invalid-opt { color: #dc2626; font-weight: bold; }
 
     /* Etiqueta de Nueva Materia */
-    .badge-new {
-      position: absolute; top: -10px; left: -10px; background-color: #10b981; color: white;
-      font-size: 0.6em; font-weight: 800; padding: 3px 7px; border-radius: 4px;
-      z-index: 25; box-shadow: 0 2px 4px rgba(0,0,0,0.2); text-transform: uppercase;
-      letter-spacing: 0.5px; border: 1px solid #059669;
-    }
+    .badge-new { position: absolute; top: -10px; left: -10px; background-color: #10b981; color: white; font-size: 0.6em; font-weight: 800; padding: 3px 7px; border-radius: 4px; z-index: 25; box-shadow: 0 2px 4px rgba(0,0,0,0.2); text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #059669; }
 
     /* Colores para resaltar materias enlazadas */
-    .subject-card.highlight-req { border: 3.5px solid var(--highlight-req) !important; background-color: #fef2f2 !important; color: #0f172a !important; box-shadow: 0 0 10px rgba(239, 68, 68, 0.4) !important; }
+    .subject-card.highlight-req { border: 3.5px solid var(--highlight-req) !important; background-color: #fef2f2 !important; color: #0f172a !important; box-shadow: 0 0 10px rgba(239, 68, 68, 0.4) !important; border-radius: 8px !important;}
     .subject-card.highlight-req * { color: #0f172a !important; }
-    .subject-card.highlight-next { border: 3.5px solid var(--highlight-next) !important; background-color: #ecfdf5 !important; color: #0f172a !important; box-shadow: 0 0 10px rgba(16, 185, 129, 0.4) !important; }
+    .subject-card.highlight-next { border: 3.5px solid var(--highlight-next) !important; background-color: #ecfdf5 !important; color: #0f172a !important; box-shadow: 0 0 10px rgba(16, 185, 129, 0.4) !important; border-radius: 8px !important; }
     .subject-card.highlight-next * { color: #0f172a !important; }
-    .subject-card.connecting-source { border-color: #f59e0b !important; box-shadow: 0 0 12px #f59e0b; }
 
-    .connector-btn {
-      position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-      width: 24px; height: 24px; background-color: #10b981; color: white;
-      border-radius: 50%; display: none; justify-content: center; align-items: center;
-      font-size: 16px; font-weight: bold; cursor: crosshair;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 20; border: 2px solid white;
-    }
+    .connector-btn { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 24px; height: 24px; background-color: #10b981; color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; font-size: 16px; font-weight: bold; cursor: crosshair; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 20; border: 2px solid white; }
     .subject-card:hover .connector-btn { display: flex; }
 
-    .custom-tooltip {
-      position: absolute; bottom: 105%; left: 50%; transform: translateX(-50%);
-      background: #1e293b; color: #fff; padding: 6px 10px; border-radius: 6px;
-      font-size: 11px; font-weight: 500; text-align: center; width: 160px;
-      z-index: 100; opacity: 0; visibility: hidden; transition: opacity 0.15s ease-out;
-      pointer-events: none; box-shadow: 0 4px 6px rgba(0,0,0,0.15);
-    }
-    .custom-tooltip::after {
-      content: ''; position: absolute; top: 100%; left: 50%; margin-left: -5px;
-      border-width: 5px; border-style: solid; border-color: #1e293b transparent transparent transparent;
-    }
+    .custom-tooltip { position: absolute; bottom: 105%; left: 50%; transform: translateX(-50%); background: #1e293b; color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; text-align: center; width: 160px; z-index: 100; opacity: 0; visibility: hidden; transition: opacity 0.15s ease-out; pointer-events: none; box-shadow: 0 4px 6px rgba(0,0,0,0.15); }
+    .custom-tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #1e293b transparent transparent transparent; }
     .subject-card:hover .custom-tooltip { opacity: 1; visibility: visible; }
 
     .edit-btn { position: absolute; top: -6px; right: -6px; background: #3b82f6; color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.3); z-index: 20; }
@@ -260,13 +189,7 @@
     path.connection.drawn { pointer-events: stroke; cursor: pointer; }
     path.connection.drawn:hover { stroke: #ef4444 !important; stroke-width: 4px !important; opacity: 1 !important; }
 
-    /* Tooltip flotante para borrar conexión */
-    #conn-delete-tooltip {
-      position: fixed; background: #dc2626; color: white; padding: 6px 10px;
-      border-radius: 6px; font-size: 11px; font-weight: bold; pointer-events: none;
-      z-index: 9999; opacity: 0; transition: opacity 0.1s ease;
-      display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.15);
-    }
+    #conn-delete-tooltip { position: fixed; background: #dc2626; color: white; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; pointer-events: none; z-index: 9999; opacity: 0; transition: opacity 0.1s ease; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.15); }
     #conn-delete-tooltip.visible { opacity: 1; }
 
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.5); display: none; justify-content: center; align-items: flex-start; z-index: 200; padding: 0 15px 15px 15px; box-sizing: border-box; }
@@ -283,89 +206,85 @@
   <!-- SVG DEFS OCULTO PARA LAS PUNTAS DE FLECHA -->
   <svg style="width:0; height:0; position:absolute;" aria-hidden="true">
     <defs>
-      <marker id="arrowhead" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto">
-        <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
-      </marker>
-      <marker id="arrowhead-coreq" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto">
-        <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b5cf6" />
-      </marker>
-      <marker id="arrowhead-req" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto">
-        <path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" />
-      </marker>
-      <marker id="arrowhead-next" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto">
-        <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" />
-      </marker>
+      <marker id="arrowhead" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" /></marker>
+      <marker id="arrowhead-coreq" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8b5cf6" /></marker>
+      <marker id="arrowhead-req" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" /></marker>
+      <marker id="arrowhead-next" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" /></marker>
     </defs>
   </svg>
 
-  <!-- Elemento flotante para el ícono de borrado -->
   <div id="conn-delete-tooltip">🗑️ Doble clic para eliminar</div>
-
   <div id="toast-container"></div>
 
-  <h1>Malla Curricular Interactiva - ESPOL</h1>
-  <div class="subtitle" id="subtitle-container">
-    Malla actual: 
-    <span class="dropdown" style="display:inline-block;">
-      <span id="subtitle-career-name" class="subtitle-dropdown" onclick="toggleSubtitleDropdown(event)">Seleccionar carrera ▾</span>
-      <div id="dropdown-subtitle" class="dropdown-content">
-        <div style="padding: 10px; font-size: 0.8em; color: #64748b; text-align: center;">Cargando catálogo...</div>
-      </div>
-    </span>
-  </div>
-
-  <div class="legend-bar">
-    <div class="legend-item"><span class="legend-line legend-prereq"></span><span>Prerrequisito</span></div>
-    <div class="legend-item"><span class="legend-coreq"></span><span>Correquisito</span></div>
-    <div class="legend-item"><span class="legend-box-basic"></span><span>Ciencias Básicas</span></div>
-    <div class="basic-credits-badge" id="basic-credits-summary">📐 Créditos Ciencias Básicas: 0</div>
-    <div class="total-credits-badge" id="total-credits-summary">🎓 Total Créditos Malla: 0</div>
-  </div>
-
-  <div class="toolbar">
-    <div class="toolbar-group">
-      <button id="btn-toggle-lines" class="active" onclick="toggleLineType()">📐 Líneas: Rectas</button>
-      <button class="btn-add" onclick="openModalForCreate(event)">➕ Nueva Materia</button>
-    </div>
-    <div class="toolbar-divider"></div>
-
-    <div class="toolbar-group">
-      <button id="btn-undo" class="btn-icon-only" onclick="undo()" title="Deshacer (Ctrl+Z)">↩️</button>
-      <button id="btn-redo" class="btn-icon-only" onclick="redo()" title="Rehacer (Ctrl+Y)">↪️</button>
-    </div>
-    <div class="toolbar-divider"></div>
-
-    <div class="toolbar-group">
-      <div class="dropdown">
-        <button onclick="toggleSaveDropdown(event)" class="dropbtn">💾 Guardar 🔽</button>
-        <div id="dropdown-save" class="dropdown-content">
-          <a href="#" onclick="checkAndExportJSON(); closeAllDropdowns();">📄 Guardar borrador (JSON)</a>
-          <a href="#" onclick="checkAndProcessExcel(); closeAllDropdowns();" class="btn-primary-option">📊 Exportar excel final</a>
+  <!-- ENCABEZADO FIJO -->
+  <div class="sticky-header">
+    <h1>Malla Curricular Interactiva - ESPOL</h1>
+    <div class="subtitle" id="subtitle-container">
+      Malla actual: 
+      <span class="dropdown" style="display:inline-block;">
+        <span id="subtitle-career-name" class="subtitle-dropdown" onclick="toggleSubtitleDropdown(event)">Seleccionar carrera ▾</span>
+        <div id="dropdown-subtitle" class="dropdown-content">
+          <div style="padding: 10px; font-size: 0.8em; color: #64748b; text-align: center;">Cargando catálogo...</div>
         </div>
-      </div>
-      
-      <div class="dropdown">
-        <button onclick="toggleJSONDropdown(event)" class="dropbtn">📂 Cargar Malla 🔽</button>
-        <div id="dropdown-json" class="dropdown-content">
-          <div style="padding: 10px; font-size: 0.8em; color: #64748b; text-align: center;">Cargando menú...</div>
-        </div>
-      </div>
-      
-      <input type="file" id="import-file-input" accept=".json" style="display: none;" onchange="importJSONFromFile(event)">
-      <button class="btn-danger" onclick="resetLayout()">🗑️ Vaciar Malla</button>
+      </span>
     </div>
-    <div class="toolbar-divider"></div>
 
-    <div class="toolbar-group">
-      <button class="btn-help" onclick="openHelpModal()">❓ Ayuda</button>
+    <div class="legend-bar">
+      <div class="legend-item"><span class="legend-line legend-prereq"></span><span>Prerrequisito</span></div>
+      <div class="legend-item"><span class="legend-coreq"></span><span>Correquisito</span></div>
+      <div class="legend-item"><span class="legend-box-basic"></span><span>Ciencias Básicas</span></div>
+      <div class="basic-credits-badge" id="basic-credits-summary">📐 Créditos Ciencias Básicas: 0</div>
+      <div class="total-credits-badge" id="total-credits-summary">🎓 Total Créditos Malla: 0</div>
+    </div>
+
+    <div class="toolbar">
+      <div class="toolbar-group">
+        <button id="btn-toggle-lines" class="active" onclick="toggleLineType()">📐 Líneas: Rectas</button>
+        <button class="btn-add" onclick="openModalForCreate(event)">➕ Nueva Materia</button>
+      </div>
+      <div class="toolbar-divider"></div>
+
+      <div class="toolbar-group">
+        <button id="btn-undo" class="btn-icon-only" onclick="undo()" title="Deshacer (Ctrl+Z)">↩️</button>
+        <button id="btn-redo" class="btn-icon-only" onclick="redo()" title="Rehacer (Ctrl+Y)">↪️</button>
+      </div>
+      <div class="toolbar-divider"></div>
+
+      <div class="toolbar-group">
+        <div class="dropdown">
+          <button onclick="toggleSaveDropdown(event)" class="dropbtn">💾 Guardar 🔽</button>
+          <div id="dropdown-save" class="dropdown-content">
+            <a href="#" onclick="checkAndExportJSON(); closeAllDropdowns();">📄 Guardar borrador (JSON)</a>
+            <a href="#" onclick="checkAndProcessExcel(); closeAllDropdowns();" class="btn-primary-option">📊 Exportar excel final</a>
+          </div>
+        </div>
+        
+        <div class="dropdown">
+          <button onclick="toggleJSONDropdown(event)" class="dropbtn">📂 Cargar Malla 🔽</button>
+          <div id="dropdown-json" class="dropdown-content">
+            <div style="padding: 10px; font-size: 0.8em; color: #64748b; text-align: center;">Cargando menú...</div>
+          </div>
+        </div>
+        
+        <input type="file" id="import-file-input" accept=".json" style="display: none;" onchange="importJSONFromFile(event)">
+        <button class="btn-danger" onclick="resetLayout()">🗑️ Vaciar Malla</button>
+      </div>
+      <div class="toolbar-divider"></div>
+
+      <div class="toolbar-group">
+        <button class="btn-help" onclick="openHelpModal()">❓ Ayuda</button>
+      </div>
     </div>
   </div>
+  <!-- FIN ENCABEZADO FIJO -->
 
-  <div class="board-container" id="board-container">
-    <div class="board-wrapper" id="board-wrapper">
-      <svg id="connections-layer"></svg>
-      <svg id="ghost-layer"></svg>
-      <div class="board" id="board"></div>
+  <div class="app-body">
+    <div class="board-container" id="board-container">
+      <div class="board-wrapper" id="board-wrapper">
+        <svg id="connections-layer"></svg>
+        <svg id="ghost-layer"></svg>
+        <div class="board" id="board"></div>
+      </div>
     </div>
   </div>
 
@@ -402,8 +321,7 @@
       <p style="font-size: 0.9em; color: #475569; line-height: 1.4;">
         No se puede exportar. Las siguientes materias tienen una distribución de horas antigua o no permitida. Por favor, edítelas antes de continuar:
       </p>
-      <ul id="invalid-subjects-list" style="font-size: 0.85em; color: #0f172a; max-height: 180px; overflow-y: auto; background: #fef2f2; padding: 12px 12px 12px 30px; border-radius: 6px; border: 1px solid #fca5a5; margin-bottom: 0;">
-      </ul>
+      <ul id="invalid-subjects-list" style="font-size: 0.85em; color: #0f172a; max-height: 180px; overflow-y: auto; background: #fef2f2; padding: 12px 12px 12px 30px; border-radius: 6px; border: 1px solid #fca5a5; margin-bottom: 0;"></ul>
       <div class="modal-actions" style="justify-content: flex-end; margin-top: 20px;">
         <button onclick="closeInvalidModal()" style="background-color: var(--accent-color); color: white; padding: 8px 16px;">Entendido</button>
       </div>
@@ -426,11 +344,8 @@
   <div class="modal-overlay" id="conflict-modal-overlay">
     <div class="modal" onclick="event.stopPropagation()">
       <h2 style="color: #dc2626; margin-top: 0;">⚠️ Conflicto de Niveles</h2>
-      <p style="font-size: 0.9em; color: #475569; line-height: 1.4;">
-        Este movimiento ubicaría un prerrequisito en un nivel superior al de su materia dependiente. 
-      </p>
-      <ul id="conflict-list" style="font-size: 0.85em; color: #0f172a; max-height: 150px; overflow-y: auto; background: #fef2f2; padding: 12px 12px 12px 30px; border-radius: 6px; border: 1px solid #fca5a5; margin-bottom: 20px;">
-      </ul>
+      <p style="font-size: 0.9em; color: #475569; line-height: 1.4;">Este movimiento ubicaría un prerrequisito en un nivel superior al de su materia dependiente. </p>
+      <ul id="conflict-list" style="font-size: 0.85em; color: #0f172a; max-height: 150px; overflow-y: auto; background: #fef2f2; padding: 12px 12px 12px 30px; border-radius: 6px; border: 1px solid #fca5a5; margin-bottom: 20px;"></ul>
       <div class="modal-actions">
         <button onclick="cancelPendingMove()">Cancelar movimiento</button>
         <button onclick="processConflictsAndCheckNature()" style="background-color: #dc2626; color: white;">Eliminar relación y mover</button>
@@ -441,11 +356,8 @@
   <div class="modal-overlay" id="nature-modal-overlay">
     <div class="modal" onclick="event.stopPropagation()">
       <h2 style="color: #f59e0b; margin-top: 0;">🔄 Cambio de Relación</h2>
-      <p style="font-size: 0.9em; color: #475569; line-height: 1.4;">
-        Este movimiento cambiará la naturaleza de las siguientes conexiones:
-      </p>
-      <ul id="nature-list" style="font-size: 0.85em; color: #0f172a; max-height: 150px; overflow-y: auto; background: #fffbeb; padding: 12px 12px 12px 30px; border-radius: 6px; border: 1px solid #fcd34d; margin-bottom: 20px;">
-      </ul>
+      <p style="font-size: 0.9em; color: #475569; line-height: 1.4;">Este movimiento cambiará la naturaleza de las siguientes conexiones:</p>
+      <ul id="nature-list" style="font-size: 0.85em; color: #0f172a; max-height: 150px; overflow-y: auto; background: #fffbeb; padding: 12px 12px 12px 30px; border-radius: 6px; border: 1px solid #fcd34d; margin-bottom: 20px;"></ul>
       <div class="modal-actions">
         <button onclick="cancelPendingMove()">Cancelar</button>
         <button onclick="processNature(false)" style="color: #dc2626; background: #fef2f2; border-color: #fca5a5;">Eliminar relación</button>
@@ -460,6 +372,23 @@
       <input type="hidden" id="edit-id">
       <div class="form-group"><label>Nombre de la Materia:</label><input type="text" id="edit-name" placeholder="Ej: CÁLCULO VECTORIAL & 3"></div>
       <div class="form-group"><label>Código:</label><input type="text" id="edit-code" placeholder="Ej: MATG1046" style="text-transform: uppercase;"></div>
+      
+      <!-- NUEVO SELECTOR DE TIPO DE MATERIA -->
+      <div class="form-group">
+        <label>Tipo de Materia / Clasificación:</label>
+        <select id="edit-tipo-materia" style="font-weight: 600; color: #0f172a; background-color: #f8fafc;">
+          <option value="MATEMÁTICAS Y CIENCIAS BÁSICAS">MATEMÁTICAS Y CIENCIAS BÁSICAS</option>
+          <option value="EDUCACIÓN GENERAL">EDUCACIÓN GENERAL</option>
+          <option value="C. DE ARTE Y DEPORTES">C. DE ARTE Y DEPORTES</option>
+          <option value="U DE INTEGRACIÓN CURRICULAR">U DE INTEGRACIÓN CURRICULAR</option>
+          <option value="ITINERARIO">ITINERARIO</option>
+          <option value="PRÁCTICAS COMUNITARIAS">PRÁCTICAS COMUNITARIAS</option>
+          <option value="FORMACIÓN PROFESIONAL" selected>FORMACIÓN PROFESIONAL</option>
+          <option value="C. DE HUMANÍSTICA">C. DE HUMANÍSTICA</option>
+          <option value="PRÁCTICAS EMPRESARIALES">PRÁCTICAS EMPRESARIALES</option>
+        </select>
+      </div>
+
       <div class="form-group">
         <label>Componentes (Horas semanales ACD/APE/AA):</label>
         <select id="edit-components" onchange="updateSumFromSelect()">
@@ -487,10 +416,7 @@
         <label>Horas Totales Semanales:</label>
         <input type="number" id="edit-sum" placeholder="Calculado automáticamente" readonly style="background-color: #f1f5f9; cursor: not-allowed; font-weight: bold; color: #475569;">
       </div>
-      <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-top: 15px; margin-bottom: 15px; background: #f0f9ff; padding: 10px; border-radius: 6px; border: 1px solid #bae6fd;">
-        <input type="checkbox" id="edit-is-basic" style="width: 18px; height: 18px; cursor: pointer;">
-        <label for="edit-is-basic" style="margin: 0; cursor: pointer; color: #0369a1; font-weight: 700; font-size: 0.9em;">¿Es materia de Ciencias Básicas?</label>
-      </div>
+      
       <div class="form-group" id="level-select-group">
         <label>Nivel / Semestre:</label>
         <select id="edit-level">
@@ -570,31 +496,18 @@
     let isPanning = false;
     let startX;
     let scrollLeftPos;
-
     const boardContainer = document.getElementById('board-container');
-
     boardContainer.addEventListener('mousedown', (e) => {
-        // No hacer pan si el usuario está interactuando con una tarjeta, botón o SVG/Camino
-        if (e.target.closest('.subject-card') || e.target.closest('button') || e.target.closest('.toolbar') || e.target.tagName.toLowerCase() === 'path') {
-            return;
-        }
-        isPanning = true;
-        startX = e.pageX - boardContainer.offsetLeft;
-        scrollLeftPos = boardContainer.scrollLeft;
+        if (e.target.closest('.subject-card') || e.target.closest('button') || e.target.closest('.toolbar') || e.target.tagName.toLowerCase() === 'path') return;
+        isPanning = true; startX = e.pageX - boardContainer.offsetLeft; scrollLeftPos = boardContainer.scrollLeft;
     });
-
     boardContainer.addEventListener('mouseleave', () => { isPanning = false; });
     boardContainer.addEventListener('mouseup', () => { isPanning = false; });
-
     boardContainer.addEventListener('mousemove', (e) => {
-        if (!isPanning) return;
-        e.preventDefault();
-        const x = e.pageX - boardContainer.offsetLeft;
-        const walk = (x - startX) * 1.5; // Multiplicador de velocidad de scroll
-        boardContainer.scrollLeft = scrollLeftPos - walk;
+        if (!isPanning) return; e.preventDefault();
+        const x = e.pageX - boardContainer.offsetLeft; const walk = (x - startX) * 1.5; boardContainer.scrollLeft = scrollLeftPos - walk;
     });
     // --- FIN LÓGICA PANNING ---
-
 
     function formatLevel(lvl) { return lvl ? lvl.replace('L', '') : ''; }
 
@@ -612,7 +525,7 @@
 
     function calculateCredits(subj) {
       const baseCredits = subj.sum / 3;
-      if (subj.isIntegradora || subj.name.toUpperCase().includes("INTEGRADORA")) return baseCredits + 5;
+      if (subj.isIntegradora || subj.name.toUpperCase().includes("INTEGRADORA") || subj.tipoMateria === "U DE INTEGRACIÓN CURRICULAR") return baseCredits + 5;
       return baseCredits;
     }
 
@@ -622,9 +535,10 @@
       return keywords.some(kw => n.includes(kw));
     }
 
-    function checkIsBasic(subj) {
-      if (subj.isBasic !== undefined) return subj.isBasic;
-      return isBasicMathSubject(parseNameReq(subj.name).cleanName);
+    // Transformar categoría en clase CSS segura
+    function getTypeClass(tipo) {
+        if (!tipo) return 'type-formacion-profesional';
+        return 'type-' + tipo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
     }
 
     function setCachedResult(sheet, cellRef, numericResult) {
@@ -696,9 +610,7 @@
       const container = document.getElementById('dropdown-json');
       if (!catalogoGlobal) return;
       let html = `<a href="#" style="color: var(--accent-color); font-weight: bold;" onclick="triggerImportJSON();">📁 Cargar archivo local...</a><div class="dropdown-divider"></div><div class="dropdown-header">Facultades</div>`;
-      catalogoGlobal.facultades.forEach((facultad, index) => {
-        html += `<a href="#" onclick="renderMenuCarreras(${index}, event)">${facultad.nombre} <span>➡️</span></a>`;
-      });
+      catalogoGlobal.facultades.forEach((facultad, index) => { html += `<a href="#" onclick="renderMenuCarreras(${index}, event)">${facultad.nombre} <span>➡️</span></a>`; });
       container.innerHTML = html;
     }
 
@@ -707,9 +619,7 @@
       const container = document.getElementById('dropdown-json');
       const facultad = catalogoGlobal.facultades[indexFacultad];
       let html = `<a href="#" class="btn-back-option" onclick="volverMenuFacultades(event)">⬅️ Volver a Facultades</a><div class="dropdown-header" style="margin-top: 5px;">Carreras - ${facultad.nombre}</div>`;
-      facultad.carreras.forEach(carrera => {
-        html += `<a href="#" onclick="fetchAndLoadJSON('${carrera.ruta}', '${carrera.nombre}')">📄 ${carrera.nombre}</a>`;
-      });
+      facultad.carreras.forEach(carrera => { html += `<a href="#" onclick="fetchAndLoadJSON('${carrera.ruta}', '${carrera.nombre}')">📄 ${carrera.nombre}</a>`; });
       container.innerHTML = html;
     }
 
@@ -719,9 +629,7 @@
       const container = document.getElementById('dropdown-subtitle');
       if (!catalogoGlobal) return;
       let html = `<div class="dropdown-header">Facultades</div>`;
-      catalogoGlobal.facultades.forEach((facultad, index) => {
-        html += `<a href="#" onclick="renderSubtitleCarreras(${index}, event)">${facultad.nombre} <span>➡️</span></a>`;
-      });
+      catalogoGlobal.facultades.forEach((facultad, index) => { html += `<a href="#" onclick="renderSubtitleCarreras(${index}, event)">${facultad.nombre} <span>➡️</span></a>`; });
       container.innerHTML = html;
     }
 
@@ -730,29 +638,20 @@
       const container = document.getElementById('dropdown-subtitle');
       const facultad = catalogoGlobal.facultades[indexFacultad];
       let html = `<a href="#" class="btn-back-option" onclick="volverSubtitleFacultades(event)">⬅️ Volver a Facultades</a><div class="dropdown-header" style="margin-top: 5px;">Carreras - ${facultad.nombre}</div>`;
-      facultad.carreras.forEach(carrera => {
-        html += `<a href="#" onclick="changeBaseCareerFromSubmenu('${carrera.nombre}', event)">📄 ${carrera.nombre}</a>`;
-      });
+      facultad.carreras.forEach(carrera => { html += `<a href="#" onclick="changeBaseCareerFromSubmenu('${carrera.nombre}', event)">📄 ${carrera.nombre}</a>`; });
       container.innerHTML = html;
     }
 
     function volverSubtitleFacultades(event) { if (event) { event.preventDefault(); event.stopPropagation(); } renderSubtitleDropdownContent(); }
 
     function toggleSubtitleDropdown(e) {
-      e.preventDefault(); e.stopPropagation();
-      closeAllDropdowns();
-      const dropdown = document.getElementById("dropdown-subtitle");
-      dropdown.classList.toggle("show");
+      e.preventDefault(); e.stopPropagation(); closeAllDropdowns(); const dropdown = document.getElementById("dropdown-subtitle"); dropdown.classList.toggle("show");
       if (dropdown.classList.contains("show")) renderSubtitleDropdownContent();
     }
 
     function changeBaseCareerFromSubmenu(careerName, event) {
       if (event) { event.preventDefault(); event.stopPropagation(); }
-      state.baseCareer = careerName; 
-      persistState(); 
-      updateSubtitleUI(); 
-      closeAllDropdowns();
-      loadBaseCareerCodes(careerName);
+      state.baseCareer = careerName; persistState(); updateSubtitleUI(); closeAllDropdowns(); loadBaseCareerCodes(careerName);
       showToast(`Malla base actualizada a: ${careerName}`, 'success');
     }
 
@@ -773,9 +672,7 @@
     function toggleLineType() {
       const btn = document.getElementById('btn-toggle-lines');
       if (lineType === 'orthogonal') { lineType = 'curved'; } else { lineType = 'orthogonal'; }
-      applyLineTypeUI();
-      persistState();
-      drawConnections(); 
+      applyLineTypeUI(); persistState(); drawConnections(); 
     }
     
     function applyLineTypeUI() {
@@ -828,11 +725,7 @@
     document.addEventListener('mouseup', (e) => {
         if (ghostState === 'DRAGGING') {
             const dist = Math.hypot(e.clientX - ghostStartX, e.clientY - ghostStartY);
-            if (dist < 5) { 
-                ghostState = 'CLICKED'; 
-                return;
-            }
-            
+            if (dist < 5) { ghostState = 'CLICKED'; return; }
             let targetCard = e.target.closest('.subject-card');
             if (targetCard) {
                 let targetId = targetCard.id.replace('card-', '');
@@ -842,86 +735,56 @@
         }
     });
 
-    document.addEventListener('dragend', () => {
-      window.dragAction = null;
-      document.querySelectorAll('.grid-cell').forEach(c => {
-          c.classList.remove('drag-over', 'drag-over-connect');
-      });
-    });
+    document.addEventListener('dragend', () => { window.dragAction = null; document.querySelectorAll('.grid-cell').forEach(c => { c.classList.remove('drag-over', 'drag-over-connect'); }); });
 
     // --- FUNCIONES DEL CONECTOR FANTASMA ---
     window.initGhostConnection = function(e, id) {
         e.stopPropagation(); e.preventDefault();
         if (ghostState === 'CLICKED') { cancelGhostConnection(); }
-        ghostState = 'DRAGGING';
-        ghostSourceId = id;
-        ghostStartX = e.clientX; ghostStartY = e.clientY;
-        createGhostLine();
-        updateGhostLine(e.clientX, e.clientY);
+        ghostState = 'DRAGGING'; ghostSourceId = id; ghostStartX = e.clientX; ghostStartY = e.clientY;
+        createGhostLine(); updateGhostLine(e.clientX, e.clientY);
     };
 
     function createGhostLine() {
-        const svg = document.getElementById('ghost-layer'); 
-        ghostPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        ghostPath.setAttribute('class', 'connection');
-        ghostPath.style.strokeDasharray = '5, 5';
-        ghostPath.style.stroke = '#2563eb';
-        ghostPath.style.pointerEvents = 'none'; 
-        ghostPath.setAttribute('marker-end', 'url(#arrowhead)');
-        svg.appendChild(ghostPath);
+        const svg = document.getElementById('ghost-layer'); ghostPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        ghostPath.setAttribute('class', 'connection'); ghostPath.style.strokeDasharray = '5, 5'; ghostPath.style.stroke = '#2563eb';
+        ghostPath.style.pointerEvents = 'none'; ghostPath.setAttribute('marker-end', 'url(#arrowhead)'); svg.appendChild(ghostPath);
     }
 
     function updateGhostLine(mouseX, mouseY) {
         if (!ghostPath || !ghostSourceId) return;
-        const wrapperEl = document.getElementById('board-wrapper');
-        const wrapperRect = wrapperEl.getBoundingClientRect();
-        const sourceCard = document.getElementById(`card-${ghostSourceId}`);
-        if(!sourceCard) return;
+        const wrapperEl = document.getElementById('board-wrapper'); const wrapperRect = wrapperEl.getBoundingClientRect();
+        const sourceCard = document.getElementById(`card-${ghostSourceId}`); if(!sourceCard) return;
 
         const rectFrom = sourceCard.getBoundingClientRect();
-        let x1 = (rectFrom.left - wrapperRect.left) + (rectFrom.width / 2);
-        let y1 = (rectFrom.top - wrapperRect.top); 
-
-        let x2 = (mouseX - wrapperRect.left);
-        let y2 = (mouseY - wrapperRect.top);
-
-        // Flecha invertida (del cursor a la materia)
+        let x1 = (rectFrom.left - wrapperRect.left) + (rectFrom.width / 2); let y1 = (rectFrom.top - wrapperRect.top); 
+        let x2 = (mouseX - wrapperRect.left); let y2 = (mouseY - wrapperRect.top);
         ghostPath.setAttribute('d', `M ${x2} ${y2} L ${x1} ${y1}`);
     }
 
     function cancelGhostConnection() {
-        ghostState = 'IDLE'; ghostSourceId = null;
-        if (ghostPath) { ghostPath.remove(); ghostPath = null; }
+        ghostState = 'IDLE'; ghostSourceId = null; if (ghostPath) { ghostPath.remove(); ghostPath = null; }
     }
 
-    // --- MODAL ELIMINAR CONEXIÓN ---
     function openDeleteConnModal(fromId, toId, fromName, toName) {
         pendingDeleteConn = { fromId, toId };
-        document.getElementById('delete-conn-from').innerText = fromName;
-        document.getElementById('delete-conn-to').innerText = toName;
+        document.getElementById('delete-conn-from').innerText = fromName; document.getElementById('delete-conn-to').innerText = toName;
         document.getElementById('delete-conn-modal-overlay').style.display = 'flex';
     }
 
     function closeDeleteConnModal() {
-        pendingDeleteConn = null;
-        document.getElementById('delete-conn-modal-overlay').style.display = 'none';
+        pendingDeleteConn = null; document.getElementById('delete-conn-modal-overlay').style.display = 'none';
     }
 
     function confirmDeleteConn() {
         if (!pendingDeleteConn) return;
         saveStateToHistory();
-        state.connections = state.connections.filter(c => 
-            !(c.from === pendingDeleteConn.fromId && c.to === pendingDeleteConn.toId) && 
-            !(c.from === pendingDeleteConn.toId && c.to === pendingDeleteConn.fromId)
-        );
-        persistState();
-        drawConnections();
-        closeDeleteConnModal();
-        showToast('Conexión eliminada.', 'info');
+        state.connections = state.connections.filter(c => !(c.from === pendingDeleteConn.fromId && c.to === pendingDeleteConn.toId) && !(c.from === pendingDeleteConn.toId && c.to === pendingDeleteConn.fromId));
+        persistState(); drawConnections(); closeDeleteConnModal(); showToast('Conexión eliminada.', 'info');
     }
 
     function updateCreditsSummary() {
-      const basicSubjects = state.subjects.filter(s => checkIsBasic(s));
+      const basicSubjects = state.subjects.filter(s => s.tipoMateria === 'MATEMÁTICAS Y CIENCIAS BÁSICAS');
       const totalBasicCredits = basicSubjects.reduce((acc, curr) => acc + calculateCredits(curr), 0);
       const basicSummaryEl = document.getElementById('basic-credits-summary');
       if (basicSummaryEl) { basicSummaryEl.innerHTML = `📐 Créditos Ciencias Básicas: <b>${totalBasicCredits}</b>`; }
@@ -933,25 +796,18 @@
 
     window.updateSumFromSelect = function() {
       const val = document.getElementById('edit-components').value;
-      const parts = val.split('/');
-      let sum = 0;
-      parts.forEach(p => sum += parseFloat(p) || 0);
+      const parts = val.split('/'); let sum = 0; parts.forEach(p => sum += parseFloat(p) || 0);
       document.getElementById('edit-sum').value = sum;
     };
 
     async function init() {
       const savedMemory = localStorage.getItem('malla_espol_autosave');
       if (savedMemory) {
-        tempSavedState = savedMemory;
-        document.getElementById('restore-modal-overlay').style.display = 'flex';
+        tempSavedState = savedMemory; document.getElementById('restore-modal-overlay').style.display = 'flex';
       }
       
-      // Esperar a que se cargue el catálogo antes de continuar
       await loadCatalogo();
-      
-      if (!savedMemory) {
-          finishInit();
-      }
+      if (!savedMemory) { finishInit(); }
 
       document.body.addEventListener('click', (e) => {
         if (!e.target.closest('.dropbtn') && !e.target.closest('.dropdown-content') && !e.target.closest('.subtitle-dropdown')) { closeAllDropdowns(); }
@@ -966,12 +822,8 @@
       if (tempSavedState) {
         try {
           const parsed = JSON.parse(tempSavedState);
-          if (parsed.stateData) {
-            state = parsed.stateData;
-            if(parsed.linePreference) lineType = parsed.linePreference;
-          } else {
-            state = parsed;
-          }
+          if (parsed.stateData) { state = parsed.stateData; if(parsed.linePreference) lineType = parsed.linePreference; } 
+          else { state = parsed; }
         } catch(e){}
         tempSavedState = null;
       }
@@ -981,26 +833,15 @@
 
     function discardPreviousSession() {
       document.getElementById('restore-modal-overlay').style.display = 'none';
-      localStorage.removeItem('malla_espol_autosave');
-      tempSavedState = null;
+      localStorage.removeItem('malla_espol_autosave'); tempSavedState = null;
       finishInit();
     }
 
     function finishInit() {
-      updateSubtitleUI(); 
-      applyLineTypeUI(); 
-      
-      // Eliminada variable de columnas dinámicas y regresado a NUM_COLUMNS
-
-      if (state.baseCareer) { 
-          loadBaseCareerCodes(state.baseCareer); 
-      } else { 
-          renderBoard(); 
-          setTimeout(drawConnections, 100); 
-      }
-      
-      window.addEventListener('resize', drawConnections); 
-      updateUndoRedoButtons();
+      updateSubtitleUI(); applyLineTypeUI(); 
+      if (state.baseCareer) { loadBaseCareerCodes(state.baseCareer); } 
+      else { renderBoard(); setTimeout(drawConnections, 100); }
+      window.addEventListener('resize', drawConnections); updateUndoRedoButtons();
     }
 
     function renderBoard() {
@@ -1013,8 +854,7 @@
         let totalACD = 0; let totalAPE = 0; let totalAA = 0;
         
         subjectsInLevel.forEach(subj => {
-          const hours = parseHoursComponents(subj.components); 
-          totalACD += hours.acd; totalAPE += hours.ape; totalAA += hours.aa;
+          const hours = parseHoursComponents(subj.components); totalACD += hours.acd; totalAPE += hours.ape; totalAA += hours.aa;
         });
         
         let totalHoursSemester = (totalACD + totalAPE + totalAA) * 16;
@@ -1026,7 +866,7 @@
               <div class="level-total-hours">Total de horas (semestrales): ${totalHoursSemester}h</div>
             </div>
           </div>
-          <div class="level-content-grid" id="grid-${level.id}" style="grid-template-columns: repeat(${NUM_COLUMNS}, 1fr);"></div>
+          <div class="level-content-grid" id="grid-${level.id}"></div>
         `;
         board.appendChild(row);
         const gridContainer = row.querySelector('.level-content-grid');
@@ -1036,11 +876,8 @@
           
           cell.ondragover = (e) => { 
             e.preventDefault(); 
-            if (window.dragAction === 'connect') {
-                cell.classList.add('drag-over-connect');
-            } else {
-                cell.classList.add('drag-over');
-            }
+            if (window.dragAction === 'connect') { cell.classList.add('drag-over-connect'); } 
+            else { cell.classList.add('drag-over'); }
           };
           
           cell.ondragleave = () => cell.classList.remove('drag-over', 'drag-over-connect');
@@ -1054,22 +891,20 @@
       updateCreditsSummary();
     }
 
-    window.startConnectDrag = function(e, id) {
-      e.stopPropagation();
-      window.dragAction = 'connect';
-      e.dataTransfer.setData('text/plain', JSON.stringify({ action: 'connect', id: id }));
-    };
+    window.startConnectDrag = function(e, id) { e.stopPropagation(); window.dragAction = 'connect'; e.dataTransfer.setData('text/plain', JSON.stringify({ action: 'connect', id: id })); };
 
     function createSubjectCard(subj) {
-      const card = document.createElement('div'); const isBasic = checkIsBasic(subj); const isPinned = (pinnedSubjectId === subj.id);
-      card.className = `subject-card ${isBasic ? 'basic-math' : ''} ${isPinned ? 'pinned' : ''}`; card.id = `card-${subj.id}`; card.draggable = true;
+      const card = document.createElement('div'); const isPinned = (pinnedSubjectId === subj.id);
+      
+      const tipoClase = getTypeClass(subj.tipoMateria);
+
+      card.className = `subject-card ${tipoClase} ${isPinned ? 'pinned' : ''}`; card.id = `card-${subj.id}`; card.draggable = true;
       const credits = calculateCredits(subj).toFixed(1).replace('.0', '');
       
       const validHours = isValidCombination(subj.components);
       const warningHTML = !validHours ? `<span class="warning-icon">⚠️</span>` : '';
       const customTooltipHTML = !validHours ? `<div class="custom-tooltip">Distribución de horas no permitida. Debe editar la materia.</div>` : '';
 
-      // --- LÓGICA DE ETIQUETA "NUEVA" ---
       const isNew = state.baseCareer && baseSubjectCodes.length > 0 && !baseSubjectCodes.includes(subj.code.toUpperCase());
       const newBadgeHTML = isNew ? `<div class="badge-new" title="Materia creada en esta versión de la malla">NUEVA</div>` : '';
 
@@ -1083,10 +918,7 @@
         <div class="subject-footer"><span>${subj.code}</span><span><b>${credits} CR</b></span></div>
       `;
       
-      card.ondragstart = (e) => { 
-        window.dragAction = 'move';
-        e.dataTransfer.setData('text/plain', JSON.stringify({ action: 'move', id: subj.id })); 
-      };
+      card.ondragstart = (e) => { window.dragAction = 'move'; e.dataTransfer.setData('text/plain', JSON.stringify({ action: 'move', id: subj.id })); };
       card.onclick = (e) => { e.stopPropagation(); handleCardClick(subj.id); };
       card.onmouseenter = () => { if (!pinnedSubjectId) highlightConnections(subj.id); };
       card.onmouseleave = () => { if (!pinnedSubjectId) clearHighlights(); };
@@ -1095,195 +927,91 @@
 
     function createConnection(sourceId, targetId) {
       if (sourceId === targetId) return;
-      const subj1 = state.subjects.find(s => s.id === sourceId);
-      const subj2 = state.subjects.find(s => s.id === targetId);
-      const levelIdx1 = state.levels.findIndex(l => l.id === subj1.level);
-      const levelIdx2 = state.levels.findIndex(l => l.id === subj2.level);
+      const subj1 = state.subjects.find(s => s.id === sourceId); const subj2 = state.subjects.find(s => s.id === targetId);
+      const levelIdx1 = state.levels.findIndex(l => l.id === subj1.level); const levelIdx2 = state.levels.findIndex(l => l.id === subj2.level);
 
       let prereqId, dependentId;
-      if (levelIdx1 <= levelIdx2) {
-          prereqId = sourceId; dependentId = targetId;
-      } else {
-          prereqId = targetId; dependentId = sourceId;
-      }
+      if (levelIdx1 <= levelIdx2) { prereqId = sourceId; dependentId = targetId; } else { prereqId = targetId; dependentId = sourceId; }
 
-      const existingIdx = state.connections.findIndex(c =>
-          (c.from === prereqId && c.to === dependentId) || (c.from === dependentId && c.to === prereqId)
-      );
-
-      if (existingIdx === -1) {
-          saveStateToHistory();
-          state.connections.push({ from: prereqId, to: dependentId });
-          persistState();
-          drawConnections();
-          showToast('Conexión agregada exitosamente.', 'success');
-      } else {
-          showToast('Esta conexión ya existe.', 'info');
-      }
+      const existingIdx = state.connections.findIndex(c => (c.from === prereqId && c.to === dependentId) || (c.from === dependentId && c.to === prereqId));
+      if (existingIdx === -1) { saveStateToHistory(); state.connections.push({ from: prereqId, to: dependentId }); persistState(); drawConnections(); showToast('Conexión agregada exitosamente.', 'success'); } 
+      else { showToast('Esta conexión ya existe.', 'info'); }
     }
 
     function handleDrop(e, targetLevelId, targetCol) {
-      e.preventDefault(); 
-      document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('drag-over', 'drag-over-connect'));
-      
-      const dataStr = e.dataTransfer.getData('text/plain');
-      if (!dataStr) return;
+      e.preventDefault(); document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('drag-over', 'drag-over-connect'));
+      const dataStr = e.dataTransfer.getData('text/plain'); if (!dataStr) return;
       
       try {
-          const data = JSON.parse(dataStr);
-          const targetSubj = state.subjects.find(s => s.level === targetLevelId && s.col === targetCol);
+          const data = JSON.parse(dataStr); const targetSubj = state.subjects.find(s => s.level === targetLevelId && s.col === targetCol);
 
-          if (data.action === 'move') {
-              if (!targetSubj || targetSubj.id === data.id) {
-                  validateAndMove(data.id, targetLevelId, targetCol);
-              } else {
-                  showToast('El espacio de destino ya está ocupado.', 'error');
-              }
-          } else if (data.action === 'connect') {
-              if (targetSubj) {
-                  createConnection(data.id, targetSubj.id);
-              } else {
-                  showToast('Debes soltar el conector sobre una materia de destino.', 'error');
-              }
-          }
+          if (data.action === 'move') { if (!targetSubj || targetSubj.id === data.id) { validateAndMove(data.id, targetLevelId, targetCol); } else { showToast('El espacio de destino ya está ocupado.', 'error'); } } 
+          else if (data.action === 'connect') { if (targetSubj) { createConnection(data.id, targetSubj.id); } else { showToast('Debes soltar el conector sobre una materia de destino.', 'error'); } }
       } catch (err) { console.error(err); }
       window.dragAction = null;
     }
 
     // --- LÓGICA DE VALIDACIÓN DE MOVIMIENTOS ---
     function validateAndMove(subjectId, targetLevelId, targetCol) {
-        const subject = state.subjects.find(s => s.id === subjectId);
-        const oldLevel = subject.level;
-        const oldCol = subject.col;
-
+        const subject = state.subjects.find(s => s.id === subjectId); const oldLevel = subject.level; const oldCol = subject.col;
         if (oldLevel === targetLevelId && oldCol === targetCol) return;
 
-        const conflicts = [];
-        const natureChanges = [];
-
-        const newLvlIdxForSubj = state.levels.findIndex(l => l.id === targetLevelId);
-        const oldLvlIdxForSubj = state.levels.findIndex(l => l.id === oldLevel);
+        const conflicts = []; const natureChanges = [];
+        const newLvlIdxForSubj = state.levels.findIndex(l => l.id === targetLevelId); const oldLvlIdxForSubj = state.levels.findIndex(l => l.id === oldLevel);
 
         state.connections.forEach(c => {
            if (c.from === subject.id || c.to === subject.id) {
-               const fromSubj = state.subjects.find(s => s.id === c.from);
-               const toSubj = state.subjects.find(s => s.id === c.to);
+               const fromSubj = state.subjects.find(s => s.id === c.from); const toSubj = state.subjects.find(s => s.id === c.to);
+               const oldFromIdx = state.levels.findIndex(l => l.id === fromSubj.level); const oldToIdx = state.levels.findIndex(l => l.id === toSubj.level);
+               const newFromIdx = c.from === subject.id ? newLvlIdxForSubj : oldFromIdx; const newToIdx = c.to === subject.id ? newLvlIdxForSubj : oldToIdx;
 
-               const oldFromIdx = state.levels.findIndex(l => l.id === fromSubj.level);
-               const oldToIdx = state.levels.findIndex(l => l.id === toSubj.level);
-
-               const newFromIdx = c.from === subject.id ? newLvlIdxForSubj : oldFromIdx;
-               const newToIdx = c.to === subject.id ? newLvlIdxForSubj : oldToIdx;
-
-               if (newFromIdx > newToIdx) {
-                   conflicts.push({ conn: c, fromCode: fromSubj.code, toCode: toSubj.code, fromName: fromSubj.name, toName: toSubj.name });
-               } else if ((oldFromIdx === oldToIdx) !== (newFromIdx === newToIdx)) {
-                   natureChanges.push({
-                       conn: c, fromCode: fromSubj.code, toCode: toSubj.code, fromName: fromSubj.name, toName: toSubj.name, wasCoreq: (oldFromIdx === oldToIdx)
-                   });
-               }
+               if (newFromIdx > newToIdx) { conflicts.push({ conn: c, fromCode: fromSubj.code, toCode: toSubj.code, fromName: fromSubj.name, toName: toSubj.name }); } 
+               else if ((oldFromIdx === oldToIdx) !== (newFromIdx === newToIdx)) { natureChanges.push({ conn: c, fromCode: fromSubj.code, toCode: toSubj.code, fromName: fromSubj.name, toName: toSubj.name, wasCoreq: (oldFromIdx === oldToIdx) }); }
            }
         });
 
         pendingMove = { subject, oldLevel, oldCol, targetLevelId, targetCol, conflicts, natureChanges };
-
-        if (conflicts.length > 0) {
-            showConflictModal();
-        } else if (natureChanges.length > 0) {
-            showNatureModal();
-        } else {
-            executePendingMove();
-        }
+        if (conflicts.length > 0) { showConflictModal(); } else if (natureChanges.length > 0) { showNatureModal(); } else { executePendingMove(); }
     }
 
-    function showConflictModal() {
-        const listEl = document.getElementById('conflict-list');
-        listEl.innerHTML = pendingMove.conflicts.map(c => `<li><b>${c.fromName}</b> es requisito de <b>${c.toName}</b></li>`).join('');
-        document.getElementById('conflict-modal-overlay').style.display = 'flex';
-    }
-
-    function showNatureModal() {
-        const listEl = document.getElementById('nature-list');
-        listEl.innerHTML = pendingMove.natureChanges.map(n => {
-            const type = n.wasCoreq ? "prerrequisito" : "correquisito";
-            return `<li><b>${n.fromName}</b> pasa a ser ${type} de <b>${n.toName}</b></li>`;
-        }).join('');
-        document.getElementById('nature-modal-overlay').style.display = 'flex';
-    }
-
-    function closeMoveModals() {
-        document.getElementById('conflict-modal-overlay').style.display = 'none';
-        document.getElementById('nature-modal-overlay').style.display = 'none';
-    }
-
-    function processConflictsAndCheckNature() {
-        pendingMove.deleteConflicts = true;
-        document.getElementById('conflict-modal-overlay').style.display = 'none';
-        if (pendingMove.natureChanges.length > 0) {
-            showNatureModal();
-        } else {
-            executePendingMove(true, false);
-        }
-    }
-
-    function processNature(accept) {
-        executePendingMove(pendingMove.deleteConflicts || false, !accept);
-    }
+    function showConflictModal() { const listEl = document.getElementById('conflict-list'); listEl.innerHTML = pendingMove.conflicts.map(c => `<li><b>${c.fromName}</b> es requisito de <b>${c.toName}</b></li>`).join(''); document.getElementById('conflict-modal-overlay').style.display = 'flex'; }
+    function showNatureModal() { const listEl = document.getElementById('nature-list'); listEl.innerHTML = pendingMove.natureChanges.map(n => { const type = n.wasCoreq ? "prerrequisito" : "correquisito"; return `<li><b>${n.fromName}</b> pasa a ser ${type} de <b>${n.toName}</b></li>`; }).join(''); document.getElementById('nature-modal-overlay').style.display = 'flex'; }
+    function closeMoveModals() { document.getElementById('conflict-modal-overlay').style.display = 'none'; document.getElementById('nature-modal-overlay').style.display = 'none'; }
+    function processConflictsAndCheckNature() { pendingMove.deleteConflicts = true; document.getElementById('conflict-modal-overlay').style.display = 'none'; if (pendingMove.natureChanges.length > 0) { showNatureModal(); } else { executePendingMove(true, false); } }
+    function processNature(accept) { executePendingMove(pendingMove.deleteConflicts || false, !accept); }
 
     function executePendingMove(deleteConflicts = false, deleteNatureChanges = false) {
         saveStateToHistory(); 
+        if (deleteConflicts) { pendingMove.conflicts.forEach(conf => { state.connections = state.connections.filter(c => c !== conf.conn); }); }
+        if (deleteNatureChanges) { pendingMove.natureChanges.forEach(nat => { state.connections = state.connections.filter(c => c !== nat.conn); }); }
 
-        if (deleteConflicts) {
-            pendingMove.conflicts.forEach(conf => { state.connections = state.connections.filter(c => c !== conf.conn); });
-        }
-        if (deleteNatureChanges) {
-            pendingMove.natureChanges.forEach(nat => { state.connections = state.connections.filter(c => c !== nat.conn); });
-        }
-
-        pendingMove.subject.level = pendingMove.targetLevelId;
-        pendingMove.subject.col = pendingMove.targetCol;
-
-        persistState();
-        closeMoveModals();
-        renderBoard();
-        drawConnections();
-        if (pinnedSubjectId) highlightConnections(pinnedSubjectId);
-        pendingMove = null;
+        pendingMove.subject.level = pendingMove.targetLevelId; pendingMove.subject.col = pendingMove.targetCol;
+        persistState(); closeMoveModals(); renderBoard(); drawConnections(); if (pinnedSubjectId) highlightConnections(pinnedSubjectId); pendingMove = null;
     }
 
-    function cancelPendingMove() {
-        pendingMove = null;
-        closeMoveModals();
-    }
+    function cancelPendingMove() { pendingMove = null; closeMoveModals(); }
     // --- FIN LÓGICA MODALES DE MOVIMIENTO ---
 
     function handleCardClick(id) {
-        if (pinnedSubjectId === id) { 
-            pinnedSubjectId = null; clearHighlights(); document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned')); 
-        } else { 
-            pinnedSubjectId = id; document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned')); const cardEl = document.getElementById(`card-${id}`); if (cardEl) cardEl.classList.add('pinned'); highlightConnections(id); 
-        }
+        if (pinnedSubjectId === id) { pinnedSubjectId = null; clearHighlights(); document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned')); } 
+        else { pinnedSubjectId = id; document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned')); const cardEl = document.getElementById(`card-${id}`); if (cardEl) cardEl.classList.add('pinned'); highlightConnections(id); }
     }
 
     function drawConnections() {
-      const svg = document.getElementById('connections-layer'); 
-      const ghostSvg = document.getElementById('ghost-layer');
-      const wrapperEl = document.getElementById('board-wrapper');
+      const svg = document.getElementById('connections-layer'); const ghostSvg = document.getElementById('ghost-layer'); const wrapperEl = document.getElementById('board-wrapper');
       
       svg.innerHTML = ''; svg.style.width = wrapperEl.scrollWidth + 'px'; svg.style.height = wrapperEl.scrollHeight + 'px';
       if (ghostSvg) { ghostSvg.style.width = wrapperEl.scrollWidth + 'px'; ghostSvg.style.height = wrapperEl.scrollHeight + 'px'; }
       const wrapperRect = wrapperEl.getBoundingClientRect();
 
       state.connections.forEach((conn, index) => {
-        const fromCard = document.getElementById(`card-${conn.from}`); const toCard = document.getElementById(`card-${conn.to}`);
-        if (!fromCard || !toCard) return;
+        const fromCard = document.getElementById(`card-${conn.from}`); const toCard = document.getElementById(`card-${conn.to}`); if (!fromCard || !toCard) return;
         const subjFrom = state.subjects.find(s => s.id === conn.from); const subjTo = state.subjects.find(s => s.id === conn.to);
         const rectFrom = fromCard.getBoundingClientRect(); const rectTo = toCard.getBoundingClientRect();
         const levelFromIdx = state.levels.findIndex(l => l.id === subjFrom.level); const levelToIdx = state.levels.findIndex(l => l.id === subjTo.level);
         const levelDistance = Math.abs(levelToIdx - levelFromIdx); const isSameLevel = (levelDistance === 0);
 
-        let x1 = (rectFrom.left - wrapperRect.left) + (rectFrom.width / 2); let x2 = (rectTo.left - wrapperRect.left) + (rectTo.width / 2);
-        let pathData = "";
+        let x1 = (rectFrom.left - wrapperRect.left) + (rectFrom.width / 2); let x2 = (rectTo.left - wrapperRect.left) + (rectTo.width / 2); let pathData = "";
 
         if (lineType === 'curved') {
           if (isSameLevel) {
@@ -1295,8 +1023,7 @@
             pathData = `M ${x1} ${y1} C ${x1 + curveOffset} ${controlY1}, ${x2 + curveOffset} ${controlY2}, ${x2} ${y2}`;
           }
         } else {
-          const xOffset1 = (index % 5) * 10 - 20; const xOffset2 = ((index + 2) % 5) * 10 - 20; 
-          x1 += xOffset1; x2 += xOffset2;
+          const xOffset1 = (index % 5) * 10 - 20; const xOffset2 = ((index + 2) % 5) * 10 - 20; x1 += xOffset1; x2 += xOffset2;
           if (isSameLevel) {
             const y1 = rectFrom.top - wrapperRect.top; const y2 = rectTo.top - wrapperRect.top; const upOffset = 15 + (index % 4) * 6;
             pathData = `M ${x1} ${y1} V ${y1 - upOffset} H ${x2} V ${y2}`;
@@ -1311,36 +1038,14 @@
         }
         
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('d', pathData); 
-        path.setAttribute('class', `connection drawn ${isSameLevel ? 'corequisite' : ''}`); 
-        path.style.strokeLinejoin = "round"; path.style.strokeLinecap = "round"; 
-        path.dataset.from = conn.from; path.dataset.to = conn.to;
+        path.setAttribute('d', pathData); path.setAttribute('class', `connection drawn ${isSameLevel ? 'corequisite' : ''}`); 
+        path.style.strokeLinejoin = "round"; path.style.strokeLinecap = "round"; path.dataset.from = conn.from; path.dataset.to = conn.to;
         path.setAttribute('marker-end', isSameLevel ? 'url(#arrowhead-coreq)' : 'url(#arrowhead)');
         
-        // --- EVENTOS DEL TOOLTIP DE BORRADO ---
-        path.onmouseenter = (e) => {
-            const tooltip = document.getElementById('conn-delete-tooltip');
-            tooltip.classList.add('visible');
-            tooltip.style.left = (e.clientX + 15) + 'px';
-            tooltip.style.top = (e.clientY + 15) + 'px';
-        };
-        
-        path.onmousemove = (e) => {
-            const tooltip = document.getElementById('conn-delete-tooltip');
-            tooltip.style.left = (e.clientX + 15) + 'px';
-            tooltip.style.top = (e.clientY + 15) + 'px';
-        };
-        
-        path.onmouseleave = () => {
-            document.getElementById('conn-delete-tooltip').classList.remove('visible');
-        };
-
-        path.ondblclick = (e) => {
-            e.stopPropagation();
-            document.getElementById('conn-delete-tooltip').classList.remove('visible');
-            openDeleteConnModal(conn.from, conn.to, subjFrom.name, subjTo.name);
-        };
-        
+        path.onmouseenter = (e) => { const tooltip = document.getElementById('conn-delete-tooltip'); tooltip.classList.add('visible'); tooltip.style.left = (e.clientX + 15) + 'px'; tooltip.style.top = (e.clientY + 15) + 'px'; };
+        path.onmousemove = (e) => { const tooltip = document.getElementById('conn-delete-tooltip'); tooltip.style.left = (e.clientX + 15) + 'px'; tooltip.style.top = (e.clientY + 15) + 'px'; };
+        path.onmouseleave = () => { document.getElementById('conn-delete-tooltip').classList.remove('visible'); };
+        path.ondblclick = (e) => { e.stopPropagation(); document.getElementById('conn-delete-tooltip').classList.remove('visible'); openDeleteConnModal(conn.from, conn.to, subjFrom.name, subjTo.name); };
         svg.appendChild(path);
       });
       if (pinnedSubjectId) { highlightConnections(pinnedSubjectId); }
@@ -1348,42 +1053,21 @@
 
     function highlightConnections(id) {
       clearHighlights();
-      
-      // 1. Resaltar las tarjetas (materias)
       state.connections.forEach(c => {
-        if (c.to === id) { 
-            const cardReq = document.getElementById('card-' + c.from); 
-            if (cardReq) cardReq.classList.add('highlight-req'); 
-        }
-        if (c.from === id) { 
-            const cardNext = document.getElementById('card-' + c.to); 
-            if (cardNext) cardNext.classList.add('highlight-next'); 
-        }
+        if (c.to === id) { const cardReq = document.getElementById('card-' + c.from); if (cardReq) cardReq.classList.add('highlight-req'); }
+        if (c.from === id) { const cardNext = document.getElementById('card-' + c.to); if (cardNext) cardNext.classList.add('highlight-next'); }
       });
 
-      // 2. Resaltar las líneas y cambiar el color de las flechas
       document.querySelectorAll('path.connection.drawn').forEach(path => {
-        if (path.dataset.to === id) {
-            path.classList.add('highlight-req');
-            path.setAttribute('marker-end', 'url(#arrowhead-req)');
-        }
-        if (path.dataset.from === id) {
-            path.classList.add('highlight-next');
-            path.setAttribute('marker-end', 'url(#arrowhead-next)');
-        }
+        if (path.dataset.to === id) { path.classList.add('highlight-req'); path.setAttribute('marker-end', 'url(#arrowhead-req)'); }
+        if (path.dataset.from === id) { path.classList.add('highlight-next'); path.setAttribute('marker-end', 'url(#arrowhead-next)'); }
       });
     }
 
     function clearHighlights() {
-      // 1. Limpiar colores de las tarjetas
-      document.querySelectorAll('.subject-card').forEach(el => { 
-          el.classList.remove('highlight-req', 'highlight-next'); 
-      });
-      
-      // 2. Limpiar colores de las líneas y resetear flechas
+      document.querySelectorAll('.subject-card').forEach(el => { el.classList.remove('highlight-req', 'highlight-next'); });
       document.querySelectorAll('path.connection.drawn').forEach(path => { 
-          path.classList.remove('highlight-req', 'highlight-next');
-          const isSameLevel = path.classList.contains('corequisite');
+          path.classList.remove('highlight-req', 'highlight-next'); const isSameLevel = path.classList.contains('corequisite');
           path.setAttribute('marker-end', isSameLevel ? 'url(#arrowhead-coreq)' : 'url(#arrowhead)');
       });
     }
@@ -1395,175 +1079,136 @@
           { "id": "L300-1", "name": "NIVEL 300 - I" }, { "id": "L300-2", "name": "NIVEL 300 - II" }, { "id": "L400-1", "name": "NIVEL 400 - I" }, { "id": "L400-2", "name": "NIVEL 400 - II" }, { "id": "L500-1", "name": "NIVEL 500 - I" }
         ];
         
-        if (!importedData.baseCareer) {
-          pendingImportedData = importedData;
-          openCareerModal();
-          return; 
-        }
+        if (!importedData.baseCareer) { pendingImportedData = importedData; openCareerModal(); return; }
         applyLoadedData(importedData);
-      } else { 
-        showToast('El archivo JSON no tiene la estructura válida de una malla.', 'error'); 
-      }
+      } else { showToast('El archivo JSON no tiene la estructura válida de una malla.', 'error'); }
     }
 
     function applyLoadedData(dataToApply) {
-      saveStateToHistory(); 
-      state = dataToApply; 
-      persistState(); 
-      pinnedSubjectId = null; 
-      updateSubtitleUI(); 
-      
-      if (state.baseCareer) { 
-          loadBaseCareerCodes(state.baseCareer); 
-      } else { 
-          renderBoard(); 
-          drawConnections(); 
+      // --- MIGRACIÓN EN VIVO DE DATOS ANTIGUOS ---
+      if (dataToApply.subjects) {
+          dataToApply.subjects.forEach(subj => {
+              if (!subj.tipoMateria) {
+                  subj.tipoMateria = (subj.isBasic || isBasicMathSubject(parseNameReq(subj.name).cleanName)) 
+                      ? 'MATEMÁTICAS Y CIENCIAS BÁSICAS' 
+                      : 'FORMACIÓN PROFESIONAL';
+              }
+          });
       }
+
+      saveStateToHistory(); state = dataToApply; persistState(); pinnedSubjectId = null; updateSubtitleUI(); 
       
+      if (state.baseCareer) { loadBaseCareerCodes(state.baseCareer); } else { renderBoard(); drawConnections(); }
       showToast('Malla cargada con éxito.', 'success');
     }
 
     function triggerImportJSON() { closeAllDropdowns(); document.getElementById('import-file-input').click(); }
 
     function importJSONFromFile(event) {
-      const file = event.target.files[0]; if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) { 
-        try { const importedData = JSON.parse(e.target.result); loadDataIntoBoard(importedData); } 
-        catch (err) { showToast('Ocurrió un error al leer el archivo JSON.', 'error'); } 
-      };
+      const file = event.target.files[0]; if (!file) return; const reader = new FileReader();
+      reader.onload = function(e) { try { const importedData = JSON.parse(e.target.result); loadDataIntoBoard(importedData); } catch (err) { showToast('Ocurrió un error al leer el archivo JSON.', 'error'); } };
       reader.readAsText(file); event.target.value = '';
     }
 
     async function fetchAndLoadJSON(url, careerName) {
       closeAllDropdowns();
-      try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Archivo no encontrado (' + response.status + ')');
-        const importedData = await response.json();
-        importedData.baseCareer = careerName;
-        loadDataIntoBoard(importedData);
-      } catch (err) { 
-        showToast('Error al cargar la carrera. Verifica el archivo en GitHub.', 'error'); console.error(err);
-      }
+      try { const response = await fetch(url); if (!response.ok) throw new Error('Archivo no encontrado (' + response.status + ')'); const importedData = await response.json(); importedData.baseCareer = careerName; loadDataIntoBoard(importedData); } 
+      catch (err) { showToast('Error al cargar la carrera. Verifica el archivo en GitHub.', 'error'); console.error(err); }
     }
 
     function checkAndExportJSON() { if (!state.baseCareer) { pendingExportAction = 'json'; openCareerModal(); } else { exportJSON(); } }
     
     function checkAndProcessExcel() { 
       const invalidSubjects = state.subjects.filter(s => !isValidCombination(s.components));
-      
       if (invalidSubjects.length > 0) {
-        const listEl = document.getElementById('invalid-subjects-list');
-        listEl.innerHTML = invalidSubjects.map(s => `<li><b>${s.name}</b></li>`).join('');
-        document.getElementById('invalid-export-modal-overlay').style.display = 'flex';
-        return;
+        const listEl = document.getElementById('invalid-subjects-list'); listEl.innerHTML = invalidSubjects.map(s => `<li><b>${s.name}</b></li>`).join('');
+        document.getElementById('invalid-export-modal-overlay').style.display = 'flex'; return;
       }
-
-      if (!state.baseCareer) { 
-        pendingExportAction = 'excel'; 
-        openCareerModal(); 
-      } else { 
-        procesarYDescargarExcel(); 
-      } 
+      if (!state.baseCareer) { pendingExportAction = 'excel'; openCareerModal(); } else { procesarYDescargarExcel(); } 
     }
 
-    function closeInvalidModal() {
-      document.getElementById('invalid-export-modal-overlay').style.display = 'none';
-    }
+    function closeInvalidModal() { document.getElementById('invalid-export-modal-overlay').style.display = 'none'; }
 
     function openCareerModal() {
       const select = document.getElementById('modal-career-select'); select.innerHTML = '';
-      if (catalogoGlobal && catalogoGlobal.facultades) {
-        catalogoGlobal.facultades.forEach(fac => {
-          fac.carreras.forEach(car => {
-            const opt = document.createElement('option'); opt.value = car.nombre; opt.textContent = `${car.nombre} (${fac.nombre})`; select.appendChild(opt);
-          });
-        });
-      }
+      if (catalogoGlobal && catalogoGlobal.facultades) { catalogoGlobal.facultades.forEach(fac => { fac.carreras.forEach(car => { const opt = document.createElement('option'); opt.value = car.nombre; opt.textContent = `${car.nombre} (${fac.nombre})`; select.appendChild(opt); }); }); }
       document.getElementById('career-modal-overlay').style.display = 'flex';
     }
 
     function closeCareerModal() { document.getElementById('career-modal-overlay').style.display = 'none'; }
 
     function confirmCareerSelection() {
-      const select = document.getElementById('modal-career-select'); const chosen = select.value;
-      if (!chosen) return;
-      
-      const action = pendingExportAction; const dataToLoad = pendingImportedData;
-      closeCareerModal(); pendingExportAction = null; pendingImportedData = null;
+      const select = document.getElementById('modal-career-select'); const chosen = select.value; if (!chosen) return;
+      const action = pendingExportAction; const dataToLoad = pendingImportedData; closeCareerModal(); pendingExportAction = null; pendingImportedData = null;
 
-      if (dataToLoad) {
-        dataToLoad.baseCareer = chosen; applyLoadedData(dataToLoad);
-      } else {
-        state.baseCareer = chosen; persistState(); updateSubtitleUI();
-        loadBaseCareerCodes(chosen);
-        if (action === 'json') { exportJSON(); } else if (action === 'excel') { procesarYDescargarExcel(); }
-      }
+      if (dataToLoad) { dataToLoad.baseCareer = chosen; applyLoadedData(dataToLoad); } 
+      else { state.baseCareer = chosen; persistState(); updateSubtitleUI(); loadBaseCareerCodes(chosen); if (action === 'json') { exportJSON(); } else if (action === 'excel') { procesarYDescargarExcel(); } }
     }
 
     function exportJSON() {
+      let fileName = "malla_espol_personalizada.json"; 
+
+      if (state.baseCareer && catalogoGlobal) {
+        let baseRuta = null;
+        catalogoGlobal.facultades.forEach(f => {
+          f.carreras.forEach(c => {
+            if (c.nombre === state.baseCareer) {
+              baseRuta = c.ruta;
+            }
+          });
+        });
+        
+        if (baseRuta) {
+          fileName = baseRuta.split('/').pop(); 
+        }
+      }
+
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
-      const downloadAnchor = document.createElement('a'); downloadAnchor.setAttribute("href", dataStr); downloadAnchor.setAttribute("download", "malla_espol_personalizada.json"); document.body.appendChild(downloadAnchor); downloadAnchor.click(); downloadAnchor.remove();
-      showToast('Archivo JSON exportado correctamente.', 'success');
+      const downloadAnchor = document.createElement('a'); 
+      downloadAnchor.setAttribute("href", dataStr); 
+      downloadAnchor.setAttribute("download", fileName); 
+      document.body.appendChild(downloadAnchor); 
+      downloadAnchor.click(); 
+      downloadAnchor.remove();
+      
+      showToast(`Archivo ${fileName} exportado correctamente.`, 'success');
     }
 
     // --- MOTOR CARAMBOLA: LÓGICA DE EXPORTACIÓN EXCEL ---
     async function procesarYDescargarExcel() {
       try {
         showToast('Analizando cruce de datos y procesando matriz...', 'info');
-        
         let originalData = { subjects: [], connections: [] };
         if (catalogoGlobal && state.baseCareer) {
-          let baseRuta = null;
-          catalogoGlobal.facultades.forEach(f => f.carreras.forEach(c => { if(c.nombre === state.baseCareer) baseRuta = c.ruta; }));
-          if (baseRuta) {
-            const respBase = await fetch(baseRuta);
-            if (respBase.ok) originalData = await respBase.json();
-          }
+          let baseRuta = null; catalogoGlobal.facultades.forEach(f => f.carreras.forEach(c => { if(c.nombre === state.baseCareer) baseRuta = c.ruta; }));
+          if (baseRuta) { const respBase = await fetch(baseRuta); if (respBase.ok) originalData = await respBase.json(); }
         }
 
         const getConns = (subjs, conns, id) => conns.filter(c => c.to === id).map(c => {
-          const fromSubj = subjs.find(s => s.id === c.from);
-          const toSubj = subjs.find(s => s.id === c.to);
+          const fromSubj = subjs.find(s => s.id === c.from); const toSubj = subjs.find(s => s.id === c.to);
           return { code: fromSubj ? fromSubj.code : '', isCoreq: (fromSubj && toSubj && fromSubj.level === toSubj.level) };
         }).filter(r => r.code);
 
-        let modifications = [];
-        let baseSubjects = originalData.subjects || [];
-        let webSubjects = state.subjects || [];
+        let modifications = []; let baseSubjects = originalData.subjects || []; let webSubjects = state.subjects || [];
 
         baseSubjects.forEach(baseSubj => {
           let webSubj = webSubjects.find(s => s.code === baseSubj.code);
-          if (!webSubj) {
-            modifications.push({ type: 'ELIMINACIÓN', base: baseSubj, web: null, comment: '' });
-          } else {
-            let hBase = parseHoursComponents(baseSubj.components);
-            let hWeb = parseHoursComponents(webSubj.components);
+          if (!webSubj) { modifications.push({ type: 'ELIMINACIÓN', base: baseSubj, web: null, comment: '' }); } 
+          else {
+            let hBase = parseHoursComponents(baseSubj.components); let hWeb = parseHoursComponents(webSubj.components);
             let changedHours = (hBase.acd !== hWeb.acd || hBase.ape !== hWeb.ape || hBase.aa !== hWeb.aa || baseSubj.sum !== webSubj.sum);
             let changedLevel = (baseSubj.level !== webSubj.level);
-            
-            let baseParsed = parseNameReq(baseSubj.name);
-            let webParsed = parseNameReq(webSubj.name);
-            let changedName = (baseParsed.cleanName !== webParsed.cleanName);
-            let changedReqNum = (baseParsed.reqNum !== webParsed.reqNum);
+            let baseParsed = parseNameReq(baseSubj.name); let webParsed = parseNameReq(webSubj.name);
+            let changedName = (baseParsed.cleanName !== webParsed.cleanName); let changedReqNum = (baseParsed.reqNum !== webParsed.reqNum);
 
-            let baseReqs = getConns(baseSubjects, originalData.connections, baseSubj.id);
-            let webReqs = getConns(webSubjects, state.connections, webSubj.id);
-            const sortReqs = r => r.slice().sort((a,b) => a.code.localeCompare(b.code));
-            let reqsChanged = JSON.stringify(sortReqs(baseReqs)) !== JSON.stringify(sortReqs(webReqs));
+            let baseReqs = getConns(baseSubjects, originalData.connections, baseSubj.id); let webReqs = getConns(webSubjects, state.connections, webSubj.id);
+            const sortReqs = r => r.slice().sort((a,b) => a.code.localeCompare(b.code)); let reqsChanged = JSON.stringify(sortReqs(baseReqs)) !== JSON.stringify(sortReqs(webReqs));
 
             if (changedHours || changedLevel || changedName || changedReqNum || reqsChanged) {
-              let comments = [];
-              let modType = changedHours ? 'CAMBIO' : 'OTRO';
+              let comments = []; let modType = changedHours ? 'CAMBIO' : 'OTRO';
 
-              if (changedHours && changedLevel) {
-                comments.push(`Redistribución y reubicación de asignatura (Pasa de ${formatLevel(baseSubj.level)} a ${formatLevel(webSubj.level)}).`);
-              } else if (changedHours) {
-                comments.push('Redistribución de componentes.');
-              } else if (changedLevel) {
-                comments.push(`Reubicación de asignatura (Pasa de ${formatLevel(baseSubj.level)} a ${formatLevel(webSubj.level)}).`);
-              }
+              if (changedHours && changedLevel) { comments.push(`Redistribución y reubicación de asignatura (Pasa de ${formatLevel(baseSubj.level)} a ${formatLevel(webSubj.level)}).`); } 
+              else if (changedHours) { comments.push('Redistribución de componentes.'); } else if (changedLevel) { comments.push(`Reubicación de asignatura (Pasa de ${formatLevel(baseSubj.level)} a ${formatLevel(webSubj.level)}).`); }
 
               if (changedName) comments.push("Actualización de nombre de asignatura.");
 
@@ -1577,25 +1222,19 @@
                 let basePre = baseReqs.filter(r=>!r.isCoreq).map(r=>r.code); let baseCor = baseReqs.filter(r=>r.isCoreq).map(r=>r.code);
                 let webPre = webReqs.filter(r=>!r.isCoreq).map(r=>r.code); let webCor = webReqs.filter(r=>r.isCoreq).map(r=>r.code);
                 
-                let passedToPre = webPre.filter(x => baseCor.includes(x)); 
-                let passedToCor = webCor.filter(x => basePre.includes(x));
-                
-                let pureAddedPre = webPre.filter(x => !basePre.includes(x) && !passedToPre.includes(x));
-                let pureAddedCor = webCor.filter(x => !baseCor.includes(x) && !passedToCor.includes(x));
-                let pureDeletedPre = basePre.filter(x => !webPre.includes(x) && !passedToCor.includes(x));
-                let pureDeletedCor = baseCor.filter(x => !webCor.includes(x) && !passedToPre.includes(x));
+                let passedToPre = webPre.filter(x => baseCor.includes(x)); let passedToCor = webCor.filter(x => basePre.includes(x));
+                let pureAddedPre = webPre.filter(x => !basePre.includes(x) && !passedToPre.includes(x)); let pureAddedCor = webCor.filter(x => !baseCor.includes(x) && !passedToCor.includes(x));
+                let pureDeletedPre = basePre.filter(x => !webPre.includes(x) && !passedToCor.includes(x)); let pureDeletedCor = baseCor.filter(x => !webCor.includes(x) && !passedToPre.includes(x));
 
                 if (pureAddedPre.length > 0) comments.push(`Nuevos prerrequisitos: ${pureAddedPre.join(', ')}.`);
                 if (pureAddedCor.length > 0) comments.push(`Nuevos correquisitos: ${pureAddedCor.join(', ')}.`);
                 if (pureDeletedPre.length > 0) comments.push(`Prerrequisitos eliminados: ${pureDeletedPre.join(', ')}.`);
                 if (pureDeletedCor.length > 0) comments.push(`Correquisitos eliminados: ${pureDeletedCor.join(', ')}.`);
-                
                 if (passedToPre.length > 0) comments.push(`El requisito ${passedToPre.join(', ')} pasó de correquisito a prerrequisito.`);
                 if (passedToCor.length > 0) comments.push(`El requisito ${passedToCor.join(', ')} pasó de prerrequisito a correquisito.`);
                 
                 if (comments.length === 0 && !changedLevel && !changedName && !changedReqNum) comments.push("Actualización de requisitos.");
               }
-
               modifications.push({ type: modType, base: baseSubj, web: webSubj, comment: comments.join(' ').trim() });
             }
           }
@@ -1604,41 +1243,27 @@
         webSubjects.forEach(webSubj => {
           if (!baseSubjects.find(s => s.code === webSubj.code)) {
             let webReqs = getConns(webSubjects, state.connections, webSubj.id);
-            let pre = webReqs.filter(r => !r.isCoreq).map(r=>r.code).join(', ');
-            let cor = webReqs.filter(r => r.isCoreq).map(r=>r.code).join(', ');
+            let pre = webReqs.filter(r => !r.isCoreq).map(r=>r.code).join(', '); let cor = webReqs.filter(r => r.isCoreq).map(r=>r.code).join(', ');
             let webParsed = parseNameReq(webSubj.name);
-            
             let commentParts = [];
-            if (pre) commentParts.push(`Prerrequisitos: ${pre}.`);
-            if (cor) commentParts.push(`Correquisitos: ${cor}.`);
+            if (pre) commentParts.push(`Prerrequisitos: ${pre}.`); if (cor) commentParts.push(`Correquisitos: ${cor}.`);
             if (webParsed.reqNum) commentParts.push(`Requiere aprobar ${webParsed.reqNum} materias.`);
-            
             modifications.push({ type: 'CREACIÓN', base: null, web: webSubj, comment: commentParts.join(' ').trim() });
           }
         });
 
-        const fileUrl = 'plantillas/excel_base.xlsx';
-        const response = await fetch(fileUrl);
+        const fileUrl = 'plantillas/excel_base.xlsx'; const response = await fetch(fileUrl);
         if (!response.ok) throw new Error(`No se pudo obtener el archivo base (${response.status})`);
         
-        const arrayBuffer = await response.arrayBuffer();
-        const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.load(arrayBuffer);
-        
-        const sheet1 = workbook.getWorksheet('MODIFICACIONES EN ASIGNATURAS');
-        if (!sheet1) throw new Error('La pestaña 1 no existe en la plantilla.');
+        const arrayBuffer = await response.arrayBuffer(); const workbook = new ExcelJS.Workbook(); await workbook.xlsx.load(arrayBuffer);
+        const sheet1 = workbook.getWorksheet('MODIFICACIONES EN ASIGNATURAS'); if (!sheet1) throw new Error('La pestaña 1 no existe en la plantilla.');
 
         for (let i = 1; i < modifications.length; i++) {
           let destStartRow = 4 + (i * 5);
           for (let offset = 0; offset < 5; offset++) {
-            const srcRow = sheet1.getRow(4 + offset);
-            const destRow = sheet1.getRow(destStartRow + offset);
-            destRow.height = srcRow.height;
-            
+            const srcRow = sheet1.getRow(4 + offset); const destRow = sheet1.getRow(destStartRow + offset); destRow.height = srcRow.height;
             for (let col = 1; col <= 14; col++) {
-              const srcCell = srcRow.getCell(col);
-              const destCell = destRow.getCell(col);
-              
+              const srcCell = srcRow.getCell(col); const destCell = destRow.getCell(col);
               if (srcCell.style) { destCell.style = JSON.parse(JSON.stringify(srcCell.style)); }
               if (srcCell.type !== 1 && srcCell.type !== 6 && srcCell.value !== null) { destCell.value = srcCell.value; }
             }
@@ -1656,8 +1281,7 @@
         }
 
         if (modifications.length === 0) {
-            let startRow = 4;
-            sheet1.getCell(`A${startRow}`).value = null; sheet1.getCell(`B${startRow}`).value = null;
+            let startRow = 4; sheet1.getCell(`A${startRow}`).value = null; sheet1.getCell(`B${startRow}`).value = null;
             sheet1.getCell(`C${startRow}`).value = null; sheet1.getCell(`N${startRow+1}`).value = null;
             for(let i=0; i<4; i++) sheet1.getCell(`E${startRow+i}`).value = null;
             sheet1.getCell(`G${startRow+1}`).value = 0; sheet1.getCell(`G${startRow+2}`).value = 0; sheet1.getCell(`G${startRow+3}`).value = 0;
@@ -1666,17 +1290,13 @@
             setCachedResult(sheet1, `L${startRow+1}`, 0); setCachedResult(sheet1, `M${startRow+1}`, 0);
         } else {
             modifications.forEach((mod, index) => {
-              let startRow = 4 + (index * 5); 
-              let targetSubj = mod.web || mod.base;
-
+              let startRow = 4 + (index * 5); let targetSubj = mod.web || mod.base;
               sheet1.getCell(`A${startRow}`).value = null; sheet1.getCell(`B${startRow}`).value = null;
               sheet1.getCell(`C${startRow}`).value = null; sheet1.getCell(`N${startRow+1}`).value = null;
               for(let i=0; i<4; i++) sheet1.getCell(`E${startRow+i}`).value = null;
 
-              sheet1.getCell(`A${startRow}`).value = targetSubj.code;
-              sheet1.getCell(`B${startRow}`).value = formatLevel(targetSubj.level); 
-              sheet1.getCell(`C${startRow}`).value = targetSubj.name;
-              sheet1.getCell(`N${startRow+1}`).value = mod.comment || null;
+              sheet1.getCell(`A${startRow}`).value = targetSubj.code; sheet1.getCell(`B${startRow}`).value = formatLevel(targetSubj.level); 
+              sheet1.getCell(`C${startRow}`).value = targetSubj.name; sheet1.getCell(`N${startRow+1}`).value = mod.comment || null;
 
               if (mod.type === 'CAMBIO') sheet1.getCell(`E${startRow}`).value = 'X';
               if (mod.type === 'ELIMINACIÓN') sheet1.getCell(`E${startRow+1}`).value = 'X';
@@ -1686,25 +1306,19 @@
               if (mod.base) {
                 let h = parseHoursComponents(mod.base.components);
                 sheet1.getCell(`G${startRow+1}`).value = h.acd; sheet1.getCell(`G${startRow+2}`).value = h.ape; sheet1.getCell(`G${startRow+3}`).value = h.aa;
-                let sumHBase = (h.acd + h.ape + h.aa) * 16;
-                setCachedResult(sheet1, `H${startRow+1}`, sumHBase);
-                setCachedResult(sheet1, `I${startRow+1}`, sumHBase / 48);
+                let sumHBase = (h.acd + h.ape + h.aa) * 16; setCachedResult(sheet1, `H${startRow+1}`, sumHBase); setCachedResult(sheet1, `I${startRow+1}`, sumHBase / 48);
               } else {
                 sheet1.getCell(`G${startRow+1}`).value = 0; sheet1.getCell(`G${startRow+2}`).value = 0; sheet1.getCell(`G${startRow+3}`).value = 0;
-                setCachedResult(sheet1, `H${startRow+1}`, 0);
-                setCachedResult(sheet1, `I${startRow+1}`, 0);
+                setCachedResult(sheet1, `H${startRow+1}`, 0); setCachedResult(sheet1, `I${startRow+1}`, 0);
               }
 
               if (mod.web) {
                 let h = parseHoursComponents(mod.web.components);
                 sheet1.getCell(`K${startRow+1}`).value = h.acd; sheet1.getCell(`K${startRow+2}`).value = h.ape; sheet1.getCell(`K${startRow+3}`).value = h.aa;
-                let sumHWeb = (h.acd + h.ape + h.aa) * 16;
-                setCachedResult(sheet1, `L${startRow+1}`, sumHWeb);
-                setCachedResult(sheet1, `M${startRow+1}`, sumHWeb / 48);
+                let sumHWeb = (h.acd + h.ape + h.aa) * 16; setCachedResult(sheet1, `L${startRow+1}`, sumHWeb); setCachedResult(sheet1, `M${startRow+1}`, sumHWeb / 48);
               } else {
                 sheet1.getCell(`K${startRow+1}`).value = 0; sheet1.getCell(`K${startRow+2}`).value = 0; sheet1.getCell(`K${startRow+3}`).value = 0;
-                setCachedResult(sheet1, `L${startRow+1}`, 0);
-                setCachedResult(sheet1, `M${startRow+1}`, 0);
+                setCachedResult(sheet1, `L${startRow+1}`, 0); setCachedResult(sheet1, `M${startRow+1}`, 0);
               }
             });
         }
@@ -1714,9 +1328,7 @@
         let globalACD = 0; let globalAPE = 0; let globalAA = 0;
 
         for (let lvlIdx = 0; lvlIdx < state.levels.length; lvlIdx++) {
-          const levelId = state.levels[lvlIdx].id;
-          const nameRow = 6 + (lvlIdx * 4);
-          const hoursRow = 7 + (lvlIdx * 4);
+          const levelId = state.levels[lvlIdx].id; const nameRow = 6 + (lvlIdx * 4); const hoursRow = 7 + (lvlIdx * 4);
           let levelACD = 0; let levelAPE = 0; let levelAA = 0;
 
           for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
@@ -1724,52 +1336,28 @@
             const subject = state.subjects.find(s => s.level === levelId && s.col === colIdx);
             let targetHours = { acd: 0, ape: 0, aa: 0 };
             
-            if (subject) {
-              targetHours = parseHoursComponents(subject.components);
-              worksheet.getCell(nameRow, startCol).value = subject.name;   
-            } else {
-              worksheet.getCell(nameRow, startCol).value = null;
-            }
+            if (subject) { targetHours = parseHoursComponents(subject.components); worksheet.getCell(nameRow, startCol).value = subject.name; } 
+            else { worksheet.getCell(nameRow, startCol).value = null; }
 
-            worksheet.getCell(hoursRow, startCol + 1).value = targetHours.acd;   
-            worksheet.getCell(hoursRow, startCol + 3).value = targetHours.ape;   
-            worksheet.getCell(hoursRow, startCol + 5).value = targetHours.aa;    
+            worksheet.getCell(hoursRow, startCol + 1).value = targetHours.acd; worksheet.getCell(hoursRow, startCol + 3).value = targetHours.ape; worksheet.getCell(hoursRow, startCol + 5).value = targetHours.aa;    
 
-            levelACD += targetHours.acd;
-            levelAPE += targetHours.ape;
-            levelAA += targetHours.aa;
-
+            levelACD += targetHours.acd; levelAPE += targetHours.ape; levelAA += targetHours.aa;
             setCachedResult(worksheet, worksheet.getCell(hoursRow, startCol + 7).address, targetHours.acd + targetHours.ape + targetHours.aa);
           }
 
-          setCachedResult(worksheet, `CB${hoursRow}`, levelACD);
-          setCachedResult(worksheet, `CD${hoursRow}`, levelAPE);
-          setCachedResult(worksheet, `CF${hoursRow}`, levelAA);
-          
+          setCachedResult(worksheet, `CB${hoursRow}`, levelACD); setCachedResult(worksheet, `CD${hoursRow}`, levelAPE); setCachedResult(worksheet, `CF${hoursRow}`, levelAA);
           let lvlTotalHoras = (levelACD + levelAPE + levelAA) * 16;
-          setCachedResult(worksheet, `CF${hoursRow + 1}`, lvlTotalHoras); 
-          setCachedResult(worksheet, `CF${hoursRow + 2}`, lvlTotalHoras / 48); 
-
+          setCachedResult(worksheet, `CF${hoursRow + 1}`, lvlTotalHoras); setCachedResult(worksheet, `CF${hoursRow + 2}`, lvlTotalHoras / 48); 
           globalACD += levelACD; globalAPE += levelAPE; globalAA += levelAA;
         }
         
-        setCachedResult(worksheet, `CF46`, globalACD);
-        setCachedResult(worksheet, `CF47`, globalAPE);
-        setCachedResult(worksheet, `CF48`, globalAA);
-        
+        setCachedResult(worksheet, `CF46`, globalACD); setCachedResult(worksheet, `CF47`, globalAPE); setCachedResult(worksheet, `CF48`, globalAA);
         let globalTotalHoras = (globalACD + globalAPE + globalAA) * 16;
-        setCachedResult(worksheet, `CF52`, globalTotalHoras);
-        setCachedResult(worksheet, `CF53`, globalTotalHoras / 48);
+        setCachedResult(worksheet, `CF52`, globalTotalHoras); setCachedResult(worksheet, `CF53`, globalTotalHoras / 48);
         
-        const buffer = await workbook.xlsx.writeBuffer();
-        const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-        saveAs(blob, "2. Estructura curricular propuesta y tabla de equivalencias.xlsx");
-        
+        const buffer = await workbook.xlsx.writeBuffer(); const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }); saveAs(blob, "2. Estructura curricular propuesta y tabla de equivalencias.xlsx");
         showToast('Malla exportada a Excel con éxito.', 'success');
-      } catch (error) {
-        console.error("Error al generar el Excel:", error);
-        showToast('Error al generar la malla. Revisa la consola.', 'error');
-      }
+      } catch (error) { console.error("Error al generar el Excel:", error); showToast('Error al generar la malla. Revisa la consola.', 'error'); }
     }
 
     function openModalForCreate(e) {
@@ -1779,8 +1367,9 @@
       const compSelect = document.getElementById('edit-components');
       Array.from(compSelect.options).forEach(opt => { if(opt.classList.contains('invalid-opt')) opt.remove(); });
       compSelect.value = '3/1/5';
+      document.getElementById('edit-tipo-materia').value = 'FORMACIÓN PROFESIONAL';
       
-      document.getElementById('edit-sum').value = 9; document.getElementById('edit-is-basic').checked = false; document.getElementById('level-select-group').style.display = 'block'; document.getElementById('btn-delete').style.display = 'none';
+      document.getElementById('edit-sum').value = 9; document.getElementById('level-select-group').style.display = 'block'; document.getElementById('btn-delete').style.display = 'none';
       const modalBox = document.getElementById('edit-modal-box'); let yPos = e && e.clientY ? e.clientY - 50 : 30; const maxH = window.innerHeight; if (yPos + 480 > maxH) { yPos = maxH - 480; } if (yPos < 30) yPos = 30; modalBox.style.marginTop = yPos + 'px'; document.getElementById('modal-overlay').style.display = 'flex';
       updateSumFromSelect();
     }
@@ -1789,20 +1378,15 @@
       e.stopPropagation(); const subj = state.subjects.find(s => s.id === id); if (!subj) return;
       document.getElementById('modal-title').innerText = 'Editar Materia'; document.getElementById('edit-id').value = subj.id; document.getElementById('edit-name').value = subj.name; document.getElementById('edit-code').value = subj.code; 
       
+      document.getElementById('edit-tipo-materia').value = subj.tipoMateria || 'FORMACIÓN PROFESIONAL';
+
       const compSelect = document.getElementById('edit-components');
       Array.from(compSelect.options).forEach(opt => { if(opt.classList.contains('invalid-opt')) opt.remove(); });
       if (subj.components && !isValidCombination(subj.components)) {
-        const newOpt = document.createElement('option');
-        newOpt.value = subj.components;
-        newOpt.text = `⚠️ Actual (${subj.components}) - DEBE SELECCIONAR OTRA OPCIÓN`;
-        newOpt.classList.add('invalid-opt');
-        compSelect.insertBefore(newOpt, compSelect.firstChild);
-        compSelect.value = subj.components;
-      } else {
-        compSelect.value = subj.components || '3/1/5';
-      }
+        const newOpt = document.createElement('option'); newOpt.value = subj.components; newOpt.text = `⚠️ Actual (${subj.components}) - DEBE SELECCIONAR OTRA OPCIÓN`; newOpt.classList.add('invalid-opt'); compSelect.insertBefore(newOpt, compSelect.firstChild); compSelect.value = subj.components;
+      } else { compSelect.value = subj.components || '3/1/5'; }
       
-      document.getElementById('edit-sum').value = subj.sum; document.getElementById('edit-is-basic').checked = checkIsBasic(subj); document.getElementById('level-select-group').style.display = 'none'; document.getElementById('btn-delete').style.display = 'block';
+      document.getElementById('edit-sum').value = subj.sum; document.getElementById('level-select-group').style.display = 'none'; document.getElementById('btn-delete').style.display = 'block';
       const modalBox = document.getElementById('edit-modal-box'); let yPos = e.clientY - 50; const maxH = window.innerHeight; if (yPos + 480 > maxH) { yPos = maxH - 480; } if (yPos < 30) yPos = 30; modalBox.style.marginTop = yPos + 'px'; document.getElementById('modal-overlay').style.display = 'flex';
       updateSumFromSelect();
     }
@@ -1815,31 +1399,23 @@
       const code = document.getElementById('edit-code').value.trim().toUpperCase(); 
       const components = document.getElementById('edit-components').value.trim(); 
       const sum = parseFloat(document.getElementById('edit-sum').value) || 0; 
-      const isBasic = document.getElementById('edit-is-basic').checked;
+      const tipoMateria = document.getElementById('edit-tipo-materia').value;
       
       if (!name || !code) { showToast('Por favor ingresa un nombre y código válidos.', 'error'); return; }
       if (!isValidCombination(components)) { showToast('Debe seleccionar una distribución de horas permitida.', 'error'); return; }
 
-      // --- VALIDACIÓN DE DUPLICADOS ---
       const codeExists = state.subjects.some(s => s.code.toUpperCase() === code && s.id !== id);
-      if (codeExists) {
-          showToast(`El código ${code} ya está asignado a otra materia.`, 'error');
-          return;
-      }
+      if (codeExists) { showToast(`El código ${code} ya está asignado a otra materia.`, 'error'); return; }
 
       saveStateToHistory();
       if (id) { 
           const subj = state.subjects.find(s => s.id === id); 
-          if (subj) { subj.name = name; subj.code = code; subj.components = components; subj.sum = sum; subj.isBasic = isBasic; } 
+          if (subj) { subj.name = name; subj.code = code; subj.components = components; subj.sum = sum; subj.tipoMateria = tipoMateria; } 
       } else { 
-          const levelId = document.getElementById('edit-level').value; 
-          const newId = 'CUSTOM_' + Date.now(); 
+          const levelId = document.getElementById('edit-level').value; const newId = 'CUSTOM_' + Date.now(); 
           const usedCols = state.subjects.filter(s => s.level === levelId).map(s => s.col); 
-          let freeCol = 0; 
-          for (let i = 0; i < NUM_COLUMNS; i++) { 
-              if (!usedCols.includes(i)) { freeCol = i; break; } 
-          } 
-          state.subjects.push({ id: newId, code: code, name: name, components: components, sum: sum, level: levelId, col: freeCol, isBasic: isBasic }); 
+          let freeCol = 0; for (let i = 0; i < NUM_COLUMNS; i++) { if (!usedCols.includes(i)) { freeCol = i; break; } } 
+          state.subjects.push({ id: newId, code: code, name: name, components: components, sum: sum, level: levelId, col: freeCol, tipoMateria: tipoMateria }); 
       }
       
       persistState(); closeModal(); renderBoard(); drawConnections();
@@ -1850,22 +1426,14 @@
       const id = document.getElementById('edit-id').value; if (!id) return;
       if (confirm('¿Seguro que deseas eliminar esta materia?')) { 
         saveStateToHistory(); state.subjects = state.subjects.filter(s => s.id !== id); state.connections = state.connections.filter(c => c.from !== id && c.to !== id); 
-        persistState(); pinnedSubjectId = null; closeModal(); renderBoard(); drawConnections(); 
-        showToast('Materia eliminada.', 'info');
+        persistState(); pinnedSubjectId = null; closeModal(); renderBoard(); drawConnections(); showToast('Materia eliminada.', 'info');
       }
     }
 
     function resetLayout() {
       if (confirm('¿Deseas vaciar la malla y borrar todo el contenido?')) { 
-        saveStateToHistory(); 
-        state = JSON.parse(JSON.stringify(initialData)); 
-        persistState();
-        baseSubjectCodes = [];
-        pinnedSubjectId = null; 
-        updateSubtitleUI(); 
-        renderBoard(); 
-        drawConnections(); 
-        showToast('Malla vaciada exitosamente.', 'info');
+        saveStateToHistory(); state = JSON.parse(JSON.stringify(initialData)); persistState();
+        baseSubjectCodes = []; pinnedSubjectId = null; updateSubtitleUI(); renderBoard(); drawConnections(); showToast('Malla vaciada exitosamente.', 'info');
       }
     }
 
