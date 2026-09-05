@@ -7,7 +7,7 @@
 ---
 ## Autoría y Licencia
 
-Este proyecto fue ideado, diseñado y coordinado por **Christopher Vaccaro**, contando con la asistencia de Inteligencia Artificial como herramienta de co-creación y desarrollo de código.
+Este proyecto fue ideado, diseñado y coordinado por **Christopher Vaccaro y Marcelo Fajardo**, contando con la asistencia de Inteligencia Artificial como herramienta de co-creación y desarrollo de código.
 
 El proyecto está publicado bajo la licencia **Creative Commons Atribución-NoComercial 4.0 Internacional (CC BY-NC 4.0)**.
 
