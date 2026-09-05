@@ -112,7 +112,6 @@
     /* Contenedores de la malla */
     .board-container { width: 100%; overflow-x: auto; padding-top: 5px; padding-bottom: 25px; cursor: grab; }
     .board-container:active { cursor: grabbing; }
-    /* Ancho adaptado para 8 columnas de 200px + panel izq (220) + gaps = Aprox 1950px */
     .board-wrapper { position: relative; min-width: 1950px; }
 
     svg#connections-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5 !important; }
@@ -120,7 +119,7 @@
     
     .board { display: flex; flex-direction: column; gap: 32px; position: relative; padding-top: 45px; }
 
-    /* --- DISEÑO DEL NIVEL (PANEL IZQUIERDO ESTILO TARJETA) --- */
+    /* --- DISEÑO DEL NIVEL (PANEL IZQUIERDO ESTILO TARJETA Y FIJO) --- */
     .level-row { 
       display: flex; flex-direction: row; background: #ffffff; border-radius: 8px; 
       border: 1px solid var(--border-color); min-height: 135px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
@@ -132,6 +131,12 @@
       border-right: 1px solid var(--border-color); border-radius: 8px 0 0 8px; 
       display: flex; flex-direction: column; justify-content: center; align-items: center; 
       padding: 15px; text-align: center; box-sizing: border-box;
+      
+      /* --- PANEL STICKY LATERAL --- */
+      position: sticky;
+      left: 0;
+      z-index: 30; /* Garantiza que flote sobre SVG y Tarjetas */
+      box-shadow: 6px 0 10px rgba(0,0,0,0.04); /* Sombra hacia la derecha */
     }
 
     .level-title { font-weight: 800; color: var(--primary-color); font-size: 1.05em; text-transform: uppercase; margin-bottom: 8px; }
@@ -143,7 +148,7 @@
     
     .level-content-grid { 
       flex: 1; display: grid; 
-      grid-template-columns: repeat(8, 200px); /* NUEVA PROPORCIÓN 2.0 (100px alto * 2.0 = 200px) */
+      grid-template-columns: repeat(8, 200px); 
       gap: 14px; padding: 16px; background-color: #fafafa; align-items: center; border-radius: 0 8px 8px 0;
     }
 
@@ -468,7 +473,7 @@
     <div class="modal" id="help-modal-box" style="width: 580px;" onclick="event.stopPropagation()">
       <h2 style="margin-top: 0; color: var(--primary-color);">Guía de Uso: Malla Curricular Interactiva</h2>
       <ul style="padding-left: 20px; color: #475569; font-size: 0.95em; line-height: 1.6; text-align: justify;">
-        <li><b>Desplazamiento Multi-Direccional:</b> Puedes moverte arrastrando el fondo blanco con el ratón. Al conectar materias, la pantalla se moverá sola si te acercas a los bordes laterales o a la parte superior/inferior de la pantalla.</li>
+        <li><b>Desplazamiento Multi-Direccional:</b> Puedes moverte arrastrando el fondo blanco con el ratón. Al conectar materias o moverlas, la pantalla se desplazará sola si te acercas a los bordes laterales o a la parte superior/inferior de la pantalla.</li>
         <li><b>Mover vs Conectar:</b> Arrastra la materia desde cualquier parte blanca para moverla. Para crear un requisito, arrastra o haz clic en el botón <b>"+"</b> de la parte INFERIOR hacia la materia destino.</li>
         <li><b>Eliminar Conexiones:</b> Pasa el ratón sobre cualquier línea de conexión para resaltarla y haz <b>doble clic</b> sobre ella para eliminarla.</li>
         <li><b>Materias Nuevas:</b> Si agregas una materia cuyo código no existe en la malla original de la carrera, se le agregará automáticamente una etiqueta verde de "NUEVA".</li>
@@ -523,13 +528,20 @@
     // --- LÓGICA DE PANNING / DRAG-TO-SCROLL ---
     let isPanning = false;
     let startX;
+    let startY;
     let scrollLeftPos;
+    let scrollTopPos;
     const boardContainer = document.getElementById('board-container');
     
     boardContainer.addEventListener('mousedown', (e) => {
         if (e.target.closest('.subject-card') || e.target.closest('button') || e.target.closest('.toolbar') || e.target.tagName.toLowerCase() === 'path') return;
-        isPanning = true; startX = e.pageX - boardContainer.offsetLeft; scrollLeftPos = boardContainer.scrollLeft;
+        isPanning = true; 
+        startX = e.clientX; 
+        startY = e.clientY;
+        scrollLeftPos = boardContainer.scrollLeft; 
+        scrollTopPos = window.scrollY || document.documentElement.scrollTop;
     });
+    
     boardContainer.addEventListener('mouseleave', () => { isPanning = false; });
     boardContainer.addEventListener('mouseup', () => { isPanning = false; });
     
@@ -543,14 +555,24 @@
 
         if (isPanning) {
             e.preventDefault();
-            const x = e.pageX - boardContainer.offsetLeft; 
-            const walk = (x - startX) * 1.5; 
-            boardContainer.scrollLeft = scrollLeftPos - walk;
+            const walkX = (e.clientX - startX) * 1.5; 
+            const walkY = (e.clientY - startY) * 1.5; 
+            boardContainer.scrollLeft = scrollLeftPos - walkX;
+            window.scrollTo(window.scrollX, scrollTopPos - walkY);
         }
 
         if (ghostState !== 'IDLE') { 
             updateGhostLine(e.clientX, e.clientY); 
             startEdgeScroll(); 
+        }
+    });
+
+    // Detectar arrastre de tarjeta nativa HTML5 para Auto-Scroll
+    document.addEventListener('dragover', (e) => {
+        currentMouseX = e.clientX;
+        currentMouseY = e.clientY;
+        if (window.dragAction === 'move') {
+            startEdgeScroll();
         }
     });
 
@@ -565,10 +587,14 @@
 
             // Scroll Horizontal (Sobre el contenedor de la malla)
             const containerRect = boardContainer.getBoundingClientRect();
-            if (currentMouseX < containerRect.left + 80) {
+            // Límite izquierdo respetando el panel de nivel fijo (220px + margen 80px)
+            const leftThreshold = containerRect.left + 300; 
+            const rightThreshold = containerRect.right - 80;
+
+            if (currentMouseX < leftThreshold && boardContainer.scrollLeft > 0) {
                 boardContainer.scrollLeft -= speed;
                 scrolled = true;
-            } else if (currentMouseX > containerRect.right - 80) {
+            } else if (currentMouseX > rightThreshold) {
                 boardContainer.scrollLeft += speed;
                 scrolled = true;
             }
@@ -579,7 +605,7 @@
             const topThreshold = headerElement ? headerElement.offsetHeight + 50 : 100;
             const bottomThreshold = window.innerHeight - 80;
 
-            if (currentMouseY < topThreshold) {
+            if (currentMouseY < topThreshold && window.scrollY > 0) {
                 window.scrollBy(0, -speed);
                 scrolled = true;
             } else if (currentMouseY > bottomThreshold) {
@@ -824,6 +850,7 @@
 
     document.addEventListener('dragend', () => { 
         window.dragAction = null; 
+        stopEdgeScroll();
         document.querySelectorAll('.grid-cell').forEach(c => { c.classList.remove('drag-over', 'drag-over-connect'); }); 
     });
 
@@ -939,7 +966,7 @@
       window.addEventListener('resize', drawConnections); updateUndoRedoButtons();
     }
 
-    // --- NUEVO RENDERIZADO DEL TABLERO CON PANEL IZQUIERDO Y TARJETAS AMPLIADAS ---
+    // --- RENDERIZADO DEL TABLERO (PANEL IZQUIERDO FIJO) ---
     function renderBoard() {
       const board = document.getElementById('board'); board.innerHTML = '';
 
@@ -1292,7 +1319,7 @@
               let comments = []; let modType = changedHours ? 'CAMBIO' : 'OTRO';
 
               if (changedHours && changedLevel) { comments.push(`Redistribución y reubicación de asignatura (Pasa de ${formatLevel(baseSubj.level)} a ${formatLevel(webSubj.level)}).`); } 
-              else if (changedHours) { comments.push('Redistribución de components.'); } else if (changedLevel) { comments.push(`Reubicación de asignatura (Pasa de ${formatLevel(baseSubj.level)} a ${formatLevel(webSubj.level)}).`); }
+              else if (changedHours) { comments.push('Redistribución de componentes.'); } else if (changedLevel) { comments.push(`Reubicación de asignatura (Pasa de ${formatLevel(baseSubj.level)} a ${formatLevel(webSubj.level)}).`); }
 
               if (changedName) comments.push("Actualización de nombre de asignatura.");
 
