@@ -132,11 +132,8 @@
       display: flex; flex-direction: column; justify-content: center; align-items: center; 
       padding: 15px; text-align: center; box-sizing: border-box;
       
-      /* --- PANEL STICKY LATERAL --- */
-      position: sticky;
-      left: 0;
-      z-index: 30; /* Garantiza que flote sobre SVG y Tarjetas */
-      box-shadow: 6px 0 10px rgba(0,0,0,0.04); /* Sombra hacia la derecha */
+      position: sticky; left: 0; z-index: 30; 
+      box-shadow: 6px 0 10px rgba(0,0,0,0.04); 
     }
 
     .level-title { font-weight: 800; color: var(--primary-color); font-size: 1.05em; text-transform: uppercase; margin-bottom: 8px; }
@@ -152,9 +149,21 @@
       gap: 14px; padding: 16px; background-color: #fafafa; align-items: center; border-radius: 0 8px 8px 0;
     }
 
-    .grid-cell { border: 1px dashed #cbd5e1; border-radius: 6px; min-height: 100px; display: flex; justify-content: center; align-items: center; background-color: rgba(255, 255, 255, 0.5); transition: background-color 0.2s, border-color 0.2s; }
+    .grid-cell { border: 1px dashed #cbd5e1; border-radius: 6px; min-height: 100px; display: flex; justify-content: center; align-items: center; background-color: rgba(255, 255, 255, 0.5); transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s; }
     .grid-cell.drag-over { background-color: #e0f2fe; border-color: var(--accent-color); }
     .grid-cell.drag-over-connect { background-color: #ecfdf5; border-color: #10b981; }
+
+    /* INDICADORES VISUALES DE INSERCIÓN */
+    .grid-cell.insert-indicator {
+        box-shadow: inset 5px 0 0 0 var(--accent-color);
+        background-color: rgba(37, 99, 235, 0.05);
+        border-color: var(--accent-color);
+    }
+    .grid-cell.insert-indicator-right {
+        box-shadow: inset -5px 0 0 0 var(--accent-color);
+        background-color: rgba(37, 99, 235, 0.05);
+        border-color: var(--accent-color);
+    }
 
     /* --- TARJETAS: BORDE NEGRO Y NUEVA ALTURA (100px) --- */
     .subject-card { 
@@ -237,7 +246,6 @@
 </head>
 <body>
 
-  <!-- SVG DEFS OCULTO PARA LAS PUNTAS DE FLECHA -->
   <svg style="width:0; height:0; position:absolute;" aria-hidden="true">
     <defs>
       <marker id="arrowhead" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" /></marker>
@@ -310,7 +318,6 @@
       </div>
     </div>
   </div>
-  <!-- FIN ENCABEZADO FIJO -->
 
   <div class="app-body">
     <div class="board-container" id="board-container">
@@ -407,7 +414,6 @@
       <div class="form-group"><label>Nombre de la Materia:</label><input type="text" id="edit-name" placeholder="Ej: CÁLCULO VECTORIAL & 3"></div>
       <div class="form-group"><label>Código:</label><input type="text" id="edit-code" placeholder="Ej: MATG1046" style="text-transform: uppercase;"></div>
       
-      <!-- NUEVO SELECTOR DE TIPO DE MATERIA -->
       <div class="form-group">
         <label>Tipo de Materia / Clasificación:</label>
         <select id="edit-tipo-materia" style="font-weight: 600; color: #0f172a; background-color: #f8fafc;">
@@ -473,10 +479,9 @@
     <div class="modal" id="help-modal-box" style="width: 580px;" onclick="event.stopPropagation()">
       <h2 style="margin-top: 0; color: var(--primary-color);">Guía de Uso: Malla Curricular Interactiva</h2>
       <ul style="padding-left: 20px; color: #475569; font-size: 0.95em; line-height: 1.6; text-align: justify;">
-        <li><b>Desplazamiento Multi-Direccional:</b> Puedes moverte arrastrando el fondo blanco con el ratón. Al conectar materias o moverlas, la pantalla se desplazará sola si te acercas a los bordes laterales o a la parte superior/inferior de la pantalla.</li>
+        <li><b>Desplazamiento Multi-Direccional:</b> Puedes moverte arrastrando el fondo blanco con el ratón. Al conectar materias o moverlas, la pantalla se desplazará sola si te acercas a los bordes laterales o a la parte superior/inferior.</li>
         <li><b>Mover vs Conectar:</b> Arrastra la materia desde cualquier parte blanca para moverla. Para crear un requisito, arrastra o haz clic en el botón <b>"+"</b> de la parte INFERIOR hacia la materia destino.</li>
-        <li><b>Eliminar Conexiones:</b> Pasa el ratón sobre cualquier línea de conexión para resaltarla y haz <b>doble clic</b> sobre ella para eliminarla.</li>
-        <li><b>Materias Nuevas:</b> Si agregas una materia cuyo código no existe en la malla original de la carrera, se le agregará automáticamente una etiqueta verde de "NUEVA".</li>
+        <li><b>Insertar y Desplazar:</b> Si arrastras una materia sobre un espacio ya ocupado, aparecerá una línea azul indicando que la materia se insertará ahí y las demás se empujarán a la derecha automáticamente.</li>
       </ul>
       <div class="modal-actions" style="justify-content: flex-end; margin-top: 25px;">
         <button onclick="closeHelpModal()" style="background-color: var(--accent-color); color: white; padding: 10px 20px;">Entendido</button>
@@ -517,13 +522,14 @@
     let pendingDeleteConn = null;
     let baseSubjectCodes = [];
     
-    // Variables para Ghost Connection
+    // Variables para Ghost Connection y Drag&Drop
     let ghostState = 'IDLE'; 
     let ghostSourceId = null;
     let ghostPath = null;
     let ghostStartX = 0;
     let ghostStartY = 0;
     window.dragAction = null; 
+    window.draggedId = null; // RASTREA QUÉ MATERIA SE ESTÁ MOVIENDO
 
     // --- LÓGICA DE PANNING / DRAG-TO-SCROLL ---
     let isPanning = false;
@@ -576,7 +582,7 @@
         }
     });
 
-    // --- LÓGICA AUTO-SCROLL EN BORDES (2D EDGE SCROLLING) MEJORADO ---
+    // --- LÓGICA AUTO-SCROLL EN BORDES (2D EDGE SCROLLING) ---
     let edgeScrollInterval = null;
     
     function startEdgeScroll() {
@@ -585,9 +591,7 @@
             const speed = 15;
             let scrolled = false;
 
-            // Scroll Horizontal (Sobre el contenedor de la malla)
             const containerRect = boardContainer.getBoundingClientRect();
-            // Límite izquierdo respetando el panel de nivel fijo (220px + margen 80px)
             const leftThreshold = containerRect.left + 300; 
             const rightThreshold = containerRect.right - 80;
 
@@ -599,9 +603,7 @@
                 scrolled = true;
             }
 
-            // Scroll Vertical (Sobre la ventana principal)
             const headerElement = document.querySelector('.sticky-header');
-            // Calculamos exactamente dónde termina el encabezado fijo para empezar el scroll ahí
             const topThreshold = headerElement ? headerElement.offsetHeight + 50 : 100;
             const bottomThreshold = window.innerHeight - 80;
 
@@ -613,7 +615,6 @@
                 scrolled = true;
             }
 
-            // Si se movió la pantalla, redibujamos la línea fantasma
             if (scrolled && ghostState !== 'IDLE') {
                 updateGhostLine(currentMouseX, currentMouseY);
             } else if (!scrolled) {
@@ -717,9 +718,7 @@
                     renderBoard();
                     setTimeout(drawConnections, 100);
                 }
-            } catch(e) { 
-                console.error("Error cargando malla base para la etiqueta:", e); 
-            }
+            } catch(e) { console.error("Error cargando malla base para la etiqueta:", e); }
         }
     }
 
@@ -850,8 +849,9 @@
 
     document.addEventListener('dragend', () => { 
         window.dragAction = null; 
+        window.draggedId = null;
         stopEdgeScroll();
-        document.querySelectorAll('.grid-cell').forEach(c => { c.classList.remove('drag-over', 'drag-over-connect'); }); 
+        document.querySelectorAll('.grid-cell').forEach(c => { c.classList.remove('drag-over', 'drag-over-connect', 'insert-indicator', 'insert-indicator-right'); }); 
     });
 
     // --- FUNCIONES DEL CONECTOR FANTASMA ---
@@ -874,7 +874,6 @@
         const sourceCard = document.getElementById(`card-${ghostSourceId}`); if(!sourceCard) return;
 
         const rectFrom = sourceCard.getBoundingClientRect();
-        // FLECHA NACE DESDE LA PARTE INFERIOR DE LA MATERIA ORIGEN HACIA EL CURSOR
         let x1 = (rectFrom.left - wrapperRect.left) + (rectFrom.width / 2); 
         let y1 = (rectFrom.bottom - wrapperRect.top); 
         let x2 = (mouseX - wrapperRect.left); 
@@ -966,7 +965,7 @@
       window.addEventListener('resize', drawConnections); updateUndoRedoButtons();
     }
 
-    // --- RENDERIZADO DEL TABLERO (PANEL IZQUIERDO FIJO) ---
+    // --- RENDERIZADO DEL TABLERO CON FEEDBACK VISUAL DE INSERCIÓN ---
     function renderBoard() {
       const board = document.getElementById('board'); board.innerHTML = '';
 
@@ -1002,11 +1001,24 @@
           
           cell.ondragover = (e) => { 
             e.preventDefault(); 
-            if (window.dragAction === 'connect') { cell.classList.add('drag-over-connect'); } 
-            else { cell.classList.add('drag-over'); }
+            if (window.dragAction === 'connect') { 
+                cell.classList.add('drag-over-connect'); 
+            } else if (window.dragAction === 'move') { 
+                const isOccupiedByOther = subjectsInLevel.some(s => s.col === colIndex && s.id !== window.draggedId);
+                if (isOccupiedByOther) {
+                    const draggedSubj = state.subjects.find(s => s.id === window.draggedId);
+                    if (draggedSubj && draggedSubj.level === level.id && draggedSubj.col < colIndex) {
+                        cell.classList.add('insert-indicator-right');
+                    } else {
+                        cell.classList.add('insert-indicator');
+                    }
+                } else {
+                    cell.classList.add('drag-over'); 
+                }
+            }
           };
           
-          cell.ondragleave = () => cell.classList.remove('drag-over', 'drag-over-connect');
+          cell.ondragleave = () => cell.classList.remove('drag-over', 'drag-over-connect', 'insert-indicator', 'insert-indicator-right');
           cell.ondrop = (e) => handleDrop(e, level.id, colIndex);
           
           const subject = subjectsInLevel.find(s => s.col === colIndex);
@@ -1017,7 +1029,10 @@
       updateCreditsSummary();
     }
 
-    window.startConnectDrag = function(e, id) { e.stopPropagation(); window.dragAction = 'connect'; e.dataTransfer.setData('text/plain', JSON.stringify({ action: 'connect', id: id })); };
+    window.startConnectDrag = function(e, id) { 
+        e.stopPropagation(); window.dragAction = 'connect'; window.draggedId = id;
+        e.dataTransfer.setData('text/plain', JSON.stringify({ action: 'connect', id: id })); 
+    };
 
     function createSubjectCard(subj) {
       const card = document.createElement('div'); const isPinned = (pinnedSubjectId === subj.id);
@@ -1044,7 +1059,10 @@
         <div class="subject-footer"><span>${subj.code}</span><span><b>${credits} CR</b></span></div>
       `;
       
-      card.ondragstart = (e) => { window.dragAction = 'move'; e.dataTransfer.setData('text/plain', JSON.stringify({ action: 'move', id: subj.id })); };
+      card.ondragstart = (e) => { 
+          window.dragAction = 'move'; window.draggedId = subj.id;
+          e.dataTransfer.setData('text/plain', JSON.stringify({ action: 'move', id: subj.id })); 
+      };
       card.onclick = (e) => { e.stopPropagation(); handleCardClick(subj.id); };
       card.onmouseenter = () => { if (!pinnedSubjectId) highlightConnections(subj.id); };
       card.onmouseleave = () => { if (!pinnedSubjectId) clearHighlights(); };
@@ -1064,21 +1082,41 @@
       else { showToast('Esta conexión ya existe.', 'info'); }
     }
 
+    // --- NUEVA LÓGICA DE DROP CON INSERCIÓN (SHIFT) ---
     function handleDrop(e, targetLevelId, targetCol) {
-      e.preventDefault(); document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('drag-over', 'drag-over-connect'));
+      e.preventDefault(); document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('drag-over', 'drag-over-connect', 'insert-indicator', 'insert-indicator-right'));
       const dataStr = e.dataTransfer.getData('text/plain'); if (!dataStr) return;
       
       try {
-          const data = JSON.parse(dataStr); const targetSubj = state.subjects.find(s => s.level === targetLevelId && s.col === targetCol);
+          const data = JSON.parse(dataStr); 
+          const targetSubj = state.subjects.find(s => s.level === targetLevelId && s.col === targetCol);
 
-          if (data.action === 'move') { if (!targetSubj || targetSubj.id === data.id) { validateAndMove(data.id, targetLevelId, targetCol); } else { showToast('El espacio de destino ya está ocupado.', 'error'); } } 
-          else if (data.action === 'connect') { if (targetSubj) { createConnection(data.id, targetSubj.id); } else { showToast('Debes soltar el conector sobre una materia de destino.', 'error'); } }
+          if (data.action === 'move') { 
+              const subject = state.subjects.find(s => s.id === data.id);
+              if (targetSubj && targetSubj.id !== data.id) {
+                  // Validar Opción A: Solo permitimos el insert si la columna 8 no está ocupada (a menos que estemos reordenando en el mismo nivel)
+                  if (subject.level !== targetLevelId) {
+                      const hasItemAtEnd = state.subjects.some(s => s.level === targetLevelId && s.col === NUM_COLUMNS - 1);
+                      if (hasItemAtEnd) {
+                          showToast('No hay espacio en este nivel para insertar la materia. Mueve la última materia primero.', 'error');
+                          return;
+                      }
+                  }
+                  validateAndMove(data.id, targetLevelId, targetCol, true); // True = Es modo inserción
+              } else {
+                  // Soltado sobre espacio vacío
+                  validateAndMove(data.id, targetLevelId, targetCol, false); 
+              }
+          } 
+          else if (data.action === 'connect') { 
+              if (targetSubj) { createConnection(data.id, targetSubj.id); } 
+              else { showToast('Debes soltar el conector sobre una materia de destino.', 'error'); } 
+          }
       } catch (err) { console.error(err); }
-      window.dragAction = null;
+      window.dragAction = null; window.draggedId = null;
     }
 
-    // --- LÓGICA DE VALIDACIÓN DE MOVIMIENTOS ---
-    function validateAndMove(subjectId, targetLevelId, targetCol) {
+    function validateAndMove(subjectId, targetLevelId, targetCol, isInsert = false) {
         const subject = state.subjects.find(s => s.id === subjectId); const oldLevel = subject.level; const oldCol = subject.col;
         if (oldLevel === targetLevelId && oldCol === targetCol) return;
 
@@ -1096,7 +1134,7 @@
            }
         });
 
-        pendingMove = { subject, oldLevel, oldCol, targetLevelId, targetCol, conflicts, natureChanges };
+        pendingMove = { subject, oldLevel, oldCol, targetLevelId, targetCol, conflicts, natureChanges, isInsert };
         if (conflicts.length > 0) { showConflictModal(); } else if (natureChanges.length > 0) { showNatureModal(); } else { executePendingMove(); }
     }
 
@@ -1106,12 +1144,39 @@
     function processConflictsAndCheckNature() { pendingMove.deleteConflicts = true; document.getElementById('conflict-modal-overlay').style.display = 'none'; if (pendingMove.natureChanges.length > 0) { showNatureModal(); } else { executePendingMove(true, false); } }
     function processNature(accept) { executePendingMove(pendingMove.deleteConflicts || false, !accept); }
 
+    // --- EJECUCIÓN DEL MOVIMIENTO Y APLICACIÓN DEL SHIFT ---
     function executePendingMove(deleteConflicts = false, deleteNatureChanges = false) {
         saveStateToHistory(); 
         if (deleteConflicts) { pendingMove.conflicts.forEach(conf => { state.connections = state.connections.filter(c => c !== conf.conn); }); }
         if (deleteNatureChanges) { pendingMove.natureChanges.forEach(nat => { state.connections = state.connections.filter(c => c !== nat.conn); }); }
 
-        pendingMove.subject.level = pendingMove.targetLevelId; pendingMove.subject.col = pendingMove.targetCol;
+        const { subject, oldLevel, oldCol, targetLevelId, targetCol, isInsert } = pendingMove;
+
+        // Desplazamiento inteligente de materias (Shift)
+        if (isInsert) {
+            if (oldLevel === targetLevelId) {
+                if (oldCol < targetCol) {
+                    // Mueve a la derecha: Las del medio bajan 1 columna
+                    state.subjects.forEach(s => {
+                        if (s.level === targetLevelId && s.col > oldCol && s.col <= targetCol && s.id !== subject.id) s.col -= 1;
+                    });
+                } else {
+                    // Mueve a la izquierda: Las del medio suben 1 columna
+                    state.subjects.forEach(s => {
+                        if (s.level === targetLevelId && s.col >= targetCol && s.col < oldCol && s.id !== subject.id) s.col += 1;
+                    });
+                }
+            } else {
+                // Viene de otro nivel: Todo a la derecha sube 1 columna
+                state.subjects.forEach(s => {
+                    if (s.level === targetLevelId && s.col >= targetCol && s.id !== subject.id) s.col += 1;
+                });
+            }
+        }
+
+        subject.level = targetLevelId; 
+        subject.col = targetCol;
+
         persistState(); closeMoveModals(); renderBoard(); drawConnections(); if (pinnedSubjectId) highlightConnections(pinnedSubjectId); pendingMove = null;
     }
 
@@ -1482,6 +1547,7 @@
       
       document.getElementById('edit-sum').value = 9; document.getElementById('level-select-group').style.display = 'block'; document.getElementById('btn-delete').style.display = 'none';
       const modalBox = document.getElementById('edit-modal-box'); let yPos = e && e.clientY ? e.clientY - 50 : 30; const maxH = window.innerHeight; if (yPos + 480 > maxH) { yPos = maxH - 480; } if (yPos < 30) yPos = 30; modalBox.style.marginTop = yPos + 'px'; document.getElementById('modal-overlay').style.display = 'flex';
+      
       updateSumFromSelect();
     }
 
@@ -1525,6 +1591,12 @@
       } else { 
           const levelId = document.getElementById('edit-level').value; const newId = 'CUSTOM_' + Date.now(); 
           const usedCols = state.subjects.filter(s => s.level === levelId).map(s => s.col); 
+          
+          if (usedCols.length >= NUM_COLUMNS) {
+              showToast('No hay espacio en este nivel para más materias. Libera espacio primero.', 'error');
+              return;
+          }
+
           let freeCol = 0; for (let i = 0; i < NUM_COLUMNS; i++) { if (!usedCols.includes(i)) { freeCol = i; break; } } 
           state.subjects.push({ id: newId, code: code, name: name, components: components, sum: sum, level: levelId, col: freeCol, tipoMateria: tipoMateria }); 
       }
