@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Malla Curricular Interactiva - ESPOL</title>
 
-  <!-- Librería para manipulación y generación de archivos Excel (.xlsx) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
@@ -30,7 +29,7 @@
       user-select: none;
     }
 
-    /* --- ENCABEZADO FIJO (STICKY HEADER) --- */
+    /* --- ENCABEZADO FIJO --- */
     .sticky-header {
       position: sticky;
       top: 0;
@@ -48,7 +47,7 @@
     h1 { text-align: center; margin-top: 0; margin-bottom: 4px; color: var(--primary-color); }
     
     .subtitle { 
-      text-align: center; font-size: 0.95em; color: #475569; margin-bottom: 12px; font-weight: 600; visibility: hidden; position: relative;
+      text-align: center; font-size: 0.95em; color: #475569; margin-bottom: 15px; font-weight: 600; visibility: hidden; position: relative;
     }
     .subtitle.visible { visibility: visible; }
     
@@ -56,19 +55,6 @@
       display: inline-flex; align-items: center; gap: 6px; cursor: pointer; color: var(--accent-color); padding: 2px 8px; border-radius: 4px; transition: background 0.2s;
     }
     .subtitle-dropdown:hover { background-color: #eff6ff; }
-
-    .legend-bar {
-      display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; font-size: 0.85em; font-weight: 600;
-    }
-
-    .legend-item { display: flex; align-items: center; gap: 8px; }
-    .legend-line { width: 30px; height: 3px; display: inline-block; border-radius: 2px; }
-    .legend-prereq { background-color: #64748b; }
-    .legend-coreq { background-color: transparent; border-top: 3px dashed var(--coreq-color); width: 30px; height: 0px; display: inline-block; }
-    .legend-box-basic { width: 16px; height: 16px; background-color: #ffffff; border: 2px solid #000000; border-radius: 4px; }
-
-    .basic-credits-badge { background-color: #ffffff; border: 2px solid #0f172a; color: #0f172a; padding: 5px 12px; border-radius: 16px; font-weight: 700; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    .total-credits-badge { background-color: #0f172a; border: 2px solid #1e293b; color: #ffffff; padding: 5px 12px; border-radius: 16px; font-weight: 700; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 
     .toolbar {
       display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); position: relative; 
@@ -84,6 +70,8 @@
 
     .btn-add { background-color: #10b981; color: white; border-color: #10b981; }
     .btn-add:hover { background-color: #059669; }
+    .btn-analytic { background-color: #f8fafc; color: #8b5cf6; border: 1px solid #c4b5fd; font-weight: 700; }
+    .btn-analytic:hover { background-color: #f3e8ff; color: #6d28d9; border-color: #a78bfa; }
     .btn-help { background-color: #f8fafc; color: #3b82f6; border: 1px solid #93c5fd; font-weight: 700; }
     .btn-help:hover { background-color: #eff6ff; color: #1d4ed8; border-color: #3b82f6; }
     .btn-icon-only { padding: 8px; width: 36px; display: flex; justify-content: center; align-items: center; }
@@ -102,12 +90,55 @@
     .btn-back-option { color: #64748b !important; background-color: #f8fafc; border-bottom: 1px solid var(--border-color); }
     .btn-back-option:hover { color: var(--primary-color) !important; background-color: #e2e8f0 !important; }
 
-    #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+    #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 5000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
     .toast { background-color: #1e293b; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-weight: 600; font-size: 0.9em; opacity: 0; transform: translateY(20px); transition: opacity 0.3s, transform 0.3s; display: flex; align-items: center; gap: 10px; }
     .toast.show { opacity: 1; transform: translateY(0); }
     .toast.success { border-left: 5px solid #10b981; }
     .toast.error { border-left: 5px solid #ef4444; }
     .toast.info { border-left: 5px solid #3b82f6; }
+
+    /* --- PANEL ANALÍTICO (OFFCANVAS) --- */
+    .analytics-panel {
+        position: fixed; top: 0; left: -420px; width: 400px; height: 100vh;
+        background: #ffffff; z-index: 2000; box-shadow: 4px 0 25px rgba(0,0,0,0.15);
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; 
+        padding: 25px; box-sizing: border-box; border-right: 1px solid var(--border-color);
+    }
+    .analytics-panel.open { left: 0; }
+    .close-panel {
+        position: absolute; top: 15px; right: 20px; background: none; border: none;
+        font-size: 22px; cursor: pointer; color: #94a3b8; transition: color 0.2s; padding: 5px;
+    }
+    .close-panel:hover { color: #0f172a; background: none; }
+    .panel-header { font-size: 1.3em; color: var(--primary-color); margin-top: 0; margin-bottom: 25px; font-weight: 800; display: flex; align-items: center; gap: 8px;}
+    .panel-section { margin-bottom: 25px; }
+    .panel-section h3 { font-size: 1.05em; color: var(--primary-color); margin-top: 0; margin-bottom: 12px; border-bottom: 2px solid #f1f5f9; padding-bottom: 5px;}
+    
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;}
+    .stat-box { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: left; box-shadow: 0 1px 2px rgba(0,0,0,0.02);}
+    .stat-box b { display: block; font-size: 1.4em; color: #0f172a; line-height: 1; margin-bottom: 4px;}
+    .stat-box span { font-size: 0.75em; color: #64748b; font-weight: 500;}
+    .panel-note { font-size: 0.7em; color: #64748b; line-height: 1.4; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;}
+    
+    .config-label { display: flex; justify-content: space-between; align-items: center; font-size: 0.85em; font-weight: 500; margin-bottom: 12px; color: #334155;}
+    .config-label input, .config-label select { width: 90px; padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; text-align: center; font-weight: 700; color: #0f172a; background: #f8fafc;}
+    .config-label input:focus, .config-label select:focus { outline: none; border-color: var(--accent-color); background: #fff;}
+    
+    .type-row, .sem-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed #e2e8f0; }
+    .type-row:last-child, .sem-row:last-child { border-bottom: none; }
+    .type-color { width: 18px; height: 18px; border-radius: 4px; border: 2px solid #000000; margin-right: 10px; display: inline-block; flex-shrink: 0;}
+    .type-name { font-size: 0.8em; font-weight: 500; color: #334155; flex: 1; line-height: 1.2;}
+    .type-vals { text-align: right; }
+    .type-vals b { font-size: 0.9em; display: block; color: var(--primary-color);}
+    .type-vals span { font-size: 0.7em; color: #64748b; }
+    
+    .sem-row { background: #f8fafc; margin-bottom: 6px; padding: 10px 15px; border-radius: 8px; border: none; }
+    .sem-name { font-size: 0.85em; font-weight: 600; color: #334155; text-transform: uppercase;}
+    .sem-credits { font-size: 0.9em; font-weight: 800; color: #0f172a;}
+    .status-icon { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; font-size: 11px; margin-left: 12px; font-weight: bold;}
+    .status-ok { background: #dcfce7; color: #059669; }
+    .status-warn { background: #fee2e2; color: #dc2626; }
+    .status-star { background: #e0e7ff; color: #4f46e5; }
 
     /* Contenedores de la malla */
     .board-container { width: 100%; overflow-x: auto; padding-top: 5px; padding-bottom: 25px; cursor: grab; }
@@ -117,7 +148,7 @@
     svg#connections-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5 !important; }
     svg#ghost-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50 !important; }
     
-    .board { display: flex; flex-direction: column; gap: 32px; position: relative; padding-top: 45px; }
+    .board { display: flex; flex-direction: column; gap: 32px; position: relative; padding-top: 15px; }
 
     /* --- DISEÑO DEL NIVEL (PANEL IZQUIERDO ESTILO TARJETA Y FIJO) --- */
     .level-row { 
@@ -140,12 +171,12 @@
     .level-header::after {
       content: '';
       position: absolute;
-      top: 100%; /* Cae justo debajo de la tarjeta */
+      top: 100%; 
       left: 0;
       width: 100%;
-      height: 34px; /* 32px del gap + 2px de margen de seguridad para evitar parpadeos */
-      background-color: var(--bg-color); /* Mismo color del fondo de la app */
-      box-shadow: 6px 0 10px rgba(0,0,0,0.04); /* Continúa la sombra lateral */
+      height: 34px; 
+      background-color: var(--bg-color); 
+      box-shadow: 6px 0 10px rgba(0,0,0,0.04); 
       z-index: 30;
     }
 
@@ -173,39 +204,16 @@
     .grid-cell.drag-over { background-color: #e0f2fe; border-color: var(--accent-color); }
     .grid-cell.drag-over-connect { background-color: #ecfdf5; border-color: #10b981; }
 
-    /* --- NUEVOS INDICADORES VISUALES DE INSERCIÓN (LÍNEA DIVISORIA AZUL) --- */
-    .grid-cell.insert-indicator {
-        background-color: rgba(37, 99, 235, 0.05);
-        border-color: var(--accent-color);
-    }
+    .grid-cell.insert-indicator { background-color: rgba(37, 99, 235, 0.05); border-color: var(--accent-color); }
     .grid-cell.insert-indicator::before {
-        content: ''; 
-        position: absolute; 
-        left: -9px; 
-        top: -5px; 
-        bottom: -5px; 
-        width: 4px; 
-        background-color: var(--accent-color); 
-        border-radius: 4px; 
-        z-index: 50; 
-        box-shadow: 0 0 8px rgba(37, 99, 235, 0.6);
+        content: ''; position: absolute; left: -9px; top: -5px; bottom: -5px; width: 4px; 
+        background-color: var(--accent-color); border-radius: 4px; z-index: 50; box-shadow: 0 0 8px rgba(37, 99, 235, 0.6);
     }
 
-    .grid-cell.insert-indicator-right {
-        background-color: rgba(37, 99, 235, 0.05);
-        border-color: var(--accent-color);
-    }
+    .grid-cell.insert-indicator-right { background-color: rgba(37, 99, 235, 0.05); border-color: var(--accent-color); }
     .grid-cell.insert-indicator-right::after {
-        content: ''; 
-        position: absolute; 
-        right: -9px; 
-        top: -5px; 
-        bottom: -5px; 
-        width: 4px; 
-        background-color: var(--accent-color); 
-        border-radius: 4px; 
-        z-index: 50; 
-        box-shadow: 0 0 8px rgba(37, 99, 235, 0.6);
+        content: ''; position: absolute; right: -9px; top: -5px; bottom: -5px; width: 4px; 
+        background-color: var(--accent-color); border-radius: 4px; z-index: 50; box-shadow: 0 0 8px rgba(37, 99, 235, 0.6);
     }
 
     /* --- TARJETAS: BORDE NEGRO Y NUEVA ALTURA (100px) --- */
@@ -249,7 +257,6 @@
     .subject-card.highlight-next { border: 3.5px solid var(--highlight-next) !important; background-color: #ecfdf5 !important; color: #0f172a !important; box-shadow: 0 0 10px rgba(16, 185, 129, 0.4) !important; border-radius: 8px !important; }
     .subject-card.highlight-next * { color: #0f172a !important; }
 
-    /* BOTÓN CONECTOR INFERIOR */
     .connector-btn { 
         position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); 
         width: 24px; height: 24px; background-color: #10b981; color: white; 
@@ -278,7 +285,7 @@
     #conn-delete-tooltip { position: fixed; background: #dc2626; color: white; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; pointer-events: none; z-index: 9999; opacity: 0; transition: opacity 0.1s ease; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.15); }
     #conn-delete-tooltip.visible { opacity: 1; }
 
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.5); display: none; justify-content: center; align-items: flex-start; z-index: 200; padding: 0 15px 15px 15px; box-sizing: border-box; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.5); display: none; justify-content: center; align-items: flex-start; z-index: 2000; padding: 0 15px 15px 15px; box-sizing: border-box; }
     .modal { background: white; border-radius: 10px; padding: 24px; width: 420px; max-width: 90vw; max-height: 85vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin-top: 30px; transition: margin-top 0.1s ease-out; }
     .modal h2 { margin-top: 0; font-size: 1.2em; color: var(--primary-color); }
     .form-group { margin-bottom: 14px; }
@@ -289,7 +296,7 @@
 </head>
 <body>
 
-  <!-- SVG DEFS OCULTO PARA LAS PUNTAS DE FLECHA -->
+  <!-- SVG DEFS -->
   <svg style="width:0; height:0; position:absolute;" aria-hidden="true">
     <defs>
       <marker id="arrowhead" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" /></marker>
@@ -301,6 +308,64 @@
 
   <div id="conn-delete-tooltip">🗑️ Doble clic para eliminar</div>
   <div id="toast-container"></div>
+
+  <!-- PANEL ANALÍTICO LATERAL -->
+  <div id="analytics-panel" class="analytics-panel">
+    <button class="close-panel" onclick="toggleAnalyticsPanel()">✖</button>
+    <h2 class="panel-header">📊 Auditoría Curricular</h2>
+
+    <!-- Resumen del programa -->
+    <div class="panel-section">
+       <h3>Resumen del programa</h3>
+       <div class="stats-grid">
+          <div class="stat-box"><b id="stat-subjs">0</b><span>Asignaturas</span></div>
+          <div class="stat-box"><b id="stat-creds">0</b><span>Créditos</span></div>
+          <div class="stat-box"><b id="stat-hsem">0</b><span>Horas en semestres</span></div>
+          <div class="stat-box"><b id="stat-hprog">0</b><span>Horas del programa</span></div>
+          <div class="stat-box"><b id="stat-acd">0</b><span>Contacto docente</span></div>
+          <div class="stat-box"><b id="stat-ape">0</b><span>Práctico experimental</span></div>
+       </div>
+       <div class="stats-grid" style="grid-template-columns: 1fr;">
+          <div class="stat-box" style="text-align: center;"><b id="stat-aa">0</b><span>Aprendizaje autónomo</span></div>
+       </div>
+       <p class="panel-note">Estos tres últimos totales incluyen únicamente asignaturas regulares asignadas a semestres activos. Excluyen Prácticas Comunitarias, Empresariales y la Unidad de Integración Curricular.</p>
+    </div>
+
+    <!-- Configuración -->
+    <div class="panel-section">
+       <h3>Configuración</h3>
+       <label class="config-label">Duración de la carrera 
+           <select id="conf-semesters" onchange="updateConfig()">
+               <option value="9">9 Semestres</option>
+               <option value="8">8 Semestres</option>
+           </select>
+       </label>
+       <label class="config-label">Créditos mínimos objetivo <input type="number" id="conf-min" value="14" onchange="updateConfig()"></label>
+       <label class="config-label">Créditos máximos objetivo <input type="number" id="conf-max" value="16" onchange="updateConfig()"></label>
+       <label class="config-label">Divisor de créditos <input type="number" id="conf-div" value="3" onchange="updateConfig()"></label>
+       <label class="config-label">Semanas / semestre <input type="number" id="conf-weeks" value="16" onchange="updateConfig()"></label>
+    </div>
+
+    <!-- Integración Curricular -->
+    <div class="panel-section">
+       <h3>Integración Curricular</h3>
+       <label class="config-label">Créditos del proyecto integrador <input type="number" id="conf-intC" value="5" onchange="updateConfig()"></label>
+       <label class="config-label">Horas del proyecto integrador <input type="number" id="conf-intH" value="240" onchange="updateConfig()"></label>
+       <p class="panel-note">Estos valores se sumarán automáticamente a la carga de la Materia con etiqueta "U DE INTEGRACIÓN CURRICULAR" que agregues a la malla.</p>
+    </div>
+
+    <!-- Horas por tipo -->
+    <div class="panel-section">
+       <h3>Horas por tipo de asignatura</h3>
+       <div id="type-stats-list"></div>
+    </div>
+
+    <!-- Créditos por semestre -->
+    <div class="panel-section" style="margin-bottom: 50px;">
+       <h3>Créditos por semestre</h3>
+       <div id="semester-stats-list"></div>
+    </div>
+  </div>
 
   <!-- ENCABEZADO FIJO -->
   <div class="sticky-header">
@@ -315,18 +380,15 @@
       </span>
     </div>
 
-    <div class="legend-bar">
-      <div class="legend-item"><span class="legend-line legend-prereq"></span><span>Prerrequisito</span></div>
-      <div class="legend-item"><span class="legend-coreq"></span><span>Correquisito</span></div>
-      <div class="legend-item"><span class="legend-box-basic"></span><span>Ciencias Básicas</span></div>
-      <div class="basic-credits-badge" id="basic-credits-summary">📐 Créditos Ciencias Básicas: 0</div>
-      <div class="total-credits-badge" id="total-credits-summary">🎓 Total Créditos Malla: 0</div>
-    </div>
-
     <div class="toolbar">
       <div class="toolbar-group">
         <button id="btn-toggle-lines" class="active" onclick="toggleLineType()">📐 Líneas: Rectas</button>
         <button class="btn-add" onclick="openModalForCreate(event)">➕ Nueva Materia</button>
+      </div>
+      <div class="toolbar-divider"></div>
+
+      <div class="toolbar-group">
+        <button class="btn-analytic" onclick="toggleAnalyticsPanel()">📊 Panel Analítico</button>
       </div>
       <div class="toolbar-divider"></div>
 
@@ -497,7 +559,7 @@
         </select>
       </div>
       <div class="form-group">
-        <label>Horas Totales Semanales:</label>
+        <label>Horas Totales Semanales (Sin extra de Integración):</label>
         <input type="number" id="edit-sum" placeholder="Calculado automáticamente" readonly style="background-color: #f1f5f9; cursor: not-allowed; font-weight: bold; color: #475569;">
       </div>
       
@@ -508,7 +570,7 @@
           <option value="L200-1">NIVEL 200 - I</option><option value="L200-2">NIVEL 200 - II</option>
           <option value="L300-1">NIVEL 300 - I</option><option value="L300-2">NIVEL 300 - II</option>
           <option value="L400-1">NIVEL 400 - I</option><option value="L400-2">NIVEL 400 - II</option>
-          <option value="L500-1">NIVEL 500 - I</option>
+          <option value="L500-1" id="opt-l500">NIVEL 500 - I</option>
         </select>
       </div>
       <div class="modal-actions">
@@ -523,8 +585,8 @@
     <div class="modal" id="help-modal-box" style="width: 580px;" onclick="event.stopPropagation()">
       <h2 style="margin-top: 0; color: var(--primary-color);">Guía de Uso: Malla Curricular Interactiva</h2>
       <ul style="padding-left: 20px; color: #475569; font-size: 0.95em; line-height: 1.6; text-align: justify;">
-        <li><b>Desplazamiento Multi-Direccional:</b> Puedes moverte arrastrando el fondo blanco con el ratón. Al conectar materias o moverlas, la pantalla se desplazará sola si te acercas a los bordes laterales o a la parte superior/inferior.</li>
-        <li><b>Mover vs Conectar:</b> Arrastra la materia desde cualquier parte blanca para moverla. Para crear un requisito, arrastra o haz clic en el botón <b>"+"</b> de la parte INFERIOR hacia la materia destino.</li>
+        <li><b>Desplazamiento Multi-Direccional:</b> Puedes moverte arrastrando el fondo blanco con el ratón. Al conectar materias o moverlas, la pantalla se desplazará sola si te acercas a los bordes.</li>
+        <li><b>Panel Analítico:</b> Utiliza el botón 📊 Panel Analítico para revisar las métricas, configurar divisor de créditos, duración de la carrera y validar el cumplimiento semestral.</li>
         <li><b>Insertar y Desplazar:</b> Si arrastras una materia sobre un espacio ya ocupado, aparecerá una línea azul indicando que la materia se insertará ahí y las demás se empujarán a la derecha automáticamente.</li>
       </ul>
       <div class="modal-actions" style="justify-content: flex-end; margin-top: 25px;">
@@ -537,6 +599,15 @@
     const NUM_COLUMNS = 8;
     const initialData = {
       "baseCareer": null,
+      "config": {
+          "semesters": 9,
+          "minC": 14,
+          "maxC": 16,
+          "divC": 3,
+          "weeks": 16,
+          "intC": 5,
+          "intH": 240
+      },
       "levels": [
         { "id": "L100-1", "name": "NIVEL 100 - I" }, { "id": "L100-2", "name": "NIVEL 100 - II" },
         { "id": "L200-1", "name": "NIVEL 200 - I" }, { "id": "L200-2", "name": "NIVEL 200 - II" },
@@ -547,6 +618,7 @@
       "subjects": [], "connections": []
     };
 
+    const niceSemesterNames = ['SEMESTRE I', 'SEMESTRE II', 'SEMESTRE III', 'SEMESTRE IV', 'SEMESTRE V', 'SEMESTRE VI', 'SEMESTRE VII', 'SEMESTRE VIII', 'SEMESTRE IX'];
     const allowedCombinations = ["1/1/1", "2/0/1", "4/0/2", "2/0/4", "2/1/3", "2/2/2", "3/0/3", "3/0/6", "0/0/6", "3/1/5", "3/2/4", "4/0/5", "4/1/4", "0/0/9", "4/0/8", "4/1/7", "5/0/7", "0/0/15"];
 
     function isValidCombination(compStr) {
@@ -574,6 +646,124 @@
     window.dragAction = null; 
     window.draggedId = null; 
 
+    // --- PANEL OFFCANVAS ---
+    function toggleAnalyticsPanel() {
+        const panel = document.getElementById('analytics-panel');
+        panel.classList.toggle('open');
+    }
+
+    function updateConfig() {
+        if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config));
+        
+        state.config.semesters = parseInt(document.getElementById('conf-semesters').value);
+        state.config.minC = parseFloat(document.getElementById('conf-min').value);
+        state.config.maxC = parseFloat(document.getElementById('conf-max').value);
+        state.config.divC = parseFloat(document.getElementById('conf-div').value) || 1; 
+        state.config.weeks = parseFloat(document.getElementById('conf-weeks').value);
+        state.config.intC = parseFloat(document.getElementById('conf-intC').value);
+        state.config.intH = parseFloat(document.getElementById('conf-intH').value);
+        
+        persistState();
+        renderBoard();
+        drawConnections();
+        updateAnalyticsPanel();
+    }
+
+    function updateAnalyticsPanel() {
+       if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config));
+       const cfg = state.config;
+       
+       let totalSubjects = 0;
+       let totalCredits = 0;
+       let acd = 0, ape = 0, aa = 0;
+       
+       const excludedTypes = ["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS EMPRESARIALES", "U DE INTEGRACIÓN CURRICULAR"];
+       const typeMap = {};
+       
+       const visibleLevelIds = state.levels.slice(0, cfg.semesters).map(l => l.id);
+       
+       state.subjects.forEach(s => {
+          if(!visibleLevelIds.includes(s.level)) return;
+          
+          totalSubjects++;
+          const creds = calculateCredits(s);
+          totalCredits += creds;
+          
+          const hours = parseHoursComponents(s.components);
+          if(!excludedTypes.includes(s.tipoMateria)) {
+             acd += hours.acd * cfg.weeks;
+             ape += hours.ape * cfg.weeks;
+             aa += hours.aa * cfg.weeks;
+          }
+          
+          let tipo = s.tipoMateria || "FORMACIÓN PROFESIONAL";
+          if(!typeMap[tipo]) typeMap[tipo] = { h: 0, c: 0, class: getTypeClass(tipo) };
+          
+          typeMap[tipo].c += creds;
+          let subHours = s.sum * cfg.weeks;
+          if(tipo === "U DE INTEGRACIÓN CURRICULAR") subHours += cfg.intH;
+          typeMap[tipo].h += subHours;
+       });
+       
+       document.getElementById('stat-subjs').innerText = totalSubjects;
+       document.getElementById('stat-creds').innerText = totalCredits.toFixed(1).replace('.0','');
+       
+       const horasSemestres = totalCredits * cfg.divC * cfg.weeks;
+       document.getElementById('stat-hsem').innerText = horasSemestres.toFixed(0);
+       
+       const baseCr = cfg.semesters === 9 ? 135 : 120;
+       const horasProg = baseCr * cfg.divC * cfg.weeks;
+       document.getElementById('stat-hprog').innerText = horasProg.toFixed(0);
+       
+       document.getElementById('stat-acd').innerText = acd.toFixed(0);
+       document.getElementById('stat-ape').innerText = ape.toFixed(0);
+       document.getElementById('stat-aa').innerText = aa.toFixed(0);
+       
+       const typeContainer = document.getElementById('type-stats-list');
+       typeContainer.innerHTML = '';
+       for(const [t, data] of Object.entries(typeMap)) {
+           typeContainer.innerHTML += `
+              <div class="type-row">
+                 <div style="display:flex; align-items:center;">
+                    <div class="type-color ${data.class}"></div>
+                    <span class="type-name">${t}</span>
+                 </div>
+                 <div class="type-vals">
+                    <b>${data.h.toFixed(0)} h</b>
+                    <span>${data.c.toFixed(1).replace('.0','')} créditos</span>
+                 </div>
+              </div>
+           `;
+       }
+       
+       const semContainer = document.getElementById('semester-stats-list');
+       semContainer.innerHTML = '';
+       
+       state.levels.slice(0, cfg.semesters).forEach((lvl, idx) => {
+           const subjs = state.subjects.filter(s => s.level === lvl.id);
+           const lvlCreds = subjs.reduce((acc, s) => acc + calculateCredits(s), 0);
+           
+           let iconHtml = '';
+           if(idx === cfg.semesters - 1) {
+               iconHtml = `<div class="status-icon status-star">⭐</div>`;
+           } else if (lvlCreds >= cfg.minC && lvlCreds <= cfg.maxC) {
+               iconHtml = `<div class="status-icon status-ok">✅</div>`;
+           } else {
+               iconHtml = `<div class="status-icon status-warn" title="Mínimo ${cfg.minC}, Máximo ${cfg.maxC}">⚠️</div>`;
+           }
+           
+           semContainer.innerHTML += `
+              <div class="sem-row">
+                 <span class="sem-name">${niceSemesterNames[idx]}</span>
+                 <div style="display:flex; align-items:center;">
+                    <span class="sem-credits">${lvlCreds.toFixed(1).replace('.0','')} cr</span>
+                    ${iconHtml}
+                 </div>
+              </div>
+           `;
+       });
+    }
+
     // --- LÓGICA DE PANNING / DRAG-TO-SCROLL ---
     let isPanning = false;
     let startX;
@@ -583,7 +773,7 @@
     const boardContainer = document.getElementById('board-container');
     
     boardContainer.addEventListener('mousedown', (e) => {
-        if (e.target.closest('.subject-card') || e.target.closest('button') || e.target.closest('.toolbar') || e.target.tagName.toLowerCase() === 'path') return;
+        if (e.target.closest('.subject-card') || e.target.closest('button') || e.target.closest('.toolbar') || e.target.tagName.toLowerCase() === 'path' || e.target.closest('.analytics-panel')) return;
         isPanning = true; 
         startX = e.clientX; 
         startY = e.clientY;
@@ -683,8 +873,11 @@
     }
 
     function calculateCredits(subj) {
-      const baseCredits = subj.sum / 3;
-      if (subj.isIntegradora || subj.name.toUpperCase().includes("INTEGRADORA") || subj.tipoMateria === "U DE INTEGRACIÓN CURRICULAR") return baseCredits + 5;
+      if(!state.config) return subj.sum / 3;
+      const baseCredits = subj.sum / state.config.divC;
+      if (subj.tipoMateria === "U DE INTEGRACIÓN CURRICULAR") {
+          return baseCredits + state.config.intC;
+      }
       return baseCredits;
     }
 
@@ -842,13 +1035,13 @@
     function undo() {
       if (historyStack.length === 0) return;
       redoStack.push(JSON.stringify(state)); state = JSON.parse(historyStack.pop()); persistState();
-      pinnedSubjectId = null; renderBoard(); drawConnections(); updateUndoRedoButtons(); updateSubtitleUI();
+      pinnedSubjectId = null; renderBoard(); drawConnections(); updateUndoRedoButtons(); updateSubtitleUI(); updateAnalyticsPanel();
     }
 
     function redo() {
       if (redoStack.length === 0) return;
       historyStack.push(JSON.stringify(state)); state = JSON.parse(redoStack.pop()); persistState();
-      pinnedSubjectId = null; renderBoard(); drawConnections(); updateUndoRedoButtons(); updateSubtitleUI();
+      pinnedSubjectId = null; renderBoard(); drawConnections(); updateUndoRedoButtons(); updateSubtitleUI(); updateAnalyticsPanel();
     }
 
     function updateUndoRedoButtons() {
@@ -940,18 +1133,7 @@
         if (!pendingDeleteConn) return;
         saveStateToHistory();
         state.connections = state.connections.filter(c => !(c.from === pendingDeleteConn.fromId && c.to === pendingDeleteConn.toId) && !(c.from === pendingDeleteConn.toId && c.to === pendingDeleteConn.fromId));
-        persistState(); drawConnections(); closeDeleteConnModal(); showToast('Conexión eliminada.', 'info');
-    }
-
-    function updateCreditsSummary() {
-      const basicSubjects = state.subjects.filter(s => s.tipoMateria === 'MATEMÁTICAS Y CIENCIAS BÁSICAS');
-      const totalBasicCredits = basicSubjects.reduce((acc, curr) => acc + calculateCredits(curr), 0);
-      const basicSummaryEl = document.getElementById('basic-credits-summary');
-      if (basicSummaryEl) { basicSummaryEl.innerHTML = `📐 Créditos Ciencias Básicas: <b>${totalBasicCredits}</b>`; }
-
-      const grandTotalCredits = state.subjects.length > 0 ? state.subjects.reduce((acc, curr) => acc + calculateCredits(curr), 0) + 5 : 0;
-      const totalSummaryEl = document.getElementById('total-credits-summary');
-      if (totalSummaryEl) { totalSummaryEl.innerHTML = `🎓 Total Créditos Malla: <b>${grandTotalCredits}</b>`; }
+        persistState(); drawConnections(); closeDeleteConnModal(); updateAnalyticsPanel(); showToast('Conexión eliminada.', 'info');
     }
 
     window.updateSumFromSelect = function() {
@@ -971,7 +1153,7 @@
 
       document.body.addEventListener('click', (e) => {
         if (!e.target.closest('.dropbtn') && !e.target.closest('.dropdown-content') && !e.target.closest('.subtitle-dropdown')) { closeAllDropdowns(); }
-        if (!e.target.closest('.subject-card') && !e.target.closest('.toolbar') && !e.target.closest('.modal')) {
+        if (!e.target.closest('.subject-card') && !e.target.closest('.toolbar') && !e.target.closest('.modal') && !e.target.closest('.analytics-panel')) {
           pinnedSubjectId = null; clearHighlights(); document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned'));
         }
       });
@@ -982,8 +1164,14 @@
       if (tempSavedState) {
         try {
           const parsed = JSON.parse(tempSavedState);
-          if (parsed.stateData) { state = parsed.stateData; if(parsed.linePreference) lineType = parsed.linePreference; } 
-          else { state = parsed; }
+          if (parsed.stateData) { 
+              state = parsed.stateData; 
+              if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config)); // Legacy support
+              if(parsed.linePreference) lineType = parsed.linePreference; 
+          } else { 
+              state = parsed; 
+              if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config)); // Legacy support
+          }
         } catch(e){}
         tempSavedState = null;
       }
@@ -998,32 +1186,51 @@
     }
 
     function finishInit() {
+      if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config));
+      
+      document.getElementById('conf-semesters').value = state.config.semesters;
+      document.getElementById('conf-min').value = state.config.minC;
+      document.getElementById('conf-max').value = state.config.maxC;
+      document.getElementById('conf-div').value = state.config.divC;
+      document.getElementById('conf-weeks').value = state.config.weeks;
+      document.getElementById('conf-intC').value = state.config.intC;
+      document.getElementById('conf-intH').value = state.config.intH;
+
       updateSubtitleUI(); applyLineTypeUI(); 
       if (state.baseCareer) { loadBaseCareerCodes(state.baseCareer); } 
       else { renderBoard(); setTimeout(drawConnections, 100); }
-      window.addEventListener('resize', drawConnections); updateUndoRedoButtons();
+      
+      window.addEventListener('resize', drawConnections); 
+      updateUndoRedoButtons();
+      updateAnalyticsPanel();
     }
 
     function renderBoard() {
       const board = document.getElementById('board'); board.innerHTML = '';
+      if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config));
+      const visibleLevels = state.levels.slice(0, state.config.semesters);
 
-      state.levels.forEach(level => {
+      visibleLevels.forEach(level => {
         const row = document.createElement('div'); row.className = 'level-row';
         const subjectsInLevel = state.subjects.filter(s => s.level === level.id);
         const totalCredits = subjectsInLevel.reduce((acc, curr) => acc + calculateCredits(curr), 0);
-        let totalACD = 0; let totalAPE = 0; let totalAA = 0;
         
+        let totalACD = 0; let totalAPE = 0; let totalAA = 0;
+        let integracionH = 0;
+
         subjectsInLevel.forEach(subj => {
-          const hours = parseHoursComponents(subj.components); totalACD += hours.acd; totalAPE += hours.ape; totalAA += hours.aa;
+          const hours = parseHoursComponents(subj.components); 
+          totalACD += hours.acd; totalAPE += hours.ape; totalAA += hours.aa;
+          if(subj.tipoMateria === "U DE INTEGRACIÓN CURRICULAR") integracionH += state.config.intH;
         });
         
         let totalHoursWeekly = totalACD + totalAPE + totalAA;
-        let totalHoursSemester = totalHoursWeekly * 16;
+        let totalHoursSemester = (totalHoursWeekly * state.config.weeks) + integracionH;
 
         row.innerHTML = `
           <div class="level-header">
             <div class="level-title">${level.name}</div>
-            <div class="level-badge">${totalCredits} Créditos</div>
+            <div class="level-badge">${totalCredits.toFixed(1).replace('.0','')} Créditos</div>
             <div class="level-hours-week">${totalHoursWeekly} h/semana</div>
             <div class="level-hours-breakdown">ACD: ${totalACD}h | APE: ${totalAPE}h | AA: ${totalAA}h</div>
             <div class="level-divider"></div>
@@ -1064,13 +1271,10 @@
           gridContainer.appendChild(cell);
         }
       });
-      updateCreditsSummary();
+      
+      const optL500 = document.getElementById('opt-l500');
+      if(optL500) optL500.style.display = state.config.semesters === 9 ? 'block' : 'none';
     }
-
-    window.startConnectDrag = function(e, id) { 
-        e.stopPropagation(); window.dragAction = 'connect'; window.draggedId = id;
-        e.dataTransfer.setData('text/plain', JSON.stringify({ action: 'connect', id: id })); 
-    };
 
     function createSubjectCard(subj) {
       const card = document.createElement('div'); const isPinned = (pinnedSubjectId === subj.id);
@@ -1116,7 +1320,7 @@
       if (levelIdx1 <= levelIdx2) { prereqId = sourceId; dependentId = targetId; } else { prereqId = targetId; dependentId = sourceId; }
 
       const existingIdx = state.connections.findIndex(c => (c.from === prereqId && c.to === dependentId) || (c.from === dependentId && c.to === prereqId));
-      if (existingIdx === -1) { saveStateToHistory(); state.connections.push({ from: prereqId, to: dependentId }); persistState(); drawConnections(); showToast('Conexión agregada exitosamente.', 'success'); } 
+      if (existingIdx === -1) { saveStateToHistory(); state.connections.push({ from: prereqId, to: dependentId }); persistState(); drawConnections(); updateAnalyticsPanel(); showToast('Conexión agregada exitosamente.', 'success'); } 
       else { showToast('Esta conexión ya existe.', 'info'); }
     }
 
@@ -1207,7 +1411,7 @@
         subject.level = targetLevelId; 
         subject.col = targetCol;
 
-        persistState(); closeMoveModals(); renderBoard(); drawConnections(); if (pinnedSubjectId) highlightConnections(pinnedSubjectId); pendingMove = null;
+        persistState(); closeMoveModals(); renderBoard(); drawConnections(); updateAnalyticsPanel(); if (pinnedSubjectId) highlightConnections(pinnedSubjectId); pendingMove = null;
     }
 
     function cancelPendingMove() { pendingMove = null; closeMoveModals(); }
@@ -1315,9 +1519,12 @@
           });
       }
 
-      saveStateToHistory(); state = dataToApply; persistState(); pinnedSubjectId = null; updateSubtitleUI(); 
+      saveStateToHistory(); state = dataToApply; 
+      if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config)); // Legacy
       
-      if (state.baseCareer) { loadBaseCareerCodes(state.baseCareer); } else { renderBoard(); drawConnections(); }
+      persistState(); pinnedSubjectId = null; updateSubtitleUI(); 
+      
+      if (state.baseCareer) { loadBaseCareerCodes(state.baseCareer); } else { renderBoard(); drawConnections(); updateAnalyticsPanel(); }
       showToast('Malla cargada con éxito.', 'success');
     }
 
@@ -1531,9 +1738,11 @@
         // --- PESTAÑA 2: MALLA CURRICULAR ---
         const worksheet = workbook.getWorksheet('MALLA CURRICULAR');
         let globalACD = 0; let globalAPE = 0; let globalAA = 0;
+        
+        const visibleLevels = state.levels.slice(0, state.config.semesters);
 
-        for (let lvlIdx = 0; lvlIdx < state.levels.length; lvlIdx++) {
-          const levelId = state.levels[lvlIdx].id; const nameRow = 6 + (lvlIdx * 4); const hoursRow = 7 + (lvlIdx * 4);
+        for (let lvlIdx = 0; lvlIdx < visibleLevels.length; lvlIdx++) {
+          const levelId = visibleLevels[lvlIdx].id; const nameRow = 6 + (lvlIdx * 4); const hoursRow = 7 + (lvlIdx * 4);
           let levelACD = 0; let levelAPE = 0; let levelAA = 0;
 
           for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
@@ -1630,7 +1839,7 @@
           state.subjects.push({ id: newId, code: code, name: name, components: components, sum: sum, level: levelId, col: freeCol, tipoMateria: tipoMateria }); 
       }
       
-      persistState(); closeModal(); renderBoard(); drawConnections();
+      persistState(); closeModal(); renderBoard(); drawConnections(); updateAnalyticsPanel();
       showToast(id ? 'Materia actualizada.' : 'Nueva materia agregada.', 'success');
     }
 
@@ -1638,14 +1847,14 @@
       const id = document.getElementById('edit-id').value; if (!id) return;
       if (confirm('¿Seguro que deseas eliminar esta materia?')) { 
         saveStateToHistory(); state.subjects = state.subjects.filter(s => s.id !== id); state.connections = state.connections.filter(c => c.from !== id && c.to !== id); 
-        persistState(); pinnedSubjectId = null; closeModal(); renderBoard(); drawConnections(); showToast('Materia eliminada.', 'info');
+        persistState(); pinnedSubjectId = null; closeModal(); renderBoard(); drawConnections(); updateAnalyticsPanel(); showToast('Materia eliminada.', 'info');
       }
     }
 
     function resetLayout() {
       if (confirm('¿Deseas vaciar la malla y borrar todo el contenido?')) { 
         saveStateToHistory(); state = JSON.parse(JSON.stringify(initialData)); persistState();
-        baseSubjectCodes = []; pinnedSubjectId = null; updateSubtitleUI(); renderBoard(); drawConnections(); showToast('Malla vaciada exitosamente.', 'info');
+        baseSubjectCodes = []; pinnedSubjectId = null; updateSubtitleUI(); renderBoard(); drawConnections(); updateAnalyticsPanel(); showToast('Malla vaciada exitosamente.', 'info');
       }
     }
 
