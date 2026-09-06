@@ -188,7 +188,7 @@
     
     .board { display: flex; flex-direction: column; gap: 32px; position: relative; padding-top: 15px; }
 
-    /* --- DISEÑO DEL NIVEL (PANEL IZQUIERDO ESTILO TARJETA Y FIJO) --- */
+    /* --- DISEÑO DEL NIVEL --- */
     .level-row { 
       display: flex; flex-direction: row; background: #ffffff; border-radius: 8px; 
       border: 1px solid var(--border-color); min-height: 135px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
@@ -200,12 +200,11 @@
       border-right: 1px solid var(--border-color); border-radius: 8px 0 0 8px; 
       display: flex; flex-direction: column; justify-content: center; align-items: center; 
       padding: 15px; text-align: center; box-sizing: border-box;
-      
       position: sticky; left: 0; z-index: 30; 
       box-shadow: 6px 0 10px rgba(0,0,0,0.04); 
     }
 
-    /* --- ESCUDO INVISIBLE (TAPA LAS LÍNEAS EN LOS HUECOS) --- */
+    /* --- ESCUDO INVISIBLE --- */
     .level-header::after {
       content: '';
       position: absolute;
@@ -273,12 +272,10 @@
     .type-matematicas-y-ciencias-basicas { background-color: #ffffff !important; }
     .type-educacion-general { background-color: #e2e8f0 !important; }
     .type-c-de-arte-y-deportes { background-color: #ffedd5 !important; }
-    
     .type-u-de-integracion-curricular { background-color: #0f172a !important; }
     .type-u-de-integracion-curricular .subject-header, 
     .type-u-de-integracion-curricular .subject-title, 
     .type-u-de-integracion-curricular .subject-footer { color: #ffffff !important; }
-    
     .type-itinerario { background-color: #7ba2c9 !important; }
     .type-practicas-comunitarias { background-color: #fde047 !important; }
     .type-formacion-profesional { background-color: #fef08a !important; border-radius: 0 !important; }
@@ -585,6 +582,7 @@
         <select id="edit-tipo-materia" style="font-weight: 600; color: #0f172a; background-color: #f8fafc;">
           <option value="MATEMÁTICAS Y CIENCIAS BÁSICAS">MATEMÁTICAS Y CIENCIAS BÁSICAS</option>
           <option value="EDUCACIÓN GENERAL">EDUCACIÓN GENERAL</option>
+          <!-- NOMBRES FORMALES PARA LA CREACIÓN -->
           <option value="C. DE ARTE Y DEPORTES">COMPLEMENTARIA DE ARTES, DEPORTES E IDIOMAS</option>
           <option value="U DE INTEGRACIÓN CURRICULAR">UNIDAD DE INTEGRACIÓN CURRICULAR</option>
           <option value="ITINERARIO">CURSO ELECTIVO SELECCIONADO (ITINERARIO)</option>
@@ -720,6 +718,18 @@
     window.dragAction = null; 
     window.draggedId = null; 
 
+    // --- FUNCIÓN MATEMÁTICA PURA PARA RECORRER POSICIONES (IGNORA ZOOM) ---
+    function getRelativePos(el, container) {
+        let x = 0;
+        let y = 0;
+        while (el && el !== container && el.nodeName !== 'BODY') {
+            x += el.offsetLeft;
+            y += el.offsetTop;
+            el = el.offsetParent;
+        }
+        return { x, y };
+    }
+
     // --- FUNCIONES DE ZOOM ---
     function changeZoom(delta) {
         currentZoom += delta;
@@ -807,6 +817,7 @@
        const baseCr = cfg.semesters === 9 ? 135 : 120;
        const horasProg = baseCr * cfg.divC * cfg.weeks;
        
+       // Alerta de no coincidencia en horas
        let warningIcon = '';
        if (Math.round(horasSemestres) !== Math.round(horasProg)) {
            warningIcon = `<span style="color:#dc2626; margin-left: 6px; cursor: help; font-size: 0.85em;" title="El total de horas en semestres no coincide con las horas teóricas del programa">⚠️</span>`;
@@ -1220,13 +1231,17 @@
     function updateGhostLine(mouseX, mouseY) {
         if (!ghostPath || !ghostSourceId) return;
         const z = currentZoom || 1;
-        const wrapperEl = document.getElementById('board-wrapper'); const wrapperRect = wrapperEl.getBoundingClientRect();
-        const sourceCard = document.getElementById(`card-${ghostSourceId}`); if(!sourceCard) return;
+        const wrapperEl = document.getElementById('board-wrapper'); 
+        const sourceCard = document.getElementById(`card-${ghostSourceId}`); 
+        if(!sourceCard) return;
 
-        const rectFrom = sourceCard.getBoundingClientRect();
+        const fromPos = getRelativePos(sourceCard, wrapperEl);
+        const wrapperRect = wrapperEl.getBoundingClientRect(); 
         
-        let x1 = ((rectFrom.left - wrapperRect.left) / z) + ((rectFrom.width / z) / 2); 
-        let y1 = ((rectFrom.bottom - wrapperRect.top) / z); 
+        let x1 = fromPos.x + (sourceCard.offsetWidth / 2); 
+        let y1 = fromPos.y + sourceCard.offsetHeight; 
+        
+        // Ratón en coordenadas reales de pantalla convertido al espacio SVG no zoomeado
         let x2 = (mouseX - wrapperRect.left) / z; 
         let y2 = (mouseY - wrapperRect.top) / z;
         
@@ -1535,44 +1550,74 @@
 
     // --- CORRECCIÓN MATEMÁTICA DEL SVG PARA ZOOM ---
     function drawConnections() {
-      const svg = document.getElementById('connections-layer'); const ghostSvg = document.getElementById('ghost-layer'); const wrapperEl = document.getElementById('board-wrapper');
+      const svg = document.getElementById('connections-layer'); 
+      const ghostSvg = document.getElementById('ghost-layer'); 
+      const wrapperEl = document.getElementById('board-wrapper');
       
-      svg.innerHTML = ''; svg.style.width = wrapperEl.scrollWidth + 'px'; svg.style.height = wrapperEl.scrollHeight + 'px';
-      if (ghostSvg) { ghostSvg.style.width = wrapperEl.scrollWidth + 'px'; ghostSvg.style.height = wrapperEl.scrollHeight + 'px'; }
-      const wrapperRect = wrapperEl.getBoundingClientRect();
-      const z = currentZoom || 1;
+      svg.innerHTML = ''; 
+      svg.style.width = '100%'; 
+      svg.style.height = '100%';
+      if (ghostSvg) { 
+          ghostSvg.style.width = '100%'; 
+          ghostSvg.style.height = '100%'; 
+      }
 
       state.connections.forEach((conn, index) => {
         const fromCard = document.getElementById(`card-${conn.from}`); const toCard = document.getElementById(`card-${conn.to}`); if (!fromCard || !toCard) return;
         const subjFrom = state.subjects.find(s => s.id === conn.from); const subjTo = state.subjects.find(s => s.id === conn.to);
-        const rectFrom = fromCard.getBoundingClientRect(); const rectTo = toCard.getBoundingClientRect();
-        const levelFromIdx = state.levels.findIndex(l => l.id === subjFrom.level); const levelToIdx = state.levels.findIndex(l => l.id === subjTo.level);
-        const levelDistance = Math.abs(levelToIdx - levelFromIdx); const isSameLevel = (levelDistance === 0);
+        
+        const levelFromIdx = state.levels.findIndex(l => l.id === subjFrom.level); 
+        const levelToIdx = state.levels.findIndex(l => l.id === subjTo.level);
+        const levelDistance = Math.abs(levelToIdx - levelFromIdx); 
+        const isSameLevel = (levelDistance === 0);
 
-        let x1 = ((rectFrom.left - wrapperRect.left) / z) + ((rectFrom.width / z) / 2); 
-        let x2 = ((rectTo.left - wrapperRect.left) / z) + ((rectTo.width / z) / 2); 
+        // Usamos offsetLeft para ignorar la deformación del zoom en el cálculo
+        const fromPos = getRelativePos(fromCard, wrapperEl);
+        const toPos = getRelativePos(toCard, wrapperEl);
+
+        let x1 = fromPos.x + (fromCard.offsetWidth / 2); 
+        let x2 = toPos.x + (toCard.offsetWidth / 2); 
         let pathData = "";
 
         if (lineType === 'curved') {
           if (isSameLevel) {
-            const y1 = (rectFrom.top - wrapperRect.top) / z; const y2 = (rectTo.top - wrapperRect.top) / z; const distance = Math.abs(x2 - x1); const arcHeight = Math.min(Math.max(distance * 0.35, 25), 50);
+            const y1 = fromPos.y; 
+            const y2 = toPos.y; 
+            const distance = Math.abs(x2 - x1); 
+            const arcHeight = Math.min(Math.max(distance * 0.35, 25), 50);
             pathData = `M ${x1} ${y1} C ${x1} ${y1 - arcHeight}, ${x2} ${y2 - arcHeight}, ${x2} ${y2}`;
           } else {
-            const y1 = (rectFrom.bottom - wrapperRect.top) / z; const y2 = (rectTo.top - wrapperRect.top) / z; const offsetDirection = (index % 2 === 0) ? 1 : -1; const curveOffset = (levelDistance > 1) ? (levelDistance * 18 * offsetDirection) : 0;
-            const controlY1 = y1 + (Math.abs(y2 - y1) * 0.45); const controlY2 = y2 - (Math.abs(y2 - y1) * 0.45);
+            const y1 = fromPos.y + fromCard.offsetHeight; 
+            const y2 = toPos.y; 
+            const offsetDirection = (index % 2 === 0) ? 1 : -1; 
+            const curveOffset = (levelDistance > 1) ? (levelDistance * 18 * offsetDirection) : 0;
+            const controlY1 = y1 + (Math.abs(y2 - y1) * 0.45); 
+            const controlY2 = y2 - (Math.abs(y2 - y1) * 0.45);
             pathData = `M ${x1} ${y1} C ${x1 + curveOffset} ${controlY1}, ${x2 + curveOffset} ${controlY2}, ${x2} ${y2}`;
           }
         } else {
-          const xOffset1 = (index % 5) * 10 - 20; const xOffset2 = ((index + 2) % 5) * 10 - 20; x1 += xOffset1; x2 += xOffset2;
+          const xOffset1 = (index % 5) * 10 - 20; 
+          const xOffset2 = ((index + 2) % 5) * 10 - 20; 
+          x1 += xOffset1; 
+          x2 += xOffset2;
+          
           if (isSameLevel) {
-            const y1 = (rectFrom.top - wrapperRect.top) / z; const y2 = (rectTo.top - wrapperRect.top) / z; const upOffset = 15 + (index % 4) * 6;
+            const y1 = fromPos.y; 
+            const y2 = toPos.y; 
+            const upOffset = 15 + (index % 4) * 6;
             pathData = `M ${x1} ${y1} V ${y1 - upOffset} H ${x2} V ${y2}`;
           } else if (levelDistance === 1) {
-            const y1 = (rectFrom.bottom - wrapperRect.top) / z; const y2 = (rectTo.top - wrapperRect.top) / z; const midY = y1 + (y2 - y1) / 2; const offset = (index % 7) * 5 - 15;
+            const y1 = fromPos.y + fromCard.offsetHeight; 
+            const y2 = toPos.y; 
+            const midY = y1 + (y2 - y1) / 2; 
+            const offset = (index % 7) * 5 - 15;
             pathData = `M ${x1} ${y1} V ${midY + offset} H ${x2} V ${y2}`;
           } else {
-            const y1 = (rectFrom.bottom - wrapperRect.top) / z; const y2 = (rectTo.top - wrapperRect.top) / z; const y_pasillo1 = y1 + 15 + (index % 4) * 5;
-            const laneX = ((rectTo.left - wrapperRect.left) / z) - 7 + (index % 3) * 4 - 4; const y_pasillo2 = y2 - 15 - (index % 4) * 5;
+            const y1 = fromPos.y + fromCard.offsetHeight; 
+            const y2 = toPos.y; 
+            const y_pasillo1 = y1 + 15 + (index % 4) * 5;
+            const laneX = toPos.x - 7 + (index % 3) * 4 - 4; 
+            const y_pasillo2 = y2 - 15 - (index % 4) * 5;
             pathData = `M ${x1} ${y1} V ${y_pasillo1} H ${laneX} V ${y_pasillo2} H ${x2} V ${y2}`;
           }
         }
