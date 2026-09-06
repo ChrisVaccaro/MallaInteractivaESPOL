@@ -136,6 +136,19 @@
       box-shadow: 6px 0 10px rgba(0,0,0,0.04); 
     }
 
+    /* --- ESCUDO INVISIBLE (TAPA LAS LÍNEAS EN LOS HUECOS) --- */
+    .level-header::after {
+      content: '';
+      position: absolute;
+      top: 100%; /* Cae justo debajo de la tarjeta */
+      left: 0;
+      width: 100%;
+      height: 34px; /* 32px del gap + 2px de margen de seguridad para evitar parpadeos */
+      background-color: var(--bg-color); /* Mismo color del fondo de la app */
+      box-shadow: 6px 0 10px rgba(0,0,0,0.04); /* Continúa la sombra lateral */
+      z-index: 30;
+    }
+
     .level-title { font-weight: 800; color: var(--primary-color); font-size: 1.05em; text-transform: uppercase; margin-bottom: 8px; }
     .level-badge { background-color: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 0.85em; margin-bottom: 8px; }
     .level-hours-week { font-weight: 700; font-size: 0.9em; color: #334155; margin-bottom: 4px; }
@@ -154,7 +167,7 @@
         display: flex; justify-content: center; align-items: center; 
         background-color: rgba(255, 255, 255, 0.5); 
         transition: background-color 0.2s, border-color 0.2s; 
-        position: relative; /* Clave para que la línea indicadora se posicione bien */
+        position: relative;
     }
     
     .grid-cell.drag-over { background-color: #e0f2fe; border-color: var(--accent-color); }
@@ -168,7 +181,7 @@
     .grid-cell.insert-indicator::before {
         content: ''; 
         position: absolute; 
-        left: -9px; /* Mitad exacta del gap de 14px */
+        left: -9px; 
         top: -5px; 
         bottom: -5px; 
         width: 4px; 
@@ -185,7 +198,7 @@
     .grid-cell.insert-indicator-right::after {
         content: ''; 
         position: absolute; 
-        right: -9px; /* Mitad exacta del gap de 14px por el otro lado */
+        right: -9px; 
         top: -5px; 
         bottom: -5px; 
         width: 4px; 
@@ -553,7 +566,6 @@
     let pendingDeleteConn = null;
     let baseSubjectCodes = [];
     
-    // Variables para Ghost Connection y Drag&Drop
     let ghostState = 'IDLE'; 
     let ghostSourceId = null;
     let ghostPath = null;
@@ -611,7 +623,7 @@
         }
     });
 
-    // --- LÓGICA AUTO-SCROLL EN BORDES (2D EDGE SCROLLING) ---
+    // --- LÓGICA AUTO-SCROLL EN BORDES ---
     let edgeScrollInterval = null;
     
     function startEdgeScroll() {
@@ -992,7 +1004,6 @@
       window.addEventListener('resize', drawConnections); updateUndoRedoButtons();
     }
 
-    // --- RENDERIZADO DEL TABLERO ---
     function renderBoard() {
       const board = document.getElementById('board'); board.innerHTML = '';
 
