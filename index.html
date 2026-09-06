@@ -174,12 +174,12 @@
     .legend-coreq { background-color: transparent; border-top: 3px dashed var(--coreq-color); width: 40px; height: 0px; display: inline-block; }
 
     /* Contenedores de la malla */
-    .board-container { width: 100%; overflow-x: auto; padding-top: 5px; padding-bottom: 25px; cursor: grab; }
+    /* Eliminamos el overflow-y para quitar la doble barra lateral innesesaria */
+    .board-container { width: 100%; overflow-x: auto; overflow-y: hidden; padding-top: 5px; padding-bottom: 5px; cursor: grab; }
     .board-container:active { cursor: grabbing; }
     .board-wrapper { 
         position: relative; 
         min-width: 1950px; 
-        /* Zoom base administrado por JS */
         transition: zoom 0.2s ease-out;
     }
 
@@ -276,8 +276,11 @@
     .type-u-de-integracion-curricular .subject-header, 
     .type-u-de-integracion-curricular .subject-title, 
     .type-u-de-integracion-curricular .subject-footer { color: #ffffff !important; }
+    .type-proyecto-integrador { background-color: #1e293b !important; }
+    .type-proyecto-integrador * { color: #ffffff !important; }
     .type-itinerario { background-color: #7ba2c9 !important; }
     .type-practicas-comunitarias { background-color: #fde047 !important; }
+    .type-practicas-laborales { background-color: #fde047 !important; }
     .type-formacion-profesional { background-color: #fef08a !important; border-radius: 0 !important; }
     .type-c-de-humanistica { background-color: #9cd4c9 !important; }
     .type-practicas-empresariales { background-color: #fde047 !important; }
@@ -368,7 +371,7 @@
        <div class="stats-grid" style="grid-template-columns: 1fr;">
           <div class="stat-box" style="text-align: center;"><b id="stat-aa">0</b><span>Aprendizaje autónomo</span></div>
        </div>
-       <p class="panel-note">Estos tres últimos totales incluyen únicamente asignaturas regulares asignadas a semestres activos. Excluyen Prácticas de Servicio Comunitario, Prácticas Preprofesionales Empresariales y la Unidad de Integración Curricular.</p>
+       <p class="panel-note">Estos tres últimos totales incluyen únicamente asignaturas regulares asignadas a semestres activos. Excluyen Prácticas de Servicio Comunitario, Prácticas Laborales y el Proyecto Integrador.</p>
     </div>
 
     <!-- Configuración -->
@@ -384,14 +387,6 @@
        <label class="config-label">Créditos máximos objetivo <input type="number" id="conf-max" value="16" onchange="updateConfig()"></label>
        <label class="config-label">Divisor de créditos <input type="number" id="conf-div" value="3" onchange="updateConfig()"></label>
        <label class="config-label">Semanas / semestre <input type="number" id="conf-weeks" value="16" onchange="updateConfig()"></label>
-    </div>
-
-    <!-- Integración Curricular -->
-    <div class="panel-section">
-       <h3>Integración Curricular</h3>
-       <label class="config-label">Créditos del proyecto integrador <input type="number" id="conf-intC" value="5" onchange="updateConfig()"></label>
-       <label class="config-label">Horas del proyecto integrador <input type="number" id="conf-intH" value="240" onchange="updateConfig()"></label>
-       <p class="panel-note">Estos valores se sumarán automáticamente a la carga de la Materia con etiqueta "UNIDAD DE INTEGRACIÓN CURRICULAR" que agregues a la malla.</p>
     </div>
 
     <!-- Tipos de Relaciones -->
@@ -436,7 +431,7 @@
     <div class="toolbar">
       <div class="toolbar-group">
         <button id="btn-toggle-lines" class="active" onclick="toggleLineType()">📐 Líneas: Rectas</button>
-        <button class="btn-add" onclick="openModalForCreate(event)">➕ Nueva Materia</button>
+        <button class="btn-add" onclick="openModalForCreate(event)">Agregar materia</button>
       </div>
       <div class="toolbar-divider"></div>
 
@@ -579,21 +574,20 @@
       
       <div class="form-group">
         <label>Tipo de Materia / Clasificación:</label>
-        <select id="edit-tipo-materia" style="font-weight: 600; color: #0f172a; background-color: #f8fafc;">
+        <select id="edit-tipo-materia" style="font-weight: 600; color: #0f172a; background-color: #f8fafc;" onchange="handleTipoChange()">
           <option value="MATEMÁTICAS Y CIENCIAS BÁSICAS">MATEMÁTICAS Y CIENCIAS BÁSICAS</option>
           <option value="EDUCACIÓN GENERAL">EDUCACIÓN GENERAL</option>
-          <!-- NOMBRES FORMALES PARA LA CREACIÓN -->
-          <option value="C. DE ARTE Y DEPORTES">COMPLEMENTARIA DE ARTES, DEPORTES E IDIOMAS</option>
-          <option value="U DE INTEGRACIÓN CURRICULAR">UNIDAD DE INTEGRACIÓN CURRICULAR</option>
-          <option value="ITINERARIO">CURSO ELECTIVO SELECCIONADO (ITINERARIO)</option>
-          <option value="PRÁCTICAS COMUNITARIAS">PRÁCTICAS DE SERVICIO COMUNITARIO</option>
           <option value="FORMACIÓN PROFESIONAL" selected>FORMACIÓN PROFESIONAL</option>
+          <option value="C. DE ARTE Y DEPORTES">COMPLEMENTARIA DE ARTES, DEPORTES E IDIOMAS</option>
           <option value="C. DE HUMANÍSTICA">COMPLEMENTARIA DE HUMANÍSTICA</option>
-          <option value="PRÁCTICAS EMPRESARIALES">PRÁCTICAS PREPROFESIONALES EMPRESARIALES</option>
+          <option value="ITINERARIO">ITINERARIO</option>
+          <option value="PRÁCTICAS COMUNITARIAS">PRÁCTICAS DE SERVICIO COMUNITARIO</option>
+          <option value="PRÁCTICAS LABORALES">PRÁCTICAS LABORALES</option>
+          <option value="U DE INTEGRACIÓN CURRICULAR">UNIDAD DE INTEGRACIÓN CURRICULAR</option>
         </select>
       </div>
 
-      <div class="form-group">
+      <div class="form-group" id="group-components">
         <label>Componentes (Horas semanales ACD/APE/AA):</label>
         <select id="edit-components" onchange="updateSumFromSelect()">
           <option value="1/1/1">1 Crédito - (1 ACD / 1 APE / 1 AA)</option>
@@ -616,13 +610,33 @@
           <option value="0/0/15">5 Créditos - (0 ACD / 0 APE / 15 AA)</option>
         </select>
       </div>
-      <div class="form-group">
-        <label>Horas Totales Semanales (Sin extra de Integración):</label>
+
+      <!-- Opciones Dinámicas de Prácticas Laborales -->
+      <div class="form-group" id="group-laborales-split" style="display:none; background: #fffbeb; padding: 12px; border-radius: 6px; border: 1px solid #fcd34d;">
+          <label style="color: #b45309; margin-bottom: 8px;">Distribución de Prácticas Laborales:</label>
+          <div style="display:flex; flex-direction: column; gap: 8px; font-size: 0.85em; font-weight: 500;">
+              <label><input type="radio" name="laboral-split" value="single" checked onchange="handleSplitChange()"> Crear 1 sola materia (240h = 5 Créditos)</label>
+              <label><input type="radio" name="laboral-split" value="split" onchange="handleSplitChange()"> Dividir en 2 materias (96h y 144h)</label>
+          </div>
+      </div>
+
+      <!-- Mensaje Dinámico de Integración -->
+      <div class="form-group" id="group-integracion-msg" style="display:none; font-size: 0.8em; color: #0369a1; background: #e0f2fe; padding: 10px; border-radius: 6px; border: 1px solid #bae6fd;">
+          💡 Se creará la materia principal (3/0/6) y automáticamente se agregará la tarjeta de "Proyecto Integrador" (240h) en este mismo nivel.
+      </div>
+
+      <!-- Mensaje Dinámico de Comunitaria -->
+      <div class="form-group" id="group-comunitaria-msg" style="display:none; font-size: 0.8em; color: #15803d; background: #dcfce7; padding: 10px; border-radius: 6px; border: 1px solid #bbf7d0;">
+          🌱 Se creará una tarjeta de 96h de Prácticas de Servicio Comunitario (2 Créditos).
+      </div>
+
+      <div class="form-group" id="group-sum">
+        <label>Horas Totales Semanales:</label>
         <input type="number" id="edit-sum" placeholder="Calculado automáticamente" readonly style="background-color: #f1f5f9; cursor: not-allowed; font-weight: bold; color: #475569;">
       </div>
       
       <div class="form-group" id="level-select-group">
-        <label>Nivel / Semestre:</label>
+        <label id="lbl-level-1">Nivel / Semestre:</label>
         <select id="edit-level">
           <option value="L100-1">NIVEL 100 - I</option><option value="L100-2">NIVEL 100 - II</option>
           <option value="L200-1">NIVEL 200 - I</option><option value="L200-2">NIVEL 200 - II</option>
@@ -631,6 +645,18 @@
           <option value="L500-1" id="opt-l500">NIVEL 500 - I</option>
         </select>
       </div>
+
+      <div class="form-group" id="level-select-group-2" style="display:none;">
+        <label>Semestre para la segunda parte (144h):</label>
+        <select id="edit-level-2">
+          <option value="L100-1">NIVEL 100 - I</option><option value="L100-2">NIVEL 100 - II</option>
+          <option value="L200-1">NIVEL 200 - I</option><option value="L200-2">NIVEL 200 - II</option>
+          <option value="L300-1">NIVEL 300 - I</option><option value="L300-2">NIVEL 300 - II</option>
+          <option value="L400-1">NIVEL 400 - I</option><option value="L400-2">NIVEL 400 - II</option>
+          <option value="L500-1" id="opt-l500-2">NIVEL 500 - I</option>
+        </select>
+      </div>
+
       <div class="modal-actions">
         <button onclick="closeModal()">Cancelar</button>
         <button id="btn-delete" onclick="deleteSubject()" style="color: #dc2626; display: none;">🗑️ Eliminar</button>
@@ -679,13 +705,14 @@
     const typeDisplayNames = {
         "MATEMÁTICAS Y CIENCIAS BÁSICAS": "Matemáticas y Ciencias Básicas",
         "EDUCACIÓN GENERAL": "Educación General",
+        "FORMACIÓN PROFESIONAL": "Formación Profesional",
         "C. DE ARTE Y DEPORTES": "Complementaria de Artes, Deportes e Idiomas",
-        "U DE INTEGRACIÓN CURRICULAR": "Unidad de Integración Curricular",
+        "C. DE HUMANÍSTICA": "Complementaria de Humanística",
         "ITINERARIO": "Curso Electivo Seleccionado",
         "PRÁCTICAS COMUNITARIAS": "Prácticas de Servicio Comunitario",
-        "FORMACIÓN PROFESIONAL": "Formación Profesional",
-        "C. DE HUMANÍSTICA": "Complementaria de Humanística",
-        "PRÁCTICAS EMPRESARIALES": "Prácticas Preprofesionales Empresariales"
+        "PRÁCTICAS LABORALES": "Prácticas Laborales",
+        "U DE INTEGRACIÓN CURRICULAR": "Unidad de Integración Curricular",
+        "PROYECTO INTEGRADOR": "Proyecto Integrador"
     };
 
     const niceSemesterNames = ['SEMESTRE I', 'SEMESTRE II', 'SEMESTRE III', 'SEMESTRE IV', 'SEMESTRE V', 'SEMESTRE VI', 'SEMESTRE VII', 'SEMESTRE VIII', 'SEMESTRE IX'];
@@ -718,7 +745,6 @@
     window.dragAction = null; 
     window.draggedId = null; 
 
-    // --- FUNCIÓN MATEMÁTICA PURA PARA RECORRER POSICIONES (IGNORA ZOOM) ---
     function getRelativePos(el, container) {
         let x = 0;
         let y = 0;
@@ -730,7 +756,6 @@
         return { x, y };
     }
 
-    // --- FUNCIONES DE ZOOM ---
     function changeZoom(delta) {
         currentZoom += delta;
         if (currentZoom < 0.4) currentZoom = 0.4;
@@ -749,7 +774,6 @@
         drawConnections(); 
     }
 
-    // --- PANEL OFFCANVAS ---
     function toggleAnalyticsPanel() {
         const panel = document.getElementById('analytics-panel');
         panel.classList.toggle('open');
@@ -763,8 +787,6 @@
         state.config.maxC = parseFloat(document.getElementById('conf-max').value);
         state.config.divC = parseFloat(document.getElementById('conf-div').value) || 1; 
         state.config.weeks = parseFloat(document.getElementById('conf-weeks').value);
-        state.config.intC = parseFloat(document.getElementById('conf-intC').value);
-        state.config.intH = parseFloat(document.getElementById('conf-intH').value);
         
         persistState();
         renderBoard();
@@ -780,7 +802,8 @@
        let totalCredits = 0;
        let acd = 0, ape = 0, aa = 0;
        
-       const excludedTypes = ["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS EMPRESARIALES", "U DE INTEGRACIÓN CURRICULAR"];
+       // NO incluir horas de prácticas o proyecto integrador en el conteo analítico ACD/APE/AA
+       const excludedTypes = ["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PROYECTO INTEGRADOR", "PRÁCTICAS EMPRESARIALES"];
        const typeMap = {};
        
        const visibleLevelIds = state.levels.slice(0, cfg.semesters).map(l => l.id);
@@ -806,7 +829,6 @@
           
           typeMap[tipoNombreLargo].c += creds;
           let subHours = s.sum * cfg.weeks;
-          if(tipoOriginal === "U DE INTEGRACIÓN CURRICULAR") subHours += cfg.intH;
           typeMap[tipoNombreLargo].h += subHours;
        });
        
@@ -817,7 +839,6 @@
        const baseCr = cfg.semesters === 9 ? 135 : 120;
        const horasProg = baseCr * cfg.divC * cfg.weeks;
        
-       // Alerta de no coincidencia en horas
        let warningIcon = '';
        if (Math.round(horasSemestres) !== Math.round(horasProg)) {
            warningIcon = `<span style="color:#dc2626; margin-left: 6px; cursor: help; font-size: 0.85em;" title="El total de horas en semestres no coincide con las horas teóricas del programa">⚠️</span>`;
@@ -874,7 +895,6 @@
        });
     }
 
-    // --- LÓGICA DE PANNING / DRAG-TO-SCROLL ---
     let isPanning = false;
     let startX;
     let startY;
@@ -923,7 +943,6 @@
         }
     });
 
-    // --- LÓGICA AUTO-SCROLL EN BORDES ---
     let edgeScrollInterval = null;
     
     function startEdgeScroll() {
@@ -984,11 +1003,7 @@
 
     function calculateCredits(subj) {
       if(!state.config) return subj.sum / 3;
-      const baseCredits = subj.sum / state.config.divC;
-      if (subj.tipoMateria === "U DE INTEGRACIÓN CURRICULAR") {
-          return baseCredits + state.config.intC;
-      }
-      return baseCredits;
+      return subj.sum / state.config.divC;
     }
 
     function isBasicMathSubject(name) {
@@ -1164,16 +1179,13 @@
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { redo(); }
     });
 
-    // LÓGICA DE CIERRE DEL PANEL ANALÍTICO Y OTROS CLICS FUERA
     document.body.addEventListener('click', (e) => {
         if (!e.target.closest('.dropbtn') && !e.target.closest('.dropdown-content') && !e.target.closest('.subtitle-dropdown')) { 
             closeAllDropdowns(); 
         }
-        
         if (!e.target.closest('.subject-card') && !e.target.closest('.toolbar') && !e.target.closest('.modal') && !e.target.closest('.analytics-panel')) {
           pinnedSubjectId = null; clearHighlights(); document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned'));
         }
-
         const panel = document.getElementById('analytics-panel');
         if (panel.classList.contains('open')) {
             if (!e.target.closest('.analytics-panel') && !e.target.closest('.floating-btn')) {
@@ -1240,8 +1252,6 @@
         
         let x1 = fromPos.x + (sourceCard.offsetWidth / 2); 
         let y1 = fromPos.y + sourceCard.offsetHeight; 
-        
-        // Ratón en coordenadas reales de pantalla convertido al espacio SVG no zoomeado
         let x2 = (mouseX - wrapperRect.left) / z; 
         let y2 = (mouseY - wrapperRect.top) / z;
         
@@ -1270,6 +1280,68 @@
         persistState(); drawConnections(); closeDeleteConnModal(); updateAnalyticsPanel(); showToast('Conexión eliminada.', 'info');
     }
 
+    // --- FORMULARIO Y VALIDACIONES ---
+    function handleTipoChange() {
+        const tipo = document.getElementById('edit-tipo-materia').value;
+        const compGroup = document.getElementById('group-components');
+        const compSelect = document.getElementById('edit-components');
+        const splitGroup = document.getElementById('group-laborales-split');
+        const lvl2Group = document.getElementById('level-select-group-2');
+        const msgInt = document.getElementById('group-integracion-msg');
+        const msgCom = document.getElementById('group-comunitaria-msg');
+        const sumGroup = document.getElementById('group-sum');
+        
+        const isEdit = !!document.getElementById('edit-id').value;
+
+        // Reset
+        compSelect.disabled = false;
+        splitGroup.style.display = 'none';
+        lvl2Group.style.display = 'none';
+        msgInt.style.display = 'none';
+        msgCom.style.display = 'none';
+        compGroup.style.display = 'block';
+        sumGroup.style.display = 'block';
+
+        if (tipo === 'ITINERARIO') {
+            compSelect.value = '3/0/3';
+            compSelect.disabled = true;
+        } else if (tipo === 'C. DE ARTE Y DEPORTES' || tipo === 'C. DE HUMANÍSTICA') {
+            compSelect.value = '2/0/1';
+            compSelect.disabled = true;
+        } else if (tipo === 'PRÁCTICAS COMUNITARIAS') {
+            compSelect.value = '0/0/6';
+            compGroup.style.display = 'none';
+            sumGroup.style.display = 'none';
+            msgCom.style.display = 'block';
+        } else if (tipo === 'PRÁCTICAS LABORALES') {
+            compSelect.value = '0/0/15'; 
+            compGroup.style.display = 'none';
+            sumGroup.style.display = 'none';
+            if (!isEdit) {
+                splitGroup.style.display = 'block';
+                handleSplitChange(); 
+            }
+        } else if (tipo === 'U DE INTEGRACIÓN CURRICULAR') {
+            compSelect.value = '3/0/6';
+            compSelect.disabled = true;
+            if(!isEdit) msgInt.style.display = 'block';
+        }
+
+        updateSumFromSelect();
+    }
+
+    function handleSplitChange() {
+        const splitVal = document.querySelector('input[name="laboral-split"]:checked').value;
+        const lvl2Group = document.getElementById('level-select-group-2');
+        if (splitVal === 'split') {
+            lvl2Group.style.display = 'block';
+            document.getElementById('lbl-level-1').innerText = "Semestre para la primera parte (96h):";
+        } else {
+            lvl2Group.style.display = 'none';
+            document.getElementById('lbl-level-1').innerText = "Nivel / Semestre:";
+        }
+    }
+
     window.updateSumFromSelect = function() {
       const val = document.getElementById('edit-components').value;
       const parts = val.split('/'); let sum = 0; parts.forEach(p => sum += parseFloat(p) || 0);
@@ -1281,7 +1353,6 @@
       if (savedMemory) {
         tempSavedState = savedMemory; document.getElementById('restore-modal-overlay').style.display = 'flex';
       }
-      
       await loadCatalogo();
       if (!savedMemory) { finishInit(); }
     }
@@ -1314,14 +1385,11 @@
 
     function finishInit() {
       if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config));
-      
       document.getElementById('conf-semesters').value = state.config.semesters;
       document.getElementById('conf-min').value = state.config.minC;
       document.getElementById('conf-max').value = state.config.maxC;
       document.getElementById('conf-div').value = state.config.divC;
       document.getElementById('conf-weeks').value = state.config.weeks;
-      document.getElementById('conf-intC').value = state.config.intC;
-      document.getElementById('conf-intH').value = state.config.intH;
 
       updateSubtitleUI(); applyLineTypeUI(); 
       if (state.baseCareer) { loadBaseCareerCodes(state.baseCareer); } 
@@ -1343,16 +1411,19 @@
         const totalCredits = subjectsInLevel.reduce((acc, curr) => acc + calculateCredits(curr), 0);
         
         let totalACD = 0; let totalAPE = 0; let totalAA = 0;
-        let integracionH = 0;
+        
+        // NO incluir en el cálculo del nivel las prácticas ni proyecto integrador
+        const excludedTypes = ["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PROYECTO INTEGRADOR", "PRÁCTICAS EMPRESARIALES"];
 
         subjectsInLevel.forEach(subj => {
-          const hours = parseHoursComponents(subj.components); 
-          totalACD += hours.acd; totalAPE += hours.ape; totalAA += hours.aa;
-          if(subj.tipoMateria === "U DE INTEGRACIÓN CURRICULAR") integracionH += state.config.intH;
+          if (!excludedTypes.includes(subj.tipoMateria)) {
+              const hours = parseHoursComponents(subj.components); 
+              totalACD += hours.acd; totalAPE += hours.ape; totalAA += hours.aa;
+          }
         });
         
         let totalHoursWeekly = totalACD + totalAPE + totalAA;
-        let totalHoursSemester = (totalHoursWeekly * state.config.weeks) + integracionH;
+        let totalHoursSemester = totalHoursWeekly * state.config.weeks;
 
         row.innerHTML = `
           <div class="level-header">
@@ -1401,11 +1472,12 @@
       
       const optL500 = document.getElementById('opt-l500');
       if(optL500) optL500.style.display = state.config.semesters === 9 ? 'block' : 'none';
+      const optL500_2 = document.getElementById('opt-l500-2');
+      if(optL500_2) optL500_2.style.display = state.config.semesters === 9 ? 'block' : 'none';
     }
 
     function createSubjectCard(subj) {
       const card = document.createElement('div'); const isPinned = (pinnedSubjectId === subj.id);
-      
       const tipoClase = getTypeClass(subj.tipoMateria);
 
       card.className = `subject-card ${tipoClase} ${isPinned ? 'pinned' : ''}`; card.id = `card-${subj.id}`; card.draggable = true;
@@ -1418,12 +1490,20 @@
       const isNew = state.baseCareer && baseSubjectCodes.length > 0 && !baseSubjectCodes.includes(subj.code.toUpperCase());
       const newBadgeHTML = isNew ? `<div class="badge-new" title="Materia creada en esta versión de la malla">NUEVA</div>` : '';
 
+      // --- CAMBIO DE TEXTO PARA HORAS (No mostrar distribución en Prácticas) ---
+      let displayComponents = subj.components;
+      if (["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PROYECTO INTEGRADOR", "PRÁCTICAS EMPRESARIALES"].includes(subj.tipoMateria)) {
+          if (subj.components === "0/0/6") displayComponents = "96h";
+          else if (subj.components === "0/0/9") displayComponents = "144h";
+          else if (subj.components === "0/0/15") displayComponents = "240h";
+      }
+
       card.innerHTML = `
         ${newBadgeHTML}
         <div class="connector-btn" onmousedown="initGhostConnection(event, '${subj.id}')" draggable="true" ondragstart="startConnectDrag(event, '${subj.id}')">+</div>
         ${customTooltipHTML}
         <button class="edit-btn" onclick="openModalForEdit(event, '${subj.id}')">✏️</button>
-        <div class="subject-header"><span>${subj.components}${warningHTML}</span><span>${subj.sum}</span></div>
+        <div class="subject-header"><span>${displayComponents}${warningHTML}</span><span>${subj.sum}</span></div>
         <div class="subject-title">${subj.name}</div>
         <div class="subject-footer"><span>${subj.code}</span><span><b>${credits} CR</b></span></div>
       `;
@@ -1548,7 +1628,6 @@
         else { pinnedSubjectId = id; document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned')); const cardEl = document.getElementById(`card-${id}`); if (cardEl) cardEl.classList.add('pinned'); highlightConnections(id); }
     }
 
-    // --- CORRECCIÓN MATEMÁTICA DEL SVG PARA ZOOM ---
     function drawConnections() {
       const svg = document.getElementById('connections-layer'); 
       const ghostSvg = document.getElementById('ghost-layer'); 
@@ -1571,7 +1650,6 @@
         const levelDistance = Math.abs(levelToIdx - levelFromIdx); 
         const isSameLevel = (levelDistance === 0);
 
-        // Usamos offsetLeft para ignorar la deformación del zoom en el cálculo
         const fromPos = getRelativePos(fromCard, wrapperEl);
         const toPos = getRelativePos(toCard, wrapperEl);
 
@@ -1945,7 +2023,7 @@
       document.getElementById('edit-sum').value = 9; document.getElementById('level-select-group').style.display = 'block'; document.getElementById('btn-delete').style.display = 'none';
       const modalBox = document.getElementById('edit-modal-box'); let yPos = e && e.clientY ? e.clientY - 50 : 30; const maxH = window.innerHeight; if (yPos + 480 > maxH) { yPos = maxH - 480; } if (yPos < 30) yPos = 30; modalBox.style.marginTop = yPos + 'px'; document.getElementById('modal-overlay').style.display = 'flex';
       
-      updateSumFromSelect();
+      handleTipoChange();
     }
 
     function openModalForEdit(e, id) {
@@ -1960,6 +2038,12 @@
         const newOpt = document.createElement('option'); newOpt.value = subj.components; newOpt.text = `⚠️ Actual (${subj.components}) - DEBE SELECCIONAR OTRA OPCIÓN`; newOpt.classList.add('invalid-opt'); compSelect.insertBefore(newOpt, compSelect.firstChild); compSelect.value = subj.components;
       } else { compSelect.value = subj.components || '3/1/5'; }
       
+      handleTipoChange();
+      
+      if (["PRÁCTICAS LABORALES", "PRÁCTICAS COMUNITARIAS", "PROYECTO INTEGRADOR"].includes(subj.tipoMateria)) {
+          compSelect.value = subj.components;
+      }
+
       document.getElementById('edit-sum').value = subj.sum; document.getElementById('level-select-group').style.display = 'none'; document.getElementById('btn-delete').style.display = 'block';
       const modalBox = document.getElementById('edit-modal-box'); let yPos = e.clientY - 50; const maxH = window.innerHeight; if (yPos + 480 > maxH) { yPos = maxH - 480; } if (yPos < 30) yPos = 30; modalBox.style.marginTop = yPos + 'px'; document.getElementById('modal-overlay').style.display = 'flex';
       updateSumFromSelect();
@@ -1974,32 +2058,58 @@
       const components = document.getElementById('edit-components').value.trim(); 
       const sum = parseFloat(document.getElementById('edit-sum').value) || 0; 
       const tipoMateria = document.getElementById('edit-tipo-materia').value;
-      
-      if (!name || !code) { showToast('Por favor ingresa un nombre y código válidos.', 'error'); return; }
-      if (!isValidCombination(components)) { showToast('Debe seleccionar una distribución de horas permitida.', 'error'); return; }
+      const isSplit = document.getElementById('group-laborales-split').style.display === 'block' && 
+                      document.querySelector('input[name="laboral-split"]:checked').value === 'split';
 
-      const codeExists = state.subjects.some(s => s.code.toUpperCase() === code && s.id !== id);
-      if (codeExists) { showToast(`El código ${code} ya está asignado a otra materia.`, 'error'); return; }
+      if (!name || !code) { showToast('Por favor ingresa un nombre y código válidos.', 'error'); return; }
 
       saveStateToHistory();
+
+      function insertSubj(cCode, cName, cComps, cLevelId, cType) {
+          const sumParts = cComps.split('/').reduce((a,b)=>a+parseFloat(b), 0);
+          const codeExists = state.subjects.some(s => s.code.toUpperCase() === cCode && s.id !== id);
+          if (codeExists) { showToast(`El código ${cCode} ya existe.`, 'error'); return false; }
+          const newId = 'CUSTOM_' + Date.now() + Math.floor(Math.random()*1000);
+          const usedCols = state.subjects.filter(s => s.level === cLevelId).map(s => s.col);
+          if (usedCols.length >= NUM_COLUMNS) return false;
+          let freeCol = 0; for (let i = 0; i < NUM_COLUMNS; i++) { if (!usedCols.includes(i)) { freeCol = i; break; } } 
+          state.subjects.push({ id: newId, code: cCode, name: cName, components: cComps, sum: sumParts, level: cLevelId, col: freeCol, tipoMateria: cType });
+          return true;
+      }
+
       if (id) { 
           const subj = state.subjects.find(s => s.id === id); 
-          if (subj) { subj.name = name; subj.code = code; subj.components = components; subj.sum = sum; subj.tipoMateria = tipoMateria; } 
+          if (subj) { 
+             const codeExists = state.subjects.some(s => s.code.toUpperCase() === code && s.id !== id);
+             if (codeExists) { showToast(`El código ${code} ya existe.`, 'error'); return; }
+             subj.name = name; subj.code = code; 
+             subj.components = components; 
+             subj.sum = sum; 
+             subj.tipoMateria = tipoMateria; 
+          } 
       } else { 
-          const levelId = document.getElementById('edit-level').value; const newId = 'CUSTOM_' + Date.now(); 
-          const usedCols = state.subjects.filter(s => s.level === levelId).map(s => s.col); 
+          const levelId = document.getElementById('edit-level').value; 
           
-          if (usedCols.length >= NUM_COLUMNS) {
-              showToast('No hay espacio en este nivel para más materias. Libera espacio primero.', 'error');
-              return;
+          if (tipoMateria === 'PRÁCTICAS LABORALES' && isSplit) {
+              const level2 = document.getElementById('edit-level-2').value;
+              if (levelId === level2) {
+                  if(!insertSubj(code, name, '0/0/15', levelId, tipoMateria)) { showToast('No hay espacio en este nivel.', 'error'); return; }
+              } else {
+                  let ok1 = insertSubj(code+"-1", name+" I", '0/0/6', levelId, tipoMateria);
+                  let ok2 = insertSubj(code+"-2", name+" II", '0/0/9', level2, tipoMateria);
+                  if(!ok1 || !ok2) { showToast('No hubo espacio en uno de los niveles', 'error'); return; }
+              }
+          } else if (tipoMateria === 'U DE INTEGRACIÓN CURRICULAR') {
+              let ok1 = insertSubj(code, name, '3/0/6', levelId, tipoMateria);
+              let ok2 = insertSubj(code+"-PI", "PROYECTO INTEGRADOR", '0/0/15', levelId, "PROYECTO INTEGRADOR");
+              if(!ok1 || !ok2) { showToast('Asegura tener 2 espacios libres en el nivel', 'error'); return; }
+          } else {
+              if(!insertSubj(code, name, components, levelId, tipoMateria)) { showToast('No hay espacio en este nivel.', 'error'); return; }
           }
-
-          let freeCol = 0; for (let i = 0; i < NUM_COLUMNS; i++) { if (!usedCols.includes(i)) { freeCol = i; break; } } 
-          state.subjects.push({ id: newId, code: code, name: name, components: components, sum: sum, level: levelId, col: freeCol, tipoMateria: tipoMateria }); 
       }
       
       persistState(); closeModal(); renderBoard(); drawConnections(); updateAnalyticsPanel();
-      showToast(id ? 'Materia actualizada.' : 'Nueva materia agregada.', 'success');
+      showToast(id ? 'Materia actualizada.' : 'Nueva(s) materia(s) agregada(s).', 'success');
     }
 
     function deleteSubject() {
