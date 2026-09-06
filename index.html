@@ -70,6 +70,8 @@
 
     .btn-add { background-color: #10b981; color: white; border-color: #10b981; }
     .btn-add:hover { background-color: #059669; }
+    .btn-analytic { background-color: #f8fafc; color: #8b5cf6; border: 1px solid #c4b5fd; font-weight: 700; }
+    .btn-analytic:hover { background-color: #f3e8ff; color: #6d28d9; border-color: #a78bfa; }
     .btn-help { background-color: #f8fafc; color: #3b82f6; border: 1px solid #93c5fd; font-weight: 700; }
     .btn-help:hover { background-color: #eff6ff; color: #1d4ed8; border-color: #3b82f6; }
     .btn-icon-only { padding: 8px; width: 36px; display: flex; justify-content: center; align-items: center; }
@@ -147,7 +149,6 @@
     .panel-note { font-size: 0.7em; color: #64748b; line-height: 1.4; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;}
     
     .config-label { display: flex; justify-content: space-between; align-items: center; font-size: 0.85em; font-weight: 500; margin-bottom: 12px; color: #334155;}
-    /* Ajustado ancho a 115px para que se lea completo el select */
     .config-label input, .config-label select { width: 115px; padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; text-align: center; font-weight: 700; color: #0f172a; background: #f8fafc;}
     .config-label input:focus, .config-label select:focus { outline: none; border-color: var(--accent-color); background: #fff;}
     
@@ -175,7 +176,12 @@
     /* Contenedores de la malla */
     .board-container { width: 100%; overflow-x: auto; padding-top: 5px; padding-bottom: 25px; cursor: grab; }
     .board-container:active { cursor: grabbing; }
-    .board-wrapper { position: relative; min-width: 1950px; }
+    .board-wrapper { 
+        position: relative; 
+        min-width: 1950px; 
+        /* Zoom base administrado por JS */
+        transition: zoom 0.2s ease-out;
+    }
 
     svg#connections-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5 !important; }
     svg#ghost-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50 !important; }
@@ -248,7 +254,7 @@
         background-color: var(--accent-color); border-radius: 4px; z-index: 50; box-shadow: 0 0 8px rgba(37, 99, 235, 0.6);
     }
 
-    /* --- TARJETAS: BORDE NEGRO Y NUEVA ALTURA (100px) --- */
+    /* --- TARJETAS --- */
     .subject-card { 
         width: 100%; height: 100px; background-color: #ffffff !important; 
         border: 2px solid #000000; 
@@ -437,6 +443,15 @@
       </div>
       <div class="toolbar-divider"></div>
 
+      <!-- CONTROLES DE ZOOM -->
+      <div class="toolbar-group">
+        <button class="btn-icon-only" onclick="changeZoom(-0.1)" title="Alejar (Zoom Out)">➖</button>
+        <span id="zoom-level" style="font-size: 0.85em; font-weight: bold; width: 45px; text-align: center; color: var(--primary-color);">100%</span>
+        <button class="btn-icon-only" onclick="changeZoom(0.1)" title="Acercar (Zoom In)">➕</button>
+        <button class="btn-icon-only" onclick="resetZoom()" title="Restablecer Zoom">🔄</button>
+      </div>
+      <div class="toolbar-divider"></div>
+
       <div class="toolbar-group">
         <button id="btn-undo" class="btn-icon-only" onclick="undo()" title="Deshacer (Ctrl+Z)">↩️</button>
         <button id="btn-redo" class="btn-icon-only" onclick="redo()" title="Rehacer (Ctrl+Y)">↪️</button>
@@ -570,7 +585,6 @@
         <select id="edit-tipo-materia" style="font-weight: 600; color: #0f172a; background-color: #f8fafc;">
           <option value="MATEMÁTICAS Y CIENCIAS BÁSICAS">MATEMÁTICAS Y CIENCIAS BÁSICAS</option>
           <option value="EDUCACIÓN GENERAL">EDUCACIÓN GENERAL</option>
-          <!-- NOMBRES FORMALES PARA LA CREACIÓN -->
           <option value="C. DE ARTE Y DEPORTES">COMPLEMENTARIA DE ARTES, DEPORTES E IDIOMAS</option>
           <option value="U DE INTEGRACIÓN CURRICULAR">UNIDAD DE INTEGRACIÓN CURRICULAR</option>
           <option value="ITINERARIO">CURSO ELECTIVO SELECCIONADO (ITINERARIO)</option>
@@ -631,7 +645,7 @@
     <div class="modal" id="help-modal-box" style="width: 580px;" onclick="event.stopPropagation()">
       <h2 style="margin-top: 0; color: var(--primary-color);">Guía de Uso: Malla Curricular Interactiva</h2>
       <ul style="padding-left: 20px; color: #475569; font-size: 0.95em; line-height: 1.6; text-align: justify;">
-        <li><b>Desplazamiento Multi-Direccional:</b> Puedes moverte arrastrando el fondo blanco con el ratón. Al conectar materias o moverlas, la pantalla se desplazará sola si te acercas a los bordes.</li>
+        <li><b>Desplazamiento y Zoom:</b> Puedes moverte arrastrando el fondo blanco. Usa los botones ➖ y ➕ en la barra superior para ajustar el nivel de visión de la malla sin afectar las herramientas.</li>
         <li><b>Panel Analítico:</b> Utiliza el botón flotante <b>📊</b> de la izquierda para revisar las métricas, configurar divisor de créditos, duración de la carrera y validar el cumplimiento semestral.</li>
         <li><b>Insertar y Desplazar:</b> Si arrastras una materia sobre un espacio ya ocupado, aparecerá una línea azul indicando que la materia se insertará ahí y las demás se empujarán a la derecha automáticamente.</li>
       </ul>
@@ -664,7 +678,6 @@
       "subjects": [], "connections": []
     };
 
-    // Diccionario de equivalencias formales para los nombres de tipos de materias
     const typeDisplayNames = {
         "MATEMÁTICAS Y CIENCIAS BÁSICAS": "Matemáticas y Ciencias Básicas",
         "EDUCACIÓN GENERAL": "Educación General",
@@ -688,6 +701,8 @@
     let state = JSON.parse(JSON.stringify(initialData));
     let pinnedSubjectId = null; 
     let lineType = 'orthogonal'; 
+    let currentZoom = 1.0;
+    
     let historyStack = []; let redoStack = [];
     let catalogoGlobal = null;
     let pendingExportAction = null;
@@ -704,6 +719,25 @@
     let ghostStartY = 0;
     window.dragAction = null; 
     window.draggedId = null; 
+
+    // --- FUNCIONES DE ZOOM ---
+    function changeZoom(delta) {
+        currentZoom += delta;
+        if (currentZoom < 0.4) currentZoom = 0.4;
+        if (currentZoom > 1.5) currentZoom = 1.5;
+        applyZoom();
+    }
+
+    function resetZoom() {
+        currentZoom = 1.0;
+        applyZoom();
+    }
+
+    function applyZoom() {
+        document.getElementById('zoom-level').innerText = Math.round(currentZoom * 100) + '%';
+        document.getElementById('board-wrapper').style.zoom = currentZoom;
+        drawConnections(); 
+    }
 
     // --- PANEL OFFCANVAS ---
     function toggleAnalyticsPanel() {
@@ -773,7 +807,6 @@
        const baseCr = cfg.semesters === 9 ? 135 : 120;
        const horasProg = baseCr * cfg.divC * cfg.weeks;
        
-       // Alerta de no coincidencia en horas
        let warningIcon = '';
        if (Math.round(horasSemestres) !== Math.round(horasProg)) {
            warningIcon = `<span style="color:#dc2626; margin-left: 6px; cursor: help; font-size: 0.85em;" title="El total de horas en semestres no coincide con las horas teóricas del programa">⚠️</span>`;
@@ -1122,17 +1155,14 @@
 
     // LÓGICA DE CIERRE DEL PANEL ANALÍTICO Y OTROS CLICS FUERA
     document.body.addEventListener('click', (e) => {
-        // Cierre de dropdowns
         if (!e.target.closest('.dropbtn') && !e.target.closest('.dropdown-content') && !e.target.closest('.subtitle-dropdown')) { 
             closeAllDropdowns(); 
         }
         
-        // Quitar Pin de las tarjetas
         if (!e.target.closest('.subject-card') && !e.target.closest('.toolbar') && !e.target.closest('.modal') && !e.target.closest('.analytics-panel')) {
           pinnedSubjectId = null; clearHighlights(); document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned'));
         }
 
-        // Cierre del Panel Analítico si se hace clic fuera de él
         const panel = document.getElementById('analytics-panel');
         if (panel.classList.contains('open')) {
             if (!e.target.closest('.analytics-panel') && !e.target.closest('.floating-btn')) {
@@ -1189,14 +1219,16 @@
 
     function updateGhostLine(mouseX, mouseY) {
         if (!ghostPath || !ghostSourceId) return;
+        const z = currentZoom || 1;
         const wrapperEl = document.getElementById('board-wrapper'); const wrapperRect = wrapperEl.getBoundingClientRect();
         const sourceCard = document.getElementById(`card-${ghostSourceId}`); if(!sourceCard) return;
 
         const rectFrom = sourceCard.getBoundingClientRect();
-        let x1 = (rectFrom.left - wrapperRect.left) + (rectFrom.width / 2); 
-        let y1 = (rectFrom.bottom - wrapperRect.top); 
-        let x2 = (mouseX - wrapperRect.left); 
-        let y2 = (mouseY - wrapperRect.top);
+        
+        let x1 = ((rectFrom.left - wrapperRect.left) / z) + ((rectFrom.width / z) / 2); 
+        let y1 = ((rectFrom.bottom - wrapperRect.top) / z); 
+        let x2 = (mouseX - wrapperRect.left) / z; 
+        let y2 = (mouseY - wrapperRect.top) / z;
         
         ghostPath.setAttribute('d', `M ${x1} ${y1} L ${x2} ${y2}`);
     }
@@ -1246,11 +1278,11 @@
           const parsed = JSON.parse(tempSavedState);
           if (parsed.stateData) { 
               state = parsed.stateData; 
-              if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config)); // Legacy support
+              if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config)); 
               if(parsed.linePreference) lineType = parsed.linePreference; 
           } else { 
               state = parsed; 
-              if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config)); // Legacy support
+              if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config)); 
           }
         } catch(e){}
         tempSavedState = null;
@@ -1501,12 +1533,14 @@
         else { pinnedSubjectId = id; document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned')); const cardEl = document.getElementById(`card-${id}`); if (cardEl) cardEl.classList.add('pinned'); highlightConnections(id); }
     }
 
+    // --- CORRECCIÓN MATEMÁTICA DEL SVG PARA ZOOM ---
     function drawConnections() {
       const svg = document.getElementById('connections-layer'); const ghostSvg = document.getElementById('ghost-layer'); const wrapperEl = document.getElementById('board-wrapper');
       
       svg.innerHTML = ''; svg.style.width = wrapperEl.scrollWidth + 'px'; svg.style.height = wrapperEl.scrollHeight + 'px';
       if (ghostSvg) { ghostSvg.style.width = wrapperEl.scrollWidth + 'px'; ghostSvg.style.height = wrapperEl.scrollHeight + 'px'; }
       const wrapperRect = wrapperEl.getBoundingClientRect();
+      const z = currentZoom || 1;
 
       state.connections.forEach((conn, index) => {
         const fromCard = document.getElementById(`card-${conn.from}`); const toCard = document.getElementById(`card-${conn.to}`); if (!fromCard || !toCard) return;
@@ -1515,28 +1549,30 @@
         const levelFromIdx = state.levels.findIndex(l => l.id === subjFrom.level); const levelToIdx = state.levels.findIndex(l => l.id === subjTo.level);
         const levelDistance = Math.abs(levelToIdx - levelFromIdx); const isSameLevel = (levelDistance === 0);
 
-        let x1 = (rectFrom.left - wrapperRect.left) + (rectFrom.width / 2); let x2 = (rectTo.left - wrapperRect.left) + (rectTo.width / 2); let pathData = "";
+        let x1 = ((rectFrom.left - wrapperRect.left) / z) + ((rectFrom.width / z) / 2); 
+        let x2 = ((rectTo.left - wrapperRect.left) / z) + ((rectTo.width / z) / 2); 
+        let pathData = "";
 
         if (lineType === 'curved') {
           if (isSameLevel) {
-            const y1 = rectFrom.top - wrapperRect.top; const y2 = rectTo.top - wrapperRect.top; const distance = Math.abs(x2 - x1); const arcHeight = Math.min(Math.max(distance * 0.35, 25), 50);
+            const y1 = (rectFrom.top - wrapperRect.top) / z; const y2 = (rectTo.top - wrapperRect.top) / z; const distance = Math.abs(x2 - x1); const arcHeight = Math.min(Math.max(distance * 0.35, 25), 50);
             pathData = `M ${x1} ${y1} C ${x1} ${y1 - arcHeight}, ${x2} ${y2 - arcHeight}, ${x2} ${y2}`;
           } else {
-            const y1 = rectFrom.bottom - wrapperRect.top; const y2 = rectTo.top - wrapperRect.top; const offsetDirection = (index % 2 === 0) ? 1 : -1; const curveOffset = (levelDistance > 1) ? (levelDistance * 18 * offsetDirection) : 0;
+            const y1 = (rectFrom.bottom - wrapperRect.top) / z; const y2 = (rectTo.top - wrapperRect.top) / z; const offsetDirection = (index % 2 === 0) ? 1 : -1; const curveOffset = (levelDistance > 1) ? (levelDistance * 18 * offsetDirection) : 0;
             const controlY1 = y1 + (Math.abs(y2 - y1) * 0.45); const controlY2 = y2 - (Math.abs(y2 - y1) * 0.45);
             pathData = `M ${x1} ${y1} C ${x1 + curveOffset} ${controlY1}, ${x2 + curveOffset} ${controlY2}, ${x2} ${y2}`;
           }
         } else {
           const xOffset1 = (index % 5) * 10 - 20; const xOffset2 = ((index + 2) % 5) * 10 - 20; x1 += xOffset1; x2 += xOffset2;
           if (isSameLevel) {
-            const y1 = rectFrom.top - wrapperRect.top; const y2 = rectTo.top - wrapperRect.top; const upOffset = 15 + (index % 4) * 6;
+            const y1 = (rectFrom.top - wrapperRect.top) / z; const y2 = (rectTo.top - wrapperRect.top) / z; const upOffset = 15 + (index % 4) * 6;
             pathData = `M ${x1} ${y1} V ${y1 - upOffset} H ${x2} V ${y2}`;
           } else if (levelDistance === 1) {
-            const y1 = rectFrom.bottom - wrapperRect.top; const y2 = rectTo.top - wrapperRect.top; const midY = y1 + (y2 - y1) / 2; const offset = (index % 7) * 5 - 15;
+            const y1 = (rectFrom.bottom - wrapperRect.top) / z; const y2 = (rectTo.top - wrapperRect.top) / z; const midY = y1 + (y2 - y1) / 2; const offset = (index % 7) * 5 - 15;
             pathData = `M ${x1} ${y1} V ${midY + offset} H ${x2} V ${y2}`;
           } else {
-            const y1 = rectFrom.bottom - wrapperRect.top; const y2 = rectTo.top - wrapperRect.top; const y_pasillo1 = y1 + 15 + (index % 4) * 5;
-            const laneX = rectTo.left - wrapperRect.left - 7 + (index % 3) * 4 - 4; const y_pasillo2 = y2 - 15 - (index % 4) * 5;
+            const y1 = (rectFrom.bottom - wrapperRect.top) / z; const y2 = (rectTo.top - wrapperRect.top) / z; const y_pasillo1 = y1 + 15 + (index % 4) * 5;
+            const laneX = ((rectTo.left - wrapperRect.left) / z) - 7 + (index % 3) * 4 - 4; const y_pasillo2 = y2 - 15 - (index % 4) * 5;
             pathData = `M ${x1} ${y1} V ${y_pasillo1} H ${laneX} V ${y_pasillo2} H ${x2} V ${y2}`;
           }
         }
@@ -1666,7 +1702,6 @@
       showToast(`Archivo ${fileName} exportado correctamente.`, 'success');
     }
 
-    // --- MOTOR CARAMBOLA: LÓGICA DE EXPORTACIÓN EXCEL ---
     async function procesarYDescargarExcel() {
       try {
         showToast('Analizando cruce de datos y procesando matriz...', 'info');
@@ -1815,7 +1850,6 @@
             });
         }
 
-        // --- PESTAÑA 2: MALLA CURRICULAR ---
         const worksheet = workbook.getWorksheet('MALLA CURRICULAR');
         let globalACD = 0; let globalAPE = 0; let globalAA = 0;
         
