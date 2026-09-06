@@ -70,8 +70,6 @@
 
     .btn-add { background-color: #10b981; color: white; border-color: #10b981; }
     .btn-add:hover { background-color: #059669; }
-    .btn-analytic { background-color: #f8fafc; color: #8b5cf6; border: 1px solid #c4b5fd; font-weight: 700; }
-    .btn-analytic:hover { background-color: #f3e8ff; color: #6d28d9; border-color: #a78bfa; }
     .btn-help { background-color: #f8fafc; color: #3b82f6; border: 1px solid #93c5fd; font-weight: 700; }
     .btn-help:hover { background-color: #eff6ff; color: #1d4ed8; border-color: #3b82f6; }
     .btn-icon-only { padding: 8px; width: 36px; display: flex; justify-content: center; align-items: center; }
@@ -97,6 +95,34 @@
     .toast.error { border-left: 5px solid #ef4444; }
     .toast.info { border-left: 5px solid #3b82f6; }
 
+    /* --- BOTÓN FLOTANTE LATERAL --- */
+    .floating-btn {
+        position: fixed;
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+        background-color: #1e293b;
+        color: white;
+        padding: 15px 12px;
+        border-radius: 0 8px 8px 0;
+        cursor: pointer;
+        z-index: 1000;
+        opacity: 0.3;
+        transition: all 0.3s ease;
+        box-shadow: 3px 0 10px rgba(0,0,0,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        border: 1px solid #334155;
+        border-left: none;
+    }
+    .floating-btn:hover {
+        opacity: 1;
+        padding-right: 18px; 
+        background-color: #0f172a;
+    }
+
     /* --- PANEL ANALÍTICO (OFFCANVAS) --- */
     .analytics-panel {
         position: fixed; top: 0; left: -420px; width: 400px; height: 100vh;
@@ -116,12 +142,13 @@
     
     .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;}
     .stat-box { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: left; box-shadow: 0 1px 2px rgba(0,0,0,0.02);}
-    .stat-box b { display: block; font-size: 1.4em; color: #0f172a; line-height: 1; margin-bottom: 4px;}
+    .stat-box b { display: flex; align-items: center; font-size: 1.4em; color: #0f172a; line-height: 1; margin-bottom: 4px;}
     .stat-box span { font-size: 0.75em; color: #64748b; font-weight: 500;}
     .panel-note { font-size: 0.7em; color: #64748b; line-height: 1.4; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;}
     
     .config-label { display: flex; justify-content: space-between; align-items: center; font-size: 0.85em; font-weight: 500; margin-bottom: 12px; color: #334155;}
-    .config-label input, .config-label select { width: 90px; padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; text-align: center; font-weight: 700; color: #0f172a; background: #f8fafc;}
+    /* Ajustado ancho a 115px para que se lea completo el select */
+    .config-label input, .config-label select { width: 115px; padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; text-align: center; font-weight: 700; color: #0f172a; background: #f8fafc;}
     .config-label input:focus, .config-label select:focus { outline: none; border-color: var(--accent-color); background: #fff;}
     
     .type-row, .sem-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed #e2e8f0; }
@@ -137,8 +164,13 @@
     .sem-credits { font-size: 0.9em; font-weight: 800; color: #0f172a;}
     .status-icon { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; font-size: 11px; margin-left: 12px; font-weight: bold;}
     .status-ok { background: #dcfce7; color: #059669; }
-    .status-warn { background: #fee2e2; color: #dc2626; }
+    .status-warn { background: #fee2e2; color: #dc2626; cursor: help; }
     .status-star { background: #e0e7ff; color: #4f46e5; }
+
+    /* Líneas de leyenda para panel de relaciones */
+    .legend-line { width: 40px; height: 3px; display: inline-block; border-radius: 2px; }
+    .legend-prereq { background-color: #64748b; }
+    .legend-coreq { background-color: transparent; border-top: 3px dashed var(--coreq-color); width: 40px; height: 0px; display: inline-block; }
 
     /* Contenedores de la malla */
     .board-container { width: 100%; overflow-x: auto; padding-top: 5px; padding-bottom: 25px; cursor: grab; }
@@ -309,6 +341,11 @@
   <div id="conn-delete-tooltip">🗑️ Doble clic para eliminar</div>
   <div id="toast-container"></div>
 
+  <!-- BOTÓN FLOTANTE LATERAL -->
+  <div class="floating-btn" id="floating-btn" onclick="toggleAnalyticsPanel()" title="Abrir Auditoría Curricular">
+    📊
+  </div>
+
   <!-- PANEL ANALÍTICO LATERAL -->
   <div id="analytics-panel" class="analytics-panel">
     <button class="close-panel" onclick="toggleAnalyticsPanel()">✖</button>
@@ -328,7 +365,7 @@
        <div class="stats-grid" style="grid-template-columns: 1fr;">
           <div class="stat-box" style="text-align: center;"><b id="stat-aa">0</b><span>Aprendizaje autónomo</span></div>
        </div>
-       <p class="panel-note">Estos tres últimos totales incluyen únicamente asignaturas regulares asignadas a semestres activos. Excluyen Prácticas Comunitarias, Empresariales y la Unidad de Integración Curricular.</p>
+       <p class="panel-note">Estos tres últimos totales incluyen únicamente asignaturas regulares asignadas a semestres activos. Excluyen Prácticas de Servicio Comunitario, Prácticas Preprofesionales Empresariales y la Unidad de Integración Curricular.</p>
     </div>
 
     <!-- Configuración -->
@@ -351,7 +388,20 @@
        <h3>Integración Curricular</h3>
        <label class="config-label">Créditos del proyecto integrador <input type="number" id="conf-intC" value="5" onchange="updateConfig()"></label>
        <label class="config-label">Horas del proyecto integrador <input type="number" id="conf-intH" value="240" onchange="updateConfig()"></label>
-       <p class="panel-note">Estos valores se sumarán automáticamente a la carga de la Materia con etiqueta "U DE INTEGRACIÓN CURRICULAR" que agregues a la malla.</p>
+       <p class="panel-note">Estos valores se sumarán automáticamente a la carga de la Materia con etiqueta "UNIDAD DE INTEGRACIÓN CURRICULAR" que agregues a la malla.</p>
+    </div>
+
+    <!-- Tipos de Relaciones -->
+    <div class="panel-section">
+       <h3>Relaciones (Requisitos)</h3>
+       <div class="type-row" style="justify-content: flex-start; gap: 15px;">
+          <div class="legend-line legend-prereq"></div>
+          <span class="type-name">Prerrequisito (Entre distintos niveles)</span>
+       </div>
+       <div class="type-row" style="justify-content: flex-start; gap: 15px; border-bottom: none;">
+          <div class="legend-coreq"></div>
+          <span class="type-name">Correquisito (En el mismo nivel)</span>
+       </div>
     </div>
 
     <!-- Horas por tipo -->
@@ -384,11 +434,6 @@
       <div class="toolbar-group">
         <button id="btn-toggle-lines" class="active" onclick="toggleLineType()">📐 Líneas: Rectas</button>
         <button class="btn-add" onclick="openModalForCreate(event)">➕ Nueva Materia</button>
-      </div>
-      <div class="toolbar-divider"></div>
-
-      <div class="toolbar-group">
-        <button class="btn-analytic" onclick="toggleAnalyticsPanel()">📊 Panel Analítico</button>
       </div>
       <div class="toolbar-divider"></div>
 
@@ -525,13 +570,14 @@
         <select id="edit-tipo-materia" style="font-weight: 600; color: #0f172a; background-color: #f8fafc;">
           <option value="MATEMÁTICAS Y CIENCIAS BÁSICAS">MATEMÁTICAS Y CIENCIAS BÁSICAS</option>
           <option value="EDUCACIÓN GENERAL">EDUCACIÓN GENERAL</option>
-          <option value="C. DE ARTE Y DEPORTES">C. DE ARTE Y DEPORTES</option>
-          <option value="U DE INTEGRACIÓN CURRICULAR">U DE INTEGRACIÓN CURRICULAR</option>
-          <option value="ITINERARIO">ITINERARIO</option>
-          <option value="PRÁCTICAS COMUNITARIAS">PRÁCTICAS COMUNITARIAS</option>
+          <!-- NOMBRES FORMALES PARA LA CREACIÓN -->
+          <option value="C. DE ARTE Y DEPORTES">COMPLEMENTARIA DE ARTES, DEPORTES E IDIOMAS</option>
+          <option value="U DE INTEGRACIÓN CURRICULAR">UNIDAD DE INTEGRACIÓN CURRICULAR</option>
+          <option value="ITINERARIO">CURSO ELECTIVO SELECCIONADO (ITINERARIO)</option>
+          <option value="PRÁCTICAS COMUNITARIAS">PRÁCTICAS DE SERVICIO COMUNITARIO</option>
           <option value="FORMACIÓN PROFESIONAL" selected>FORMACIÓN PROFESIONAL</option>
-          <option value="C. DE HUMANÍSTICA">C. DE HUMANÍSTICA</option>
-          <option value="PRÁCTICAS EMPRESARIALES">PRÁCTICAS EMPRESARIALES</option>
+          <option value="C. DE HUMANÍSTICA">COMPLEMENTARIA DE HUMANÍSTICA</option>
+          <option value="PRÁCTICAS EMPRESARIALES">PRÁCTICAS PREPROFESIONALES EMPRESARIALES</option>
         </select>
       </div>
 
@@ -586,7 +632,7 @@
       <h2 style="margin-top: 0; color: var(--primary-color);">Guía de Uso: Malla Curricular Interactiva</h2>
       <ul style="padding-left: 20px; color: #475569; font-size: 0.95em; line-height: 1.6; text-align: justify;">
         <li><b>Desplazamiento Multi-Direccional:</b> Puedes moverte arrastrando el fondo blanco con el ratón. Al conectar materias o moverlas, la pantalla se desplazará sola si te acercas a los bordes.</li>
-        <li><b>Panel Analítico:</b> Utiliza el botón 📊 Panel Analítico para revisar las métricas, configurar divisor de créditos, duración de la carrera y validar el cumplimiento semestral.</li>
+        <li><b>Panel Analítico:</b> Utiliza el botón flotante <b>📊</b> de la izquierda para revisar las métricas, configurar divisor de créditos, duración de la carrera y validar el cumplimiento semestral.</li>
         <li><b>Insertar y Desplazar:</b> Si arrastras una materia sobre un espacio ya ocupado, aparecerá una línea azul indicando que la materia se insertará ahí y las demás se empujarán a la derecha automáticamente.</li>
       </ul>
       <div class="modal-actions" style="justify-content: flex-end; margin-top: 25px;">
@@ -616,6 +662,19 @@
         { "id": "L500-1", "name": "NIVEL 500 - I" }
       ],
       "subjects": [], "connections": []
+    };
+
+    // Diccionario de equivalencias formales para los nombres de tipos de materias
+    const typeDisplayNames = {
+        "MATEMÁTICAS Y CIENCIAS BÁSICAS": "Matemáticas y Ciencias Básicas",
+        "EDUCACIÓN GENERAL": "Educación General",
+        "C. DE ARTE Y DEPORTES": "Complementaria de Artes, Deportes e Idiomas",
+        "U DE INTEGRACIÓN CURRICULAR": "Unidad de Integración Curricular",
+        "ITINERARIO": "Curso Electivo Seleccionado",
+        "PRÁCTICAS COMUNITARIAS": "Prácticas de Servicio Comunitario",
+        "FORMACIÓN PROFESIONAL": "Formación Profesional",
+        "C. DE HUMANÍSTICA": "Complementaria de Humanística",
+        "PRÁCTICAS EMPRESARIALES": "Prácticas Preprofesionales Empresariales"
     };
 
     const niceSemesterNames = ['SEMESTRE I', 'SEMESTRE II', 'SEMESTRE III', 'SEMESTRE IV', 'SEMESTRE V', 'SEMESTRE VI', 'SEMESTRE VII', 'SEMESTRE VIII', 'SEMESTRE IX'];
@@ -696,23 +755,30 @@
              aa += hours.aa * cfg.weeks;
           }
           
-          let tipo = s.tipoMateria || "FORMACIÓN PROFESIONAL";
-          if(!typeMap[tipo]) typeMap[tipo] = { h: 0, c: 0, class: getTypeClass(tipo) };
+          let tipoOriginal = s.tipoMateria || "FORMACIÓN PROFESIONAL";
+          let tipoNombreLargo = typeDisplayNames[tipoOriginal] || tipoOriginal;
           
-          typeMap[tipo].c += creds;
+          if(!typeMap[tipoNombreLargo]) typeMap[tipoNombreLargo] = { h: 0, c: 0, class: getTypeClass(tipoOriginal) };
+          
+          typeMap[tipoNombreLargo].c += creds;
           let subHours = s.sum * cfg.weeks;
-          if(tipo === "U DE INTEGRACIÓN CURRICULAR") subHours += cfg.intH;
-          typeMap[tipo].h += subHours;
+          if(tipoOriginal === "U DE INTEGRACIÓN CURRICULAR") subHours += cfg.intH;
+          typeMap[tipoNombreLargo].h += subHours;
        });
        
        document.getElementById('stat-subjs').innerText = totalSubjects;
        document.getElementById('stat-creds').innerText = totalCredits.toFixed(1).replace('.0','');
        
        const horasSemestres = totalCredits * cfg.divC * cfg.weeks;
-       document.getElementById('stat-hsem').innerText = horasSemestres.toFixed(0);
-       
        const baseCr = cfg.semesters === 9 ? 135 : 120;
        const horasProg = baseCr * cfg.divC * cfg.weeks;
+       
+       // Alerta de no coincidencia en horas
+       let warningIcon = '';
+       if (Math.round(horasSemestres) !== Math.round(horasProg)) {
+           warningIcon = `<span style="color:#dc2626; margin-left: 6px; cursor: help; font-size: 0.85em;" title="El total de horas en semestres no coincide con las horas teóricas del programa">⚠️</span>`;
+       }
+       document.getElementById('stat-hsem').innerHTML = horasSemestres.toFixed(0) + warningIcon;
        document.getElementById('stat-hprog').innerText = horasProg.toFixed(0);
        
        document.getElementById('stat-acd').innerText = acd.toFixed(0);
@@ -745,11 +811,11 @@
            
            let iconHtml = '';
            if(idx === cfg.semesters - 1) {
-               iconHtml = `<div class="status-icon status-star">⭐</div>`;
+               iconHtml = `<div class="status-icon status-star" title="Último Nivel (Libre de restricciones)">⭐</div>`;
            } else if (lvlCreds >= cfg.minC && lvlCreds <= cfg.maxC) {
-               iconHtml = `<div class="status-icon status-ok">✅</div>`;
+               iconHtml = `<div class="status-icon status-ok" title="Dentro de rango">✅</div>`;
            } else {
-               iconHtml = `<div class="status-icon status-warn" title="Mínimo ${cfg.minC}, Máximo ${cfg.maxC}">⚠️</div>`;
+               iconHtml = `<div class="status-icon status-warn" title="Fuera de rango (Mínimo ${cfg.minC}, Máximo ${cfg.maxC})">⚠️</div>`;
            }
            
            semContainer.innerHTML += `
@@ -1054,6 +1120,27 @@
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { redo(); }
     });
 
+    // LÓGICA DE CIERRE DEL PANEL ANALÍTICO Y OTROS CLICS FUERA
+    document.body.addEventListener('click', (e) => {
+        // Cierre de dropdowns
+        if (!e.target.closest('.dropbtn') && !e.target.closest('.dropdown-content') && !e.target.closest('.subtitle-dropdown')) { 
+            closeAllDropdowns(); 
+        }
+        
+        // Quitar Pin de las tarjetas
+        if (!e.target.closest('.subject-card') && !e.target.closest('.toolbar') && !e.target.closest('.modal') && !e.target.closest('.analytics-panel')) {
+          pinnedSubjectId = null; clearHighlights(); document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned'));
+        }
+
+        // Cierre del Panel Analítico si se hace clic fuera de él
+        const panel = document.getElementById('analytics-panel');
+        if (panel.classList.contains('open')) {
+            if (!e.target.closest('.analytics-panel') && !e.target.closest('.floating-btn')) {
+                toggleAnalyticsPanel();
+            }
+        }
+    });
+
     document.addEventListener('mousedown', (e) => {
         if (ghostState === 'CLICKED') {
             e.preventDefault();
@@ -1150,13 +1237,6 @@
       
       await loadCatalogo();
       if (!savedMemory) { finishInit(); }
-
-      document.body.addEventListener('click', (e) => {
-        if (!e.target.closest('.dropbtn') && !e.target.closest('.dropdown-content') && !e.target.closest('.subtitle-dropdown')) { closeAllDropdowns(); }
-        if (!e.target.closest('.subject-card') && !e.target.closest('.toolbar') && !e.target.closest('.modal') && !e.target.closest('.analytics-panel')) {
-          pinnedSubjectId = null; clearHighlights(); document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned'));
-        }
-      });
     }
 
     function restorePreviousSession() {
@@ -1520,7 +1600,7 @@
       }
 
       saveStateToHistory(); state = dataToApply; 
-      if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config)); // Legacy
+      if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config));
       
       persistState(); pinnedSubjectId = null; updateSubtitleUI(); 
       
