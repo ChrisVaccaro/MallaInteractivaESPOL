@@ -551,7 +551,7 @@
       <h2>Seleccionar Malla Base</h2>
       <p style="font-size: 0.9em; color: #475569; line-height: 1.4;">Esta malla no tiene una carrera base asignada o fue creada desde cero. Por favor, selecciona con qué carrera deseas asociarla para continuar:</p>
       <div class="form-group">
-        <label>Carrera de comparación:</label>
+        <label>Carrera de comparison:</label>
         <select id="modal-career-select"></select>
       </div>
       <div class="modal-actions">
@@ -856,7 +856,7 @@
         
         persistState();
         renderBoard();
-        setTimeout(drawConnections, 200);
+        drawConnections();
         updateAnalyticsPanel();
     }
 
@@ -875,11 +875,11 @@
             Array.from(selectEl.options).forEach((opt, idx) => {
                 let disabled = false;
 
-                if (nameInput === 'COMUNICACIÓN' || nameInput === 'COMUNICACION') {
+                if (nameInput.startsWith('COMUNICACIÓN') || nameInput.startsWith('COMUNICACION')) {
                     if (idx !== 1 && idx !== 2) disabled = true;
-                } else if (nameInput === 'FUNDAMENTOS DE PROGRAMACIÓN' || nameInput === 'FUNDAMENTOS DE PROGRAMACION') {
+                } else if (nameInput.startsWith('FUNDAMENTOS DE PROGRAMACIÓN') || nameInput.startsWith('FUNDAMENTOS DE PROGRAMACION')) {
                     if (idx > 2) disabled = true;
-                } else if (nameInput === 'ANÁLISIS Y RESOLUCIÓN DE PROBLEMAS' || nameInput === 'ANALISIS Y RESOLUCION DE PROBLEMAS') {
+                } else if (nameInput.startsWith('ANÁLISIS Y RESOLUCIÓN DE PROBLEMAS') || nameInput.startsWith('ANALISIS Y RESOLUCION DE PROBLEMAS')) {
                     if (idx !== 0) disabled = true;
                 } else if (nameInput.startsWith('EMPRENDIMIENTO E INNOVACI')) {
                     if (idx < 4) disabled = true;
@@ -1113,7 +1113,7 @@
                    iconHtml = `<div class="status-icon status-warn" title="Falta Materia Integradora y Proyecto">⚠️</div>`;
                } else if (hasMateriaInt && !hasProjInt) {
                    hasWarnings = true;
-                   iconHtml = `<div class="status-icon status-warn" title="Falta Proyecto Integrador">⚠️</div>`;
+                   iconHtml = `<div class="status-icon status-warn" title="Falta Proyecto Integrador">⚠️</div> <button class="btn-autocomplete" onclick="autoCompletePI('${lvl.id}')">Autocompletar</button>`;
                } else if (!hasMateriaInt && hasProjInt) {
                    hasWarnings = true;
                    iconHtml = `<div class="status-icon status-warn" title="Falta Unidad de Integración Curricular">⚠️</div>`;
@@ -1530,7 +1530,7 @@
         const subj2 = state.subjects.find(s => s.id === pendingDeleteConn.toId);
         if (subj2) {
             const upperNameTo = String(subj2.name).toUpperCase();
-            if (upperNameTo === 'ANÁLISIS Y RESOLUCIÓN DE PROBLEMAS' || upperNameTo === 'ANALISIS Y RESOLUCION DE PROBLEMAS') {
+            if (upperNameTo.startsWith('ANÁLISIS Y RESOLUCIÓN DE PROBLEMAS') || upperNameTo.startsWith('ANALISIS Y RESOLUCION DE PROBLEMAS')) {
                  // Permitimos eliminar de todos modos
             }
         }
@@ -1899,7 +1899,7 @@
               fixAction = 'move_emprendimiento';
               warningMsg = 'Debe cursarse desde el nivel 300-I en adelante.';
           }
-      } else if (upperName === 'COMUNICACIÓN' || upperName === 'COMUNICACION') {
+      } else if (upperName.startsWith('COMUNICACIÓN') || upperName.startsWith('COMUNICACION')) {
           if (subj.components !== '4/0/2') {
               fixAction = 'comunicacion_comp';
               warningMsg = 'Créditos incorrectos. Debe ser 4/0/2 (2 CR).';
@@ -1907,7 +1907,7 @@
               fixAction = 'move_comunicacion';
               warningMsg = 'Solo puede ubicarse en niveles 100-II o 200-I.';
           }
-      } else if (upperName === 'FUNDAMENTOS DE PROGRAMACIÓN' || upperName === 'FUNDAMENTOS DE PROGRAMACION') {
+      } else if (upperName.startsWith('FUNDAMENTOS DE PROGRAMACIÓN') || upperName.startsWith('FUNDAMENTOS DE PROGRAMACION')) {
           if (subj.components !== '4/0/5') {
               fixAction = 'fundamentos_comp';
               warningMsg = 'Créditos incorrectos. Debe ser 4/0/5 (3 CR).';
@@ -1915,7 +1915,7 @@
               fixAction = 'move_fundamentos';
               warningMsg = 'Solo puede ubicarse en 100-I, 100-II o 200-I.';
           }
-      } else if (upperName === 'ANÁLISIS Y RESOLUCIÓN DE PROBLEMAS' || upperName === 'ANALISIS Y RESOLUCION DE PROBLEMAS') {
+      } else if (upperName.startsWith('ANÁLISIS Y RESOLUCIÓN DE PROBLEMAS') || upperName.startsWith('ANALISIS Y RESOLUCION DE PROBLEMAS')) {
           const hasPrereqs = state.connections.some(c => c.to === subj.id);
           if (currentLevelIdx !== 0) {
               fixAction = 'move_analisis';
@@ -1940,7 +1940,7 @@
           const hours = parseHoursComponents(subj.components);
           if (hours.acd > 0 || hours.ape > 0 || !["0/0/3", "0/0/6", "0/0/9", "0/0/12", "0/0/15"].includes(subj.components)) {
                fixAction = 'fix_practicas_format';
-               warningMsg = 'Formato de horas inválido. Debe ser solo trabajo autónomo.';
+               warningMsg = 'Formato de horas inválido.';
           }
       } else if (subj.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR') {
            const hasPi = state.subjects.some(s => s.tipoMateria === 'PROYECTO INTEGRADOR');
@@ -2008,7 +2008,7 @@
       if (levelIdx1 <= levelIdx2) { prereqId = sourceId; dependentId = targetId; } else { prereqId = targetId; dependentId = sourceId; }
 
       const upperNameTo = String(subj2.name).toUpperCase();
-      if (upperNameTo === 'ANÁLISIS Y RESOLUCIÓN DE PROBLEMAS' || upperNameTo === 'ANALISIS Y RESOLUCION DE PROBLEMAS') {
+      if (upperNameTo.startsWith('ANÁLISIS Y RESOLUCIÓN DE PROBLEMAS') || upperNameTo.startsWith('ANALISIS Y RESOLUCION DE PROBLEMAS')) {
           if (dependentId === subj2.id) {
               showToast('Análisis y Resolución de Problemas no puede tener prerrequisitos.', 'error');
               return;
@@ -2043,13 +2043,13 @@
               if (subject.tipoMateria === 'PROYECTO INTEGRADOR' && targetLevelId !== lastLevelId) {
                   showToast('El Proyecto Integrador debe permanecer en el último nivel.', 'error'); return;
               }
-              if ((upperName === 'COMUNICACIÓN' || upperName === 'COMUNICACION') && targetLvlIdx !== 1 && targetLvlIdx !== 2) {
+              if ((upperName.startsWith('COMUNICACIÓN') || upperName.startsWith('COMUNICACION')) && targetLvlIdx !== 1 && targetLvlIdx !== 2) {
                   showToast('COMUNICACIÓN solo puede ir en 100-II o 200-I.', 'error'); return;
               }
-              if ((upperName === 'FUNDAMENTOS DE PROGRAMACIÓN' || upperName === 'FUNDAMENTOS DE PROGRAMACION') && targetLvlIdx > 2) {
+              if ((upperName.startsWith('FUNDAMENTOS DE PROGRAMACIÓN') || upperName.startsWith('FUNDAMENTOS DE PROGRAMACION')) && targetLvlIdx > 2) {
                   showToast('FUNDAMENTOS solo puede ir en niveles 100 y 200-I.', 'error'); return;
               }
-              if ((upperName === 'ANÁLISIS Y RESOLUCIÓN DE PROBLEMAS' || upperName === 'ANALISIS Y RESOLUCION DE PROBLEMAS') && targetLvlIdx !== 0) {
+              if ((upperName.startsWith('ANÁLISIS Y RESOLUCIÓN DE PROBLEMAS') || upperName.startsWith('ANALISIS Y RESOLUCION DE PROBLEMAS')) && targetLvlIdx !== 0) {
                   showToast('ANÁLISIS Y RESOLUCIÓN solo puede ir en 100-I.', 'error'); return;
               }
               if (upperName.startsWith('EMPRENDIMIENTO E INNOVACI') && targetLvlIdx < 4) {
