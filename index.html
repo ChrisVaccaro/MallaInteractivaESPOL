@@ -840,6 +840,14 @@
        const excludedTypes = ["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PROYECTO INTEGRADOR", "PRÁCTICAS EMPRESARIALES"];
        const typeMap = {};
        
+       // Inicializar todos los tipos conocidos en 0 para que siempre aparezcan
+       Object.keys(typeDisplayNames).forEach(key => {
+            const dispName = typeDisplayNames[key];
+            if (!typeMap[dispName]) {
+                typeMap[dispName] = { h: 0, c: 0, class: getTypeClass(key) };
+            }
+       });
+       
        const visibleLevelIds = state.levels.slice(0, cfg.semesters).map(l => l.id);
        
        state.subjects.forEach(s => {
@@ -890,42 +898,30 @@
        const typeContainer = document.getElementById('type-stats-list');
        typeContainer.innerHTML = '';
 
-       // Validar e inyectar listado de requeridos
+       // Los que obligatoriamente deben tener horas
        const requiredTypes = ["Prácticas de Servicio Comunitario", "Prácticas Laborales", "Unidad de Integración Curricular"];
 
        for(const [t, data] of Object.entries(typeMap)) {
+           let warnHtml = '';
+           // Si es requerido y tiene 0 créditos, mostrar advertencia
+           if (data.c === 0 && requiredTypes.includes(t)) {
+               hasWarnings = true;
+               warnHtml = `<br><span class="type-warn">⚠️ Faltante</span>`;
+           }
+           
            typeContainer.innerHTML += `
-              <div class="type-row">
+              <div class="type-row" ${warnHtml ? 'style="background:#fef2f2; border-radius:6px; padding: 10px;"' : ''}>
                  <div style="display:flex; align-items:center;">
                     <div class="type-color ${data.class}"></div>
-                    <span class="type-name">${t}</span>
+                    <span class="type-name" ${warnHtml ? 'style="color:#dc2626;"' : ''}>${t.toUpperCase()}${warnHtml}</span>
                  </div>
                  <div class="type-vals">
                     <b>${data.h.toFixed(0)} h</b>
-                    <span>${data.c.toFixed(1).replace('.0','')} créditos</span>
+                    <span ${warnHtml ? 'style="color: #64748b;"' : ''}>${data.c.toFixed(1).replace('.0','')} créditos</span>
                  </div>
               </div>
            `;
        }
-
-       // Mostrar faltantes en rojo
-       requiredTypes.forEach(reqT => {
-           let internalKey = Object.keys(typeDisplayNames).find(key => typeDisplayNames[key] === reqT) || reqT;
-           if (!typeMap[reqT]) {
-                hasWarnings = true;
-                typeContainer.innerHTML += `
-                  <div class="type-row" style="background:#fef2f2; border-radius:6px; padding: 10px;">
-                     <div style="display:flex; align-items:center;">
-                        <div class="type-color ${getTypeClass(internalKey)}"></div>
-                        <span class="type-name" style="color:#dc2626;">${reqT.toUpperCase()} <br><span class="type-warn">⚠️ Faltante</span></span>
-                     </div>
-                     <div class="type-vals">
-                        <b>0 h</b><span style="color: #64748b;">0 créditos</span>
-                     </div>
-                  </div>
-               `;
-           }
-       });
        
        const semContainer = document.getElementById('semester-stats-list');
        semContainer.innerHTML = '';
@@ -1264,9 +1260,11 @@
         if (!e.target.closest('.dropbtn') && !e.target.closest('.dropdown-content') && !e.target.closest('.subtitle-dropdown')) { 
             closeAllDropdowns(); 
         }
+        
         if (!e.target.closest('.subject-card') && !e.target.closest('.toolbar') && !e.target.closest('.modal') && !e.target.closest('.analytics-panel')) {
           pinnedSubjectId = null; clearHighlights(); document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned'));
         }
+
         const panel = document.getElementById('analytics-panel');
         if (panel.classList.contains('open')) {
             if (!e.target.closest('.analytics-panel') && !e.target.closest('.floating-btn')) {
@@ -1450,9 +1448,6 @@
             codeInput.value = 'SER-COM';
             nameInput.disabled = true;
             codeGroup.style.display = 'none';
-            
-            document.querySelector(`#edit-level option[value="${lastLevelId}"]`).disabled = true;
-            if (levelSelect.value === lastLevelId) { levelSelect.value = state.levels[cfg.semesters - 2].id; }
         } else if (tipo === 'PRÁCTICAS LABORALES') {
             if (isEdit) {
                 const subj = state.subjects.find(s => s.id === document.getElementById('edit-id').value);
@@ -1472,11 +1467,6 @@
             sumGroup.style.display = 'none';
             nameInput.disabled = true;
             codeGroup.style.display = 'none';
-            
-            document.querySelector(`#edit-level option[value="${lastLevelId}"]`).disabled = true;
-            document.querySelector(`#edit-level-2 option[value="${lastLevelId}"]`).disabled = true;
-            if (levelSelect.value === lastLevelId) { levelSelect.value = state.levels[cfg.semesters - 2].id; }
-            if (document.getElementById('edit-level-2').value === lastLevelId) { document.getElementById('edit-level-2').value = state.levels[cfg.semesters - 2].id; }
         } else if (tipo === 'U DE INTEGRACIÓN CURRICULAR') {
             compSelect.value = '3/0/6';
             compSelect.disabled = true;
@@ -1645,7 +1635,10 @@
       const warningHTML = !validHours ? `<span class="warning-icon">⚠️</span>` : '';
       const customTooltipHTML = !validHours ? `<div class="custom-tooltip">Distribución de horas no permitida. Debe editar la materia.</div>` : '';
 
-      const isNew = state.baseCareer && baseSubjectCodes.length > 0 && !baseSubjectCodes.includes(subj.code.toUpperCase());
+      let isNew = state.baseCareer && baseSubjectCodes.length > 0 && !baseSubjectCodes.includes(subj.code.toUpperCase());
+      if (["PRÁCTICAS LABORALES", "PROYECTO INTEGRADOR", "PRÁCTICAS COMUNITARIAS", "U DE INTEGRACIÓN CURRICULAR"].includes(subj.tipoMateria)) {
+          isNew = false;
+      }
       const newBadgeHTML = isNew ? `<div class="badge-new" title="Materia creada en esta versión de la malla">NUEVA</div>` : '';
 
       // --- CAMBIO DE TEXTO PARA HORAS (No mostrar distribución en Prácticas) ---
@@ -1716,10 +1709,6 @@
               }
               if (subject.tipoMateria === 'PROYECTO INTEGRADOR' && targetLevelId !== lastLevelId) {
                   showToast('El Proyecto Integrador debe permanecer en el último nivel.', 'error');
-                  return;
-              }
-              if ((subject.tipoMateria === 'PRÁCTICAS COMUNITARIAS' || subject.tipoMateria === 'PRÁCTICAS LABORALES') && targetLevelId === lastLevelId) {
-                  showToast('Las prácticas no pueden ubicarse en el último nivel.', 'error');
                   return;
               }
 
