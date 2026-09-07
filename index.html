@@ -70,8 +70,6 @@
 
     .btn-add { background-color: #10b981; color: white; border-color: #10b981; }
     .btn-add:hover { background-color: #059669; }
-    .btn-analytic { background-color: #f8fafc; color: #8b5cf6; border: 1px solid #c4b5fd; font-weight: 700; }
-    .btn-analytic:hover { background-color: #f3e8ff; color: #6d28d9; border-color: #a78bfa; }
     .btn-help { background-color: #f8fafc; color: #3b82f6; border: 1px solid #93c5fd; font-weight: 700; }
     .btn-help:hover { background-color: #eff6ff; color: #1d4ed8; border-color: #3b82f6; }
     .btn-icon-only { padding: 8px; width: 36px; display: flex; justify-content: center; align-items: center; }
@@ -619,6 +617,7 @@
           <option value="2/2/2">2 Créditos - (2 ACD / 2 APE / 2 AA)</option>
           <option value="3/0/3">2 Créditos - (3 ACD / 0 APE / 3 AA)</option>
           <option value="3/0/6">3 Créditos - (3 ACD / 0 APE / 6 AA)</option>
+          <option value="0/0/3">1 Crédito - (0 ACD / 0 APE / 3 AA)</option>
           <option value="0/0/6">2 Créditos - (0 ACD / 0 APE / 6 AA)</option>
           <option value="3/1/5" selected>3 Créditos - (3 ACD / 1 APE / 5 AA)</option>
           <option value="3/2/4">3 Créditos - (3 ACD / 2 APE / 4 AA)</option>
@@ -628,6 +627,7 @@
           <option value="4/0/8">4 Créditos - (4 ACD / 0 APE / 8 AA)</option>
           <option value="4/1/7">4 Créditos - (4 ACD / 1 APE / 7 AA)</option>
           <option value="5/0/7">4 Créditos - (5 ACD / 0 APE / 7 AA)</option>
+          <option value="0/0/12">4 Créditos - (0 ACD / 0 APE / 12 AA)</option>
           <option value="0/0/15">5 Créditos - (0 ACD / 0 APE / 15 AA)</option>
         </select>
       </div>
@@ -1435,6 +1435,24 @@
         Array.from(document.getElementById('edit-level').options).forEach(opt => opt.disabled = false);
         Array.from(document.getElementById('edit-level-2').options).forEach(opt => opt.disabled = false);
 
+        // Novedad: Filtrado de opciones puramente AA (0/0/X)
+        const restrictedComps = ["0/0/3", "0/0/6", "0/0/9", "0/0/12", "0/0/15"];
+        const isStandard = ["MATEMÁTICAS Y CIENCIAS BÁSICAS", "EDUCACIÓN GENERAL", "FORMACIÓN PROFESIONAL"].includes(tipo);
+
+        Array.from(compSelect.options).forEach(opt => {
+            if (restrictedComps.includes(opt.value)) {
+                opt.style.display = isStandard ? 'none' : 'block';
+                opt.disabled = isStandard;
+            } else {
+                opt.style.display = 'block';
+                opt.disabled = false;
+            }
+        });
+
+        if (isStandard && restrictedComps.includes(compSelect.value)) {
+            compSelect.value = '3/1/5';
+        }
+
         if (!isEdit && tipo !== 'PRÁCTICAS COMUNITARIAS' && tipo !== 'PRÁCTICAS LABORALES') {
             if (nameInput.value === 'PRÁCTICAS DE SERVICIO COMUNITARIO' || nameInput.value === 'PRÁCTICAS LABORALES') {
                 nameInput.value = '';
@@ -1445,29 +1463,25 @@
         if (tipo === 'ITINERARIO') {
             compSelect.value = '3/0/3';
             compSelect.disabled = true;
+            codeGroup.style.display = 'none';
         } else if (tipo === 'C. DE ARTE Y DEPORTES' || tipo === 'C. DE HUMANÍSTICA') {
             compSelect.value = '2/0/1';
             compSelect.disabled = true;
+            codeGroup.style.display = 'none';
         } else if (tipo === 'PRÁCTICAS COMUNITARIAS') {
             compSelect.value = '0/0/6';
             compGroup.style.display = 'none';
             sumGroup.style.display = 'none';
             msgCom.style.display = 'block';
             nameInput.value = 'PRÁCTICAS DE SERVICIO COMUNITARIO';
-            codeInput.value = 'SER-COM';
             nameInput.disabled = true;
             codeGroup.style.display = 'none';
         } else if (tipo === 'PRÁCTICAS LABORALES') {
             if (isEdit) {
                 const subj = state.subjects.find(s => s.id === document.getElementById('edit-id').value);
-                if (subj && subj.code.startsWith('PRA-LAB')) {
-                    nameInput.value = 'PRÁCTICAS LABORALES'; 
-                    codeInput.value = subj.code;
-                } else {
-                    nameInput.value = 'PRÁCTICAS LABORALES'; codeInput.value = 'PRA-LAB';
-                }
+                nameInput.value = 'PRÁCTICAS LABORALES'; 
             } else {
-                nameInput.value = 'PRÁCTICAS LABORALES'; codeInput.value = 'PRA-LAB';
+                nameInput.value = 'PRÁCTICAS LABORALES'; 
                 splitGroup.style.display = 'block';
                 handleSplitChange(); 
             }
@@ -2278,14 +2292,18 @@
       const tipoMateria = document.getElementById('edit-tipo-materia').value;
       const isSplit = document.getElementById('group-laborales-split').style.display === 'block' && 
                       document.querySelector('input[name="laboral-split"]:checked').value === 'split';
+      
+      const typesWithoutCode = ['PRÁCTICAS COMUNITARIAS', 'PRÁCTICAS LABORALES', 'ITINERARIO', 'C. DE ARTE Y DEPORTES', 'C. DE HUMANÍSTICA'];
 
-      // Validación permisiva para prácticas (ya que ocultan su código)
-      if (!name || (!code && tipoMateria !== 'PRÁCTICAS COMUNITARIAS' && tipoMateria !== 'PRÁCTICAS LABORALES')) { 
+      // Validación permisiva para prácticas e itinerarios/complementarias (ya que ocultan su código)
+      if (!name || (!code && !typesWithoutCode.includes(tipoMateria))) { 
           showToast('Por favor ingresa un nombre y código válidos.', 'error'); return; 
       }
 
       if (tipoMateria === 'PRÁCTICAS LABORALES') {
           name = 'PRÁCTICAS LABORALES';
+      } else if (tipoMateria === 'PRÁCTICAS COMUNITARIAS') {
+          name = 'PRÁCTICAS DE SERVICIO COMUNITARIO';
       }
 
       const cfg = state.config || initialData.config;
@@ -2309,7 +2327,7 @@
           const subj = state.subjects.find(s => s.id === id); 
           if (subj) { 
              const codeExists = state.subjects.some(s => s.code.toUpperCase() === code && s.id !== id);
-             if (codeExists && tipoMateria !== 'PRÁCTICAS LABORALES' && tipoMateria !== 'PRÁCTICAS COMUNITARIAS') { 
+             if (codeExists && !typesWithoutCode.includes(tipoMateria)) { 
                  showToast(`El código ${code} ya existe.`, 'error'); return; 
              }
              const oldCode = subj.code;
@@ -2320,11 +2338,17 @@
              subj.sum = sum; 
              subj.tipoMateria = tipoMateria; 
 
-             if (tipoMateria === 'PRÁCTICAS COMUNITARIAS') subj.code = 'SER-COM';
-             else if (tipoMateria === 'PRÁCTICAS LABORALES') {
-                 if(!subj.code.startsWith('PRA-LAB')) subj.code = 'PRA-LAB';
+             if (!code && typesWithoutCode.includes(tipoMateria)) {
+                 // Si el código está vacío (porque se ocultó en el UI) usar el existente o crear uno interno
+                 subj.code = oldCode || (
+                    tipoMateria === 'ITINERARIO' ? 'ITIN-' + Math.floor(Math.random()*10000) :
+                    tipoMateria === 'C. DE ARTE Y DEPORTES' ? 'ART-' + Math.floor(Math.random()*10000) :
+                    tipoMateria === 'C. DE HUMANÍSTICA' ? 'HUM-' + Math.floor(Math.random()*10000) : 
+                    tipoMateria === 'PRÁCTICAS COMUNITARIAS' ? 'SER-COM' : 'PRA-LAB'
+                 );
+             } else {
+                 subj.code = code;
              }
-             else subj.code = code;
              
              if (oldType === 'U DE INTEGRACIÓN CURRICULAR' && tipoMateria !== 'U DE INTEGRACIÓN CURRICULAR') {
                  const pi = state.subjects.find(s => s.tipoMateria === 'PROYECTO INTEGRADOR' && s.level === subj.level);
@@ -2339,18 +2363,24 @@
                  if (!pi) {
                      const used = state.subjects.filter(s => s.level === subj.level);
                      if (used.length < NUM_COLUMNS) {
-                         insertSubj(code+"-PI", "PROYECTO INTEGRADOR", '0/0/15', subj.level, "PROYECTO INTEGRADOR");
+                         insertSubj(subj.code+"-PI", "PROYECTO INTEGRADOR", '0/0/15', subj.level, "PROYECTO INTEGRADOR");
                      } else {
                          showToast('No hay espacio para generar automáticamente el Proyecto Integrador.', 'error');
                      }
-                 } else if (oldCode !== code) {
-                     pi.code = code + "-PI";
+                 } else if (oldCode !== subj.code) {
+                     pi.code = subj.code + "-PI";
                  }
              }
           } 
       } else { 
           const levelId = document.getElementById('edit-level').value; 
           
+          if (!code) {
+             if (tipoMateria === 'ITINERARIO') code = 'ITIN-' + Math.floor(Math.random()*10000);
+             else if (tipoMateria === 'C. DE ARTE Y DEPORTES') code = 'ART-' + Math.floor(Math.random()*10000);
+             else if (tipoMateria === 'C. DE HUMANÍSTICA') code = 'HUM-' + Math.floor(Math.random()*10000);
+          }
+
           if (tipoMateria === 'PRÁCTICAS LABORALES' && isSplit) {
               const level2 = document.getElementById('edit-level-2').value;
               if (levelId === level2) {
