@@ -125,6 +125,23 @@
         background-color: #0f172a;
     }
 
+    #floating-warning-badge {
+        display: none;
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        background-color: #ef4444;
+        color: white;
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        font-size: 11px;
+        font-weight: bold;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
     /* --- PANEL ANALÍTICO (OFFCANVAS) --- */
     .analytics-panel {
         position: fixed; top: 0; left: -450px; width: 420px; height: 100vh;
@@ -354,6 +371,7 @@
   <!-- BOTÓN FLOTANTE LATERAL -->
   <div class="floating-btn" id="floating-btn" onclick="toggleAnalyticsPanel()" title="Abrir Auditoría Curricular">
     📊
+    <div id="floating-warning-badge">!</div>
   </div>
 
   <!-- PANEL ANALÍTICO LATERAL -->
@@ -368,14 +386,12 @@
           <div class="stat-box"><b id="stat-subjs">0</b><span>Asignaturas</span></div>
           <div class="stat-box"><b id="stat-creds">0</b><span>Créditos</span></div>
           <div class="stat-box"><b id="stat-hsem">0</b><span>Horas en semestres</span></div>
-          <div class="stat-box"><b id="stat-hprog">0</b><span>Horas del programa</span></div>
+          <div class="stat-box"><b id="stat-hprog">0</b><span>Horas del programa <span title="Total de horas declaradas en el CES" style="cursor:help; font-size:1.1em; color:var(--accent-color);">ℹ️</span></span></div>
           <div class="stat-box"><b id="stat-acd">0</b><span>Contacto docente</span></div>
           <div class="stat-box"><b id="stat-ape">0</b><span>Práctico experimental</span></div>
+          <div class="stat-box"><b id="stat-aa">0</b><span>Aprendizaje autónomo</span></div>
        </div>
-       <div class="stats-grid" style="grid-template-columns: 1fr;">
-          <div class="stat-box" style="text-align: center;"><b id="stat-aa">0</b><span>Aprendizaje autónomo</span></div>
-       </div>
-       <p class="panel-note">Estos tres últimos totales incluyen únicamente asignaturas regulares asignadas a semestres activos. Excluyen Prácticas de Servicio Comunitario, Prácticas Laborales y el Proyecto Integrador.</p>
+       <p class="panel-note" style="margin-top: 12px;">Estos tres últimos totales incluyen únicamente asignaturas regulares asignadas a semestres activos. Excluyen Prácticas de Servicio Comunitario, Prácticas Laborales y el Proyecto Integrador.</p>
     </div>
 
     <!-- Configuración -->
@@ -710,7 +726,7 @@
         "FORMACIÓN PROFESIONAL": "Formación Profesional",
         "C. DE ARTE Y DEPORTES": "Complementaria de Artes, Deportes e Idiomas",
         "C. DE HUMANÍSTICA": "Complementaria de Humanística",
-        "ITINERARIO": "Curso Electivo Seleccionado",
+        "ITINERARIO": "Itinerario",
         "PRÁCTICAS COMUNITARIAS": "Prácticas de Servicio Comunitario",
         "PRÁCTICAS LABORALES": "Prácticas Laborales",
         "U DE INTEGRACIÓN CURRICULAR": "Unidad de Integración Curricular",
@@ -857,9 +873,12 @@
        const baseCr = cfg.semesters === 9 ? 135 : 120;
        const horasProg = baseCr * cfg.divC * cfg.weeks;
        
+       let hasWarnings = false;
        let warningIcon = '';
+
        if (Math.round(horasSemestres) !== Math.round(horasProg)) {
            warningIcon = `<span style="color:#dc2626; margin-left: 6px; cursor: help; font-size: 0.85em;" title="El total de horas en semestres no coincide con las horas teóricas del programa">⚠️</span>`;
+           hasWarnings = true;
        }
        document.getElementById('stat-hsem').innerHTML = horasSemestres.toFixed(0) + warningIcon;
        document.getElementById('stat-hprog').innerText = horasProg.toFixed(0);
@@ -893,6 +912,7 @@
        requiredTypes.forEach(reqT => {
            let internalKey = Object.keys(typeDisplayNames).find(key => typeDisplayNames[key] === reqT) || reqT;
            if (!typeMap[reqT]) {
+                hasWarnings = true;
                 typeContainer.innerHTML += `
                   <div class="type-row" style="background:#fef2f2; border-radius:6px; padding: 10px;">
                      <div style="display:flex; align-items:center;">
@@ -922,15 +942,19 @@
                if (hasMateriaInt && hasProjInt) {
                    iconHtml = `<div class="status-icon status-star" title="Último Nivel (Libre de restricciones)">⭐</div>`;
                } else if (!hasMateriaInt && !hasProjInt) {
+                   hasWarnings = true;
                    iconHtml = `<div class="status-icon status-warn" title="Falta Materia Integradora y Proyecto">⚠️</div>`;
                } else if (hasMateriaInt && !hasProjInt) {
+                   hasWarnings = true;
                    iconHtml = `<div class="status-icon status-warn" title="Falta Proyecto Integrador">⚠️</div> <button class="btn-autocomplete" onclick="autoCompletePI('${lvl.id}')">Autocompletar</button>`;
                } else if (!hasMateriaInt && hasProjInt) {
+                   hasWarnings = true;
                    iconHtml = `<div class="status-icon status-warn" title="Falta Unidad de Integración Curricular">⚠️</div>`;
                }
            } else if (lvlCreds >= cfg.minC && lvlCreds <= cfg.maxC) {
                iconHtml = `<div class="status-icon status-ok" title="Dentro de rango">✅</div>`;
            } else {
+               hasWarnings = true;
                iconHtml = `<div class="status-icon status-warn" title="Fuera de rango (Mínimo ${cfg.minC}, Máximo ${cfg.maxC})">⚠️</div>`;
            }
            
@@ -944,6 +968,12 @@
               </div>
            `;
        });
+
+       // Activar Badge de advertencia en el botón flotante si hay errores
+       const badge = document.getElementById('floating-warning-badge');
+       if (badge) {
+           badge.style.display = hasWarnings ? 'flex' : 'none';
+       }
     }
 
     let isPanning = false;
@@ -1626,6 +1656,13 @@
           else if (subj.components === "0/0/15") displayComponents = "240h";
       }
 
+      // --- OCULTAR CÓDIGO SEGÚN TIPO ---
+      let displayCode = subj.code;
+      const hideCodeTypes = ["ITINERARIO", "C. DE ARTE Y DEPORTES", "C. DE HUMANÍSTICA", "PRÁCTICAS LABORALES", "PRÁCTICAS COMUNITARIAS", "PROYECTO INTEGRADOR"];
+      if (hideCodeTypes.includes(subj.tipoMateria)) {
+          displayCode = '';
+      }
+
       card.innerHTML = `
         ${newBadgeHTML}
         <div class="connector-btn" onmousedown="initGhostConnection(event, '${subj.id}')" draggable="true" ondragstart="startConnectDrag(event, '${subj.id}')">+</div>
@@ -1633,7 +1670,7 @@
         <button class="edit-btn" onclick="openModalForEdit(event, '${subj.id}')">✏️</button>
         <div class="subject-header"><span>${displayComponents}${warningHTML}</span><span>${subj.sum}</span></div>
         <div class="subject-title">${subj.name}</div>
-        <div class="subject-footer"><span>${subj.code}</span><span><b>${credits} CR</b></span></div>
+        <div class="subject-footer"><span>${displayCode}</span><span><b>${credits} CR</b></span></div>
       `;
       
       card.ondragstart = (e) => { 
