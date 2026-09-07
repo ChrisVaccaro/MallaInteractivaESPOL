@@ -448,7 +448,6 @@
 
     <div class="toolbar">
       <div class="toolbar-group">
-        <button id="btn-toggle-lines" class="active" onclick="toggleLineType()">📐 Líneas: Rectas</button>
         <button class="btn-add" onclick="openModalForCreate()">Agregar materia</button>
       </div>
       <div class="toolbar-divider"></div>
@@ -485,7 +484,7 @@
         </div>
         
         <input type="file" id="import-file-input" accept=".json" style="display: none;" onchange="importJSONFromFile(event)">
-        <button class="btn-danger" onclick="resetLayout()">🗑️ Vaciar Malla</button>
+        <button class="btn-danger" onclick="resetLayout()">Borrar Malla</button>
       </div>
       <div class="toolbar-divider"></div>
 
@@ -699,6 +698,7 @@
       <h2 style="margin-top: 0; color: var(--primary-color);">Guía de Uso: Malla Curricular Interactiva</h2>
       <ul style="padding-left: 20px; color: #475569; font-size: 0.95em; line-height: 1.6; text-align: justify;">
         <li><b>Desplazamiento y Zoom:</b> Puedes moverte arrastrando el fondo blanco. Usa los botones ➖ y ➕ en la barra superior para ajustar el nivel de visión de la malla sin afectar las herramientas.</li>
+        <li><b>Cambiar tipo de líneas:</b> Puedes alternar entre líneas rectas y curvas presionando <b>Alt + L</b> en tu teclado.</li>
         <li><b>Panel Analítico:</b> Utiliza el botón flotante <b>📊</b> de la izquierda para revisar las métricas, configurar divisor de créditos, duración de la carrera y validar el cumplimiento semestral.</li>
         <li><b>Insertar y Desplazar:</b> Si arrastras una materia sobre un espacio ya ocupado, aparecerá una línea azul indicando que la materia se insertará ahí y las demás se empujarán a la derecha automáticamente.</li>
       </ul>
@@ -739,7 +739,7 @@
         "PRÁCTICAS COMUNITARIAS": "Prácticas de Servicio Comunitario",
         "PRÁCTICAS LABORALES": "Prácticas Laborales",
         "U DE INTEGRACIÓN CURRICULAR": "Unidad de Integración Curricular",
-        "PROYECTO INTEGRADOR": "Unidad de Integración Curricular" // Se agrupa matemáticamente en el panel analítico
+        "PROYECTO INTEGRADOR": "Unidad de Integración Curricular" 
     };
 
     const niceSemesterNames = ['SEMESTRE I', 'SEMESTRE II', 'SEMESTRE III', 'SEMESTRE IV', 'SEMESTRE V', 'SEMESTRE VI', 'SEMESTRE VII', 'SEMESTRE VIII', 'SEMESTRE IX'];
@@ -845,11 +845,9 @@
        let totalCredits = 0;
        let acd = 0, ape = 0, aa = 0;
        
-       // Exclusiones explícitas para los totales analíticos de horas
        const excludedTypes = ["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PROYECTO INTEGRADOR", "PRÁCTICAS EMPRESARIALES"];
        const typeMap = {};
        
-       // Inicializar todos los tipos conocidos en 0 para que siempre aparezcan
        Object.keys(typeDisplayNames).forEach(key => {
             const dispName = typeDisplayNames[key];
             if (!typeMap[dispName]) {
@@ -907,12 +905,10 @@
        const typeContainer = document.getElementById('type-stats-list');
        typeContainer.innerHTML = '';
 
-       // Los que obligatoriamente deben tener horas
        const requiredTypes = ["Prácticas de Servicio Comunitario", "Prácticas Laborales", "Unidad de Integración Curricular"];
 
        for(const [t, data] of Object.entries(typeMap)) {
            let warnHtml = '';
-           // Si es requerido y tiene 0 créditos, mostrar advertencia
            if (data.c === 0 && requiredTypes.includes(t)) {
                hasWarnings = true;
                warnHtml = `<br><span class="type-warn">⚠️ Faltante</span>`;
@@ -974,7 +970,6 @@
            `;
        });
 
-       // Activar Badge de advertencia en el botón flotante si hay errores
        const badge = document.getElementById('floating-warning-badge');
        if (badge) {
            badge.style.display = hasWarnings ? 'flex' : 'none';
@@ -1146,7 +1141,7 @@
 
     async function loadBaseCareerCodes(careerName) {
         baseSubjectCodes = [];
-        if (!catalogoGlobal || !careerName) { renderBoard(); return; }
+        if (!catalogoGlobal || !careerName) { renderBoard(); updateAnalyticsPanel(); return; }
         
         let baseRuta = null;
         catalogoGlobal.facultades.forEach(f => f.carreras.forEach(c => { 
@@ -1160,7 +1155,7 @@
                     const baseData = await resp.json();
                     baseSubjectCodes = (baseData.subjects || []).map(s => s.code.toUpperCase());
                     renderBoard();
-                    setTimeout(drawConnections, 100);
+                    setTimeout(() => { drawConnections(); updateAnalyticsPanel(); }, 100);
                 }
             } catch(e) { console.error("Error cargando malla base para la etiqueta:", e); }
         }
@@ -1230,15 +1225,9 @@
     function closeHelpModal() { document.getElementById('help-modal-overlay').style.display = 'none'; }
 
     function toggleLineType() {
-      const btn = document.getElementById('btn-toggle-lines');
       if (lineType === 'orthogonal') { lineType = 'curved'; } else { lineType = 'orthogonal'; }
-      applyLineTypeUI(); persistState(); drawConnections(); 
-    }
-    
-    function applyLineTypeUI() {
-      const btn = document.getElementById('btn-toggle-lines');
-      if (lineType === 'orthogonal') { btn.innerHTML = '📐 Líneas: Rectas'; btn.classList.add('active'); } 
-      else { btn.innerHTML = '〰️ Líneas: Curvas'; btn.classList.remove('active'); }
+      persistState(); drawConnections(); 
+      showToast(`Líneas cambiadas a modo ${lineType === 'orthogonal' ? 'recto' : 'curvo'}.`, 'info');
     }
 
     function saveStateToHistory() { historyStack.push(JSON.stringify(state)); redoStack = []; updateUndoRedoButtons(); }
@@ -1263,6 +1252,7 @@
       if (e.key === 'Escape') { cancelGhostConnection(); stopEdgeScroll(); }
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { if (e.shiftKey) { redo(); } else { undo(); } } 
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { redo(); }
+      else if (e.altKey && e.key.toLowerCase() === 'l') { e.preventDefault(); toggleLineType(); }
     });
 
     document.body.addEventListener('click', (e) => {
@@ -1418,7 +1408,6 @@
             }
         }
 
-        // Reset de campos (UI Reset)
         compSelect.disabled = false;
         levelSelect.disabled = false;
         nameInput.disabled = false;
@@ -1435,7 +1424,6 @@
         Array.from(document.getElementById('edit-level').options).forEach(opt => opt.disabled = false);
         Array.from(document.getElementById('edit-level-2').options).forEach(opt => opt.disabled = false);
 
-        // Novedad: Filtrado de opciones puramente AA (0/0/X)
         const restrictedComps = ["0/0/3", "0/0/6", "0/0/9", "0/0/12", "0/0/15"];
         const isStandard = ["MATEMÁTICAS Y CIENCIAS BÁSICAS", "EDUCACIÓN GENERAL", "FORMACIÓN PROFESIONAL"].includes(tipo);
 
@@ -2451,7 +2439,7 @@
     function resetLayout() {
       if (confirm('¿Deseas vaciar la malla y borrar todo el contenido?')) { 
         saveStateToHistory(); state = JSON.parse(JSON.stringify(initialData)); persistState();
-        baseSubjectCodes = []; pinnedSubjectId = null; updateSubtitleUI(); renderBoard(); drawConnections(); updateAnalyticsPanel(); showToast('Malla vaciada exitosamente.', 'info');
+        baseSubjectCodes = []; pinnedSubjectId = null; updateSubtitleUI(); renderBoard(); drawConnections(); updateAnalyticsPanel(); showToast('Malla borrada exitosamente.', 'info');
       }
     }
 
