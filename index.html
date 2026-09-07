@@ -70,6 +70,8 @@
 
     .btn-add { background-color: #10b981; color: white; border-color: #10b981; }
     .btn-add:hover { background-color: #059669; }
+    .btn-analytic { background-color: #f8fafc; color: #8b5cf6; border: 1px solid #c4b5fd; font-weight: 700; }
+    .btn-analytic:hover { background-color: #f3e8ff; color: #6d28d9; border-color: #a78bfa; }
     .btn-help { background-color: #f8fafc; color: #3b82f6; border: 1px solid #93c5fd; font-weight: 700; }
     .btn-help:hover { background-color: #eff6ff; color: #1d4ed8; border-color: #3b82f6; }
     .btn-icon-only { padding: 8px; width: 36px; display: flex; justify-content: center; align-items: center; }
@@ -433,7 +435,7 @@
     <div class="toolbar">
       <div class="toolbar-group">
         <button id="btn-toggle-lines" class="active" onclick="toggleLineType()">📐 Líneas: Rectas</button>
-        <button class="btn-add" onclick="openModalForCreate(event)">Agregar materia</button>
+        <button class="btn-add" onclick="openModalForCreate()">Agregar materia</button>
       </div>
       <div class="toolbar-divider"></div>
 
@@ -572,7 +574,7 @@
       <h2 id="modal-title">Agregar Nueva Materia</h2>
       <input type="hidden" id="edit-id">
       <div class="form-group"><label>Nombre de la Materia:</label><input type="text" id="edit-name" placeholder="Ej: CÁLCULO VECTORIAL & 3"></div>
-      <div class="form-group"><label>Código:</label><input type="text" id="edit-code" placeholder="Ej: MATG1046" style="text-transform: uppercase;"></div>
+      <div class="form-group" id="group-code"><label>Código:</label><input type="text" id="edit-code" placeholder="Ej: MATG1046" style="text-transform: uppercase;"></div>
       
       <div class="form-group">
         <label>Tipo de Materia:</label>
@@ -662,7 +664,7 @@
       <div class="modal-actions">
         <button onclick="closeEditModal()">Cancelar</button>
         <button id="btn-delete" onclick="deleteSubject()" style="color: #dc2626; display: none;">🗑️ Eliminar</button>
-        <button onclick="saveSubjectFromModal()" style="background-color: var(--accent-color); color: white;">Guardar</button>
+        <button id="btn-save" onclick="saveSubjectFromModal()" style="background-color: var(--accent-color); color: white;">Guardar</button>
       </div>
     </div>
   </div>
@@ -712,7 +714,7 @@
         "PRÁCTICAS COMUNITARIAS": "Prácticas de Servicio Comunitario",
         "PRÁCTICAS LABORALES": "Prácticas Laborales",
         "U DE INTEGRACIÓN CURRICULAR": "Unidad de Integración Curricular",
-        "PROYECTO INTEGRADOR": "Proyecto Integrador"
+        "PROYECTO INTEGRADOR": "Unidad de Integración Curricular" // Se agrupa matemáticamente
     };
 
     const niceSemesterNames = ['SEMESTRE I', 'SEMESTRE II', 'SEMESTRE III', 'SEMESTRE IV', 'SEMESTRE V', 'SEMESTRE VI', 'SEMESTRE VII', 'SEMESTRE VIII', 'SEMESTRE IX'];
@@ -795,6 +797,9 @@
     }
 
     window.autoCompletePI = function(levelId) {
+        const integradora = state.subjects.find(s => s.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR');
+        if (!integradora) return;
+
         const usedCols = state.subjects.filter(s => s.level === levelId).map(s => s.col);
         if (usedCols.length >= NUM_COLUMNS) {
             showToast('No hay espacio en el último nivel para el Proyecto Integrador. Libera un hueco.', 'error');
@@ -802,7 +807,7 @@
         }
         let freeCol = 0; for (let i = 0; i < NUM_COLUMNS; i++) { if (!usedCols.includes(i)) { freeCol = i; break; } } 
         const newId = 'CUSTOM_' + Date.now();
-        state.subjects.push({ id: newId, code: "PROY-INT", name: "PROYECTO INTEGRADOR", components: '0/0/15', sum: 15, level: levelId, col: freeCol, tipoMateria: 'PROYECTO INTEGRADOR' });
+        state.subjects.push({ id: newId, code: integradora.code + "-PI", name: "PROYECTO INTEGRADOR", components: '0/0/15', sum: 15, level: levelId, col: freeCol, tipoMateria: 'PROYECTO INTEGRADOR' });
         persistState(); renderBoard(); drawConnections(); updateAnalyticsPanel();
         showToast('Proyecto Integrador auto-completado.', 'success');
     }
@@ -815,7 +820,7 @@
        let totalCredits = 0;
        let acd = 0, ape = 0, aa = 0;
        
-       // NO incluir horas de prácticas o proyecto integrador en el conteo analítico ACD/APE/AA
+       // Exclusiones explícitas para los totales analíticos de horas
        const excludedTypes = ["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PROYECTO INTEGRADOR", "PRÁCTICAS EMPRESARIALES"];
        const typeMap = {};
        
@@ -866,8 +871,8 @@
        const typeContainer = document.getElementById('type-stats-list');
        typeContainer.innerHTML = '';
 
-       // Validar requeridos
-       const requiredTypes = ["PRÁCTICAS DE SERVICIO COMUNITARIO", "PRÁCTICAS LABORALES", "UNIDAD DE INTEGRACIÓN CURRICULAR"];
+       // Validar e inyectar listado de requeridos
+       const requiredTypes = ["Prácticas de Servicio Comunitario", "Prácticas Laborales", "Unidad de Integración Curricular"];
 
        for(const [t, data] of Object.entries(typeMap)) {
            typeContainer.innerHTML += `
@@ -884,7 +889,7 @@
            `;
        }
 
-       // Mostrar faltantes
+       // Mostrar faltantes en rojo
        requiredTypes.forEach(reqT => {
            let internalKey = Object.keys(typeDisplayNames).find(key => typeDisplayNames[key] === reqT) || reqT;
            if (!typeMap[reqT]) {
@@ -892,10 +897,10 @@
                   <div class="type-row" style="background:#fef2f2; border-radius:6px; padding: 10px;">
                      <div style="display:flex; align-items:center;">
                         <div class="type-color ${getTypeClass(internalKey)}"></div>
-                        <span class="type-name" style="color:#dc2626;">${reqT} <br><span class="type-warn">⚠️ Faltante</span></span>
+                        <span class="type-name" style="color:#dc2626;">${reqT.toUpperCase()} <br><span class="type-warn">⚠️ Faltante</span></span>
                      </div>
                      <div class="type-vals">
-                        <b>0 h</b><span>0 créditos</span>
+                        <b>0 h</b><span style="color: #64748b;">0 créditos</span>
                      </div>
                   </div>
                `;
@@ -911,7 +916,6 @@
            
            let iconHtml = '';
            if(idx === cfg.semesters - 1) {
-               // Validación en el último semestre
                const hasMateriaInt = subjs.some(s => s.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR');
                const hasProjInt = subjs.some(s => s.tipoMateria === 'PROYECTO INTEGRADOR');
 
@@ -950,7 +954,7 @@
     const boardContainer = document.getElementById('board-container');
     
     boardContainer.addEventListener('mousedown', (e) => {
-        if (e.target.closest('.subject-card') || e.target.closest('button') || e.target.closest('.toolbar') || e.target.tagName.toLowerCase() === 'path' || e.target.closest('.analytics-panel')) return;
+        if (e.target.closest('.subject-card') || e.target.closest('button') || e.target.closest('.toolbar') || e.target.tagName.toLowerCase() === 'path' || e.target.closest('.analytics-panel') || e.target.closest('.modal')) return;
         isPanning = true; 
         startX = e.clientX; 
         startY = e.clientY;
@@ -1230,11 +1234,9 @@
         if (!e.target.closest('.dropbtn') && !e.target.closest('.dropdown-content') && !e.target.closest('.subtitle-dropdown')) { 
             closeAllDropdowns(); 
         }
-        
         if (!e.target.closest('.subject-card') && !e.target.closest('.toolbar') && !e.target.closest('.modal') && !e.target.closest('.analytics-panel')) {
           pinnedSubjectId = null; clearHighlights(); document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned'));
         }
-
         const panel = document.getElementById('analytics-panel');
         if (panel.classList.contains('open')) {
             if (!e.target.closest('.analytics-panel') && !e.target.closest('.floating-btn')) {
@@ -1340,19 +1342,29 @@
         const msgCom = document.getElementById('group-comunitaria-msg');
         const sumGroup = document.getElementById('group-sum');
         const levelSelect = document.getElementById('edit-level');
-        const cfg = state.config || initialData.config;
-        
+        const nameInput = document.getElementById('edit-name');
+        const codeInput = document.getElementById('edit-code');
+        const codeGroup = document.getElementById('group-code');
         const isEdit = !!document.getElementById('edit-id').value;
+        const cfg = state.config || initialData.config;
+        const lastLevelId = state.levels[cfg.semesters - 1].id;
 
-        // Reset
+        // Reset de campos
         compSelect.disabled = false;
         levelSelect.disabled = false;
+        nameInput.disabled = false;
+        codeInput.disabled = false;
+        codeGroup.style.display = 'block';
         splitGroup.style.display = 'none';
         lvl2Group.style.display = 'none';
         msgInt.style.display = 'none';
         msgCom.style.display = 'none';
         compGroup.style.display = 'block';
         sumGroup.style.display = 'block';
+        document.getElementById('btn-save').style.display = 'inline-block';
+        
+        Array.from(document.getElementById('edit-level').options).forEach(opt => opt.disabled = false);
+        Array.from(document.getElementById('edit-level-2').options).forEach(opt => opt.disabled = false);
 
         if (tipo === 'ITINERARIO') {
             compSelect.value = '3/0/3';
@@ -1365,19 +1377,47 @@
             compGroup.style.display = 'none';
             sumGroup.style.display = 'none';
             msgCom.style.display = 'block';
+            nameInput.value = 'PRÁCTICAS DE SERVICIO COMUNITARIO';
+            codeInput.value = 'SER-COM';
+            nameInput.disabled = true;
+            codeGroup.style.display = 'none';
+            
+            document.querySelector(`#edit-level option[value="${lastLevelId}"]`).disabled = true;
+            if (levelSelect.value === lastLevelId) { levelSelect.value = state.levels[cfg.semesters - 2].id; }
         } else if (tipo === 'PRÁCTICAS LABORALES') {
-            compSelect.value = '0/0/15'; 
-            compGroup.style.display = 'none';
-            sumGroup.style.display = 'none';
-            if (!isEdit) {
+            if (isEdit) {
+                const subj = state.subjects.find(s => s.id === document.getElementById('edit-id').value);
+                if (subj && subj.code.startsWith('PRA-LAB')) {
+                    nameInput.value = subj.name; 
+                    codeInput.value = subj.code;
+                } else {
+                    nameInput.value = 'PRÁCTICAS LABORALES'; codeInput.value = 'PRA-LAB';
+                }
+            } else {
+                nameInput.value = 'PRÁCTICAS LABORALES'; codeInput.value = 'PRA-LAB';
                 splitGroup.style.display = 'block';
                 handleSplitChange(); 
             }
+            compSelect.value = '0/0/15'; 
+            compGroup.style.display = 'none';
+            sumGroup.style.display = 'none';
+            nameInput.disabled = true;
+            codeGroup.style.display = 'none';
+            
+            document.querySelector(`#edit-level option[value="${lastLevelId}"]`).disabled = true;
+            document.querySelector(`#edit-level-2 option[value="${lastLevelId}"]`).disabled = true;
+            if (levelSelect.value === lastLevelId) { levelSelect.value = state.levels[cfg.semesters - 2].id; }
+            if (document.getElementById('edit-level-2').value === lastLevelId) { document.getElementById('edit-level-2').value = state.levels[cfg.semesters - 2].id; }
         } else if (tipo === 'U DE INTEGRACIÓN CURRICULAR') {
+            const existing = state.subjects.find(s => s.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR');
+            if (existing && (!isEdit || existing.id !== document.getElementById('edit-id').value)) {
+                showToast('Solo puede existir una Unidad de Integración Curricular por malla.', 'error');
+                document.getElementById('edit-tipo-materia').value = 'FORMACIÓN PROFESIONAL';
+                handleTipoChange(); 
+                return;
+            }
             compSelect.value = '3/0/6';
             compSelect.disabled = true;
-            // Obligar y bloquear en último nivel
-            const lastLevelId = state.levels[cfg.semesters - 1].id;
             levelSelect.value = lastLevelId;
             levelSelect.disabled = true;
             msgInt.style.display = 'block';
@@ -1597,7 +1637,31 @@
 
           if (data.action === 'move') { 
               const subject = state.subjects.find(s => s.id === data.id);
+              
+              const cfg = state.config || initialData.config;
+              const lastLevelId = state.levels[cfg.semesters - 1].id;
+              
+              if (subject.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR' && targetLevelId !== lastLevelId) {
+                  showToast('La Unidad de Integración Curricular debe permanecer en el último nivel.', 'error');
+                  return;
+              }
+              if (subject.tipoMateria === 'PROYECTO INTEGRADOR' && targetLevelId !== lastLevelId) {
+                  showToast('El Proyecto Integrador debe permanecer en el último nivel.', 'error');
+                  return;
+              }
+              if ((subject.tipoMateria === 'PRÁCTICAS COMUNITARIAS' || subject.tipoMateria === 'PRÁCTICAS LABORALES') && targetLevelId === lastLevelId) {
+                  showToast('Las prácticas no pueden ubicarse en el último nivel.', 'error');
+                  return;
+              }
+
               if (targetSubj && targetSubj.id !== data.id) {
+                  if (subject.level !== targetLevelId) {
+                      const hasItemAtEnd = state.subjects.some(s => s.level === targetLevelId && s.col === NUM_COLUMNS - 1);
+                      if (hasItemAtEnd) {
+                          showToast('No hay espacio en este nivel para insertar la materia.', 'error');
+                          return;
+                      }
+                  }
                   validateAndMove(data.id, targetLevelId, targetCol, true);
               } else {
                   validateAndMove(data.id, targetLevelId, targetCol, false); 
@@ -1614,25 +1678,6 @@
     function validateAndMove(subjectId, targetLevelId, targetCol, isInsert = false) {
         const subject = state.subjects.find(s => s.id === subjectId); const oldLevel = subject.level; const oldCol = subject.col;
         if (oldLevel === targetLevelId && oldCol === targetCol) return;
-
-        // Validación de arrastre para Integración Curricular
-        if (subject.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR') {
-            const cfg = state.config || initialData.config;
-            const lastLevelId = state.levels[cfg.semesters - 1].id;
-            if (targetLevelId !== lastLevelId) {
-                showToast('La Unidad de Integración Curricular debe permanecer en el último nivel. Edite el tipo si desea moverla.', 'error');
-                return;
-            }
-        }
-
-        const targetSubj = state.subjects.find(s => s.level === targetLevelId && s.col === targetCol);
-        if (targetSubj && isInsert && subject.level !== targetLevelId) {
-            const hasItemAtEnd = state.subjects.some(s => s.level === targetLevelId && s.col === NUM_COLUMNS - 1);
-            if (hasItemAtEnd) {
-                showToast('No hay espacio en este nivel para insertar la materia.', 'error');
-                return;
-            }
-        }
 
         const conflicts = []; const natureChanges = [];
         const newLvlIdxForSubj = state.levels.findIndex(l => l.id === targetLevelId); const oldLvlIdxForSubj = state.levels.findIndex(l => l.id === oldLevel);
@@ -1696,7 +1741,6 @@
         else { pinnedSubjectId = id; document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned')); const cardEl = document.getElementById(`card-${id}`); if (cardEl) cardEl.classList.add('pinned'); highlightConnections(id); }
     }
 
-    // --- CORRECCIÓN MATEMÁTICA DEL SVG PARA ZOOM ---
     function drawConnections() {
       const svg = document.getElementById('connections-layer'); 
       const ghostSvg = document.getElementById('ghost-layer'); 
@@ -2081,16 +2125,25 @@
     }
 
     function openModalForCreate(e) {
-      document.getElementById('modal-title').innerText = 'Agregar Nueva Materia'; 
-      document.getElementById('edit-id').value = ''; document.getElementById('edit-name').value = ''; document.getElementById('edit-code').value = ''; 
+      document.getElementById('edit-id').value = ''; 
+      document.getElementById('edit-name').value = ''; 
+      document.getElementById('edit-code').value = ''; 
+      document.getElementById('edit-tipo-materia').value = 'FORMACIÓN PROFESIONAL';
       
+      document.getElementById('edit-name').disabled = false;
+      document.getElementById('edit-code').disabled = false;
+      document.getElementById('edit-tipo-materia').disabled = false;
+      document.getElementById('btn-save').style.display = 'inline-block';
+      document.getElementById('group-code').style.display = 'block';
+
       const compSelect = document.getElementById('edit-components');
       Array.from(compSelect.options).forEach(opt => { if(opt.classList.contains('invalid-opt')) opt.remove(); });
       compSelect.value = '3/1/5';
-      document.getElementById('edit-tipo-materia').value = 'FORMACIÓN PROFESIONAL';
       
-      document.getElementById('edit-sum').value = 9; document.getElementById('level-select-group').style.display = 'block'; document.getElementById('btn-delete').style.display = 'none';
-      const modalBox = document.getElementById('edit-modal-box'); 
+      document.getElementById('edit-sum').value = 9; 
+      document.getElementById('level-select-group').style.display = 'block'; 
+      document.getElementById('btn-delete').style.display = 'none';
+      
       document.getElementById('modal-overlay').style.display = 'flex';
       
       handleTipoChange();
@@ -2098,8 +2151,16 @@
 
     function openModalForEdit(e, id) {
       e.stopPropagation(); const subj = state.subjects.find(s => s.id === id); if (!subj) return;
-      document.getElementById('modal-title').innerText = 'Editar Materia'; document.getElementById('edit-id').value = subj.id; document.getElementById('edit-name').value = subj.name; document.getElementById('edit-code').value = subj.code; 
+      document.getElementById('edit-id').value = subj.id; 
+      document.getElementById('edit-name').value = subj.name; 
+      document.getElementById('edit-code').value = subj.code; 
       
+      document.getElementById('edit-name').disabled = false;
+      document.getElementById('edit-code').disabled = false;
+      document.getElementById('edit-tipo-materia').disabled = false;
+      document.getElementById('btn-save').style.display = 'inline-block';
+      document.getElementById('group-code').style.display = 'block';
+
       document.getElementById('edit-tipo-materia').value = subj.tipoMateria || 'FORMACIÓN PROFESIONAL';
 
       const compSelect = document.getElementById('edit-components');
@@ -2114,8 +2175,22 @@
           compSelect.value = subj.components;
       }
 
-      document.getElementById('edit-sum').value = subj.sum; document.getElementById('level-select-group').style.display = 'none'; document.getElementById('btn-delete').style.display = 'block';
-      const modalBox = document.getElementById('edit-modal-box'); 
+      if (subj.tipoMateria === 'PROYECTO INTEGRADOR') {
+          document.getElementById('edit-name').disabled = true;
+          document.getElementById('edit-code').disabled = true;
+          document.getElementById('edit-tipo-materia').disabled = true;
+          document.getElementById('edit-components').disabled = true;
+          document.getElementById('edit-level').disabled = true;
+          document.getElementById('btn-save').style.display = 'none';
+          document.getElementById('group-integracion-msg').innerText = 'El Proyecto Integrador se gestiona automáticamente con la Unidad de Integración Curricular. Solo puedes eliminarlo de forma independiente.';
+          document.getElementById('group-integracion-msg').style.display = 'block';
+      } else {
+          document.getElementById('group-integracion-msg').innerText = '💡 Se creará la materia principal (3/0/6) y automáticamente se agregará la tarjeta de "Proyecto Integrador" (240h) en este mismo nivel si no existe.';
+      }
+
+      document.getElementById('edit-sum').value = subj.sum; 
+      document.getElementById('level-select-group').style.display = 'none'; 
+      document.getElementById('btn-delete').style.display = 'block';
       document.getElementById('modal-overlay').style.display = 'flex';
       updateSumFromSelect();
     }
@@ -2133,6 +2208,9 @@
                       document.querySelector('input[name="laboral-split"]:checked').value === 'split';
 
       if (!name || !code) { showToast('Por favor ingresa un nombre y código válidos.', 'error'); return; }
+
+      const cfg = state.config || initialData.config;
+      const lastLevelId = state.levels[cfg.semesters - 1].id;
 
       saveStateToHistory();
 
@@ -2153,16 +2231,33 @@
           if (subj) { 
              const codeExists = state.subjects.some(s => s.code.toUpperCase() === code && s.id !== id);
              if (codeExists) { showToast(`El código ${code} ya existe.`, 'error'); return; }
+             const oldCode = subj.code;
+             const oldType = subj.tipoMateria;
+             
              subj.name = name; subj.code = code; 
              subj.components = components; 
              subj.sum = sum; 
              subj.tipoMateria = tipoMateria; 
+             
+             if (oldType === 'U DE INTEGRACIÓN CURRICULAR' && tipoMateria !== 'U DE INTEGRACIÓN CURRICULAR') {
+                 const pi = state.subjects.find(s => s.tipoMateria === 'PROYECTO INTEGRADOR' && s.level === subj.level);
+                 if (pi) {
+                     state.subjects = state.subjects.filter(s => s.id !== pi.id);
+                     state.connections = state.connections.filter(c => c.from !== pi.id && c.to !== pi.id);
+                 }
+             }
 
-             // Auto-reparación si es edición de Integradora y no tiene PI
              if (tipoMateria === 'U DE INTEGRACIÓN CURRICULAR') {
-                 const hasPI = state.subjects.some(s => s.tipoMateria === 'PROYECTO INTEGRADOR' && s.level === subj.level);
-                 if (!hasPI) {
-                     insertSubj(code+"-PI", "PROYECTO INTEGRADOR", '0/0/15', subj.level, "PROYECTO INTEGRADOR");
+                 const pi = state.subjects.find(s => s.tipoMateria === 'PROYECTO INTEGRADOR' && s.level === subj.level);
+                 if (!pi) {
+                     const used = state.subjects.filter(s => s.level === subj.level);
+                     if (used.length < NUM_COLUMNS) {
+                         insertSubj(code+"-PI", "PROYECTO INTEGRADOR", '0/0/15', subj.level, "PROYECTO INTEGRADOR");
+                     } else {
+                         showToast('No hay espacio para generar automáticamente el Proyecto Integrador.', 'error');
+                     }
+                 } else if (oldCode !== code) {
+                     pi.code = code + "-PI";
                  }
              }
           } 
@@ -2174,14 +2269,21 @@
               if (levelId === level2) {
                   if(!insertSubj(code, name, '0/0/15', levelId, tipoMateria)) { showToast('No hay espacio en este nivel.', 'error'); return; }
               } else {
-                  let ok1 = insertSubj(code+"-1", name+" I", '0/0/6', levelId, tipoMateria);
-                  let ok2 = insertSubj(code+"-2", name+" II", '0/0/9', level2, tipoMateria);
-                  if(!ok1 || !ok2) { showToast('No hubo espacio en uno de los niveles', 'error'); return; }
+                  const used1 = state.subjects.filter(s => s.level === levelId).length;
+                  const used2 = state.subjects.filter(s => s.level === level2).length;
+                  if (used1 >= NUM_COLUMNS || used2 >= NUM_COLUMNS) {
+                      showToast('No hay espacio suficiente en los niveles seleccionados.', 'error'); return;
+                  }
+                  insertSubj(code+"-1", name+" I", '0/0/6', levelId, tipoMateria);
+                  insertSubj(code+"-2", name+" II", '0/0/9', level2, tipoMateria);
               }
           } else if (tipoMateria === 'U DE INTEGRACIÓN CURRICULAR') {
-              let ok1 = insertSubj(code, name, '3/0/6', levelId, tipoMateria);
-              let ok2 = insertSubj(code+"-PI", "PROYECTO INTEGRADOR", '0/0/15', levelId, "PROYECTO INTEGRADOR");
-              if(!ok1 || !ok2) { showToast('Asegura tener 2 espacios libres en el último nivel', 'error'); return; }
+              const used = state.subjects.filter(s => s.level === lastLevelId).length;
+              if (used >= NUM_COLUMNS - 1) {
+                  showToast('Asegura tener 2 espacios libres en el último nivel.', 'error'); return;
+              }
+              insertSubj(code, name, '3/0/6', lastLevelId, tipoMateria);
+              insertSubj(code+"-PI", "PROYECTO INTEGRADOR", '0/0/15', lastLevelId, "PROYECTO INTEGRADOR");
           } else {
               if(!insertSubj(code, name, components, levelId, tipoMateria)) { showToast('No hay espacio en este nivel.', 'error'); return; }
           }
@@ -2197,7 +2299,6 @@
         saveStateToHistory(); 
         const subj = state.subjects.find(s => s.id === id);
         
-        // Eliminación en cadena del Proyecto Integrador
         if (subj.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR') {
             const pi = state.subjects.find(s => s.tipoMateria === 'PROYECTO INTEGRADOR' && s.level === subj.level);
             if (pi) {
