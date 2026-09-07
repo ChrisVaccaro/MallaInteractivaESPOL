@@ -70,8 +70,6 @@
 
     .btn-add { background-color: #10b981; color: white; border-color: #10b981; }
     .btn-add:hover { background-color: #059669; }
-    .btn-analytic { background-color: #f8fafc; color: #8b5cf6; border: 1px solid #c4b5fd; font-weight: 700; }
-    .btn-analytic:hover { background-color: #f3e8ff; color: #6d28d9; border-color: #a78bfa; }
     .btn-help { background-color: #f8fafc; color: #3b82f6; border: 1px solid #93c5fd; font-weight: 700; }
     .btn-help:hover { background-color: #eff6ff; color: #1d4ed8; border-color: #3b82f6; }
     .btn-icon-only { padding: 8px; width: 36px; display: flex; justify-content: center; align-items: center; }
@@ -749,7 +747,7 @@
 
     function isValidCombination(compStr) {
       if (!compStr) return false;
-      return allowedCombinations.includes(compStr.replace(/\s/g, ''));
+      return allowedCombinations.includes(String(compStr).replace(/\s/g, ''));
     }
 
     let state = JSON.parse(JSON.stringify(initialData));
@@ -811,11 +809,11 @@
     function updateConfig() {
         if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config));
         
-        state.config.semesters = parseInt(document.getElementById('conf-semesters').value);
-        state.config.minC = parseFloat(document.getElementById('conf-min').value);
-        state.config.maxC = parseFloat(document.getElementById('conf-max').value);
-        state.config.divC = parseFloat(document.getElementById('conf-div').value) || 1; 
-        state.config.weeks = parseFloat(document.getElementById('conf-weeks').value);
+        state.config.semesters = parseInt(document.getElementById('conf-semesters').value) || 9;
+        state.config.minC = parseFloat(document.getElementById('conf-min').value) || 14;
+        state.config.maxC = parseFloat(document.getElementById('conf-max').value) || 16;
+        state.config.divC = parseFloat(document.getElementById('conf-div').value) || 3; 
+        state.config.weeks = parseFloat(document.getElementById('conf-weeks').value) || 16;
         
         persistState();
         renderBoard();
@@ -857,31 +855,34 @@
             }
        });
        
+       if(!state.levels || !Array.isArray(state.levels)) state.levels = JSON.parse(JSON.stringify(initialData.levels));
        const visibleLevelIds = state.levels.slice(0, cfg.semesters).map(l => l.id);
        
-       state.subjects.forEach(s => {
-          if(!visibleLevelIds.includes(s.level)) return;
-          
-          totalSubjects++;
-          const creds = calculateCredits(s);
-          totalCredits += creds;
-          
-          const hours = parseHoursComponents(s.components);
-          if(!excludedTypes.includes(s.tipoMateria)) {
-             acd += hours.acd * cfg.weeks;
-             ape += hours.ape * cfg.weeks;
-             aa += hours.aa * cfg.weeks;
-          }
-          
-          let tipoOriginal = s.tipoMateria || "FORMACIÓN PROFESIONAL";
-          let tipoNombreLargo = typeDisplayNames[tipoOriginal] || tipoOriginal;
-          
-          if(!typeMap[tipoNombreLargo]) typeMap[tipoNombreLargo] = { h: 0, c: 0, class: getTypeClass(tipoOriginal) };
-          
-          typeMap[tipoNombreLargo].c += creds;
-          let subHours = s.sum * cfg.weeks;
-          typeMap[tipoNombreLargo].h += subHours;
-       });
+       if(state.subjects && Array.isArray(state.subjects)) {
+           state.subjects.forEach(s => {
+              if(!visibleLevelIds.includes(s.level)) return;
+              
+              totalSubjects++;
+              const creds = calculateCredits(s);
+              totalCredits += creds;
+              
+              const hours = parseHoursComponents(s.components);
+              if(!excludedTypes.includes(s.tipoMateria)) {
+                 acd += hours.acd * cfg.weeks;
+                 ape += hours.ape * cfg.weeks;
+                 aa += hours.aa * cfg.weeks;
+              }
+              
+              let tipoOriginal = s.tipoMateria || "FORMACIÓN PROFESIONAL";
+              let tipoNombreLargo = typeDisplayNames[tipoOriginal] || tipoOriginal;
+              
+              if(!typeMap[tipoNombreLargo]) typeMap[tipoNombreLargo] = { h: 0, c: 0, class: getTypeClass(tipoOriginal) };
+              
+              typeMap[tipoNombreLargo].c += creds;
+              let subHours = s.sum * cfg.weeks;
+              typeMap[tipoNombreLargo].h += subHours;
+           });
+       }
        
        document.getElementById('stat-subjs').innerText = totalSubjects;
        document.getElementById('stat-creds').innerText = totalCredits.toFixed(1).replace('.0','');
@@ -934,7 +935,10 @@
        semContainer.innerHTML = '';
        
        state.levels.slice(0, cfg.semesters).forEach((lvl, idx) => {
-           const subjs = state.subjects.filter(s => s.level === lvl.id);
+           let subjs = [];
+           if(state.subjects && Array.isArray(state.subjects)) {
+               subjs = state.subjects.filter(s => s.level === lvl.id);
+           }
            const lvlCreds = subjs.reduce((acc, s) => acc + calculateCredits(s), 0);
            
            let iconHtml = '';
@@ -1070,34 +1074,36 @@
         if (edgeScrollInterval) { clearInterval(edgeScrollInterval); edgeScrollInterval = null; }
     }
 
-    function formatLevel(lvl) { return lvl ? lvl.replace('L', '') : ''; }
+    function formatLevel(lvl) { return lvl ? String(lvl).replace('L', '') : ''; }
 
     function parseNameReq(name) {
       if (!name) return { cleanName: '', reqNum: null };
-      const parts = name.split('&');
+      const parts = String(name).split('&');
       return { cleanName: parts[0].trim(), reqNum: parts.length > 1 ? parts[1].trim() : null };
     }
 
     function parseHoursComponents(componentsStr) {
       if (!componentsStr) return { acd: 0, ape: 0, aa: 0 };
-      const parts = componentsStr.split('/').map(p => parseFloat(p) || 0);
+      const str = String(componentsStr);
+      const parts = str.split('/').map(p => parseFloat(p) || 0);
       return { acd: parts[0] || 0, ape: parts[1] || 0, aa: parts[2] || 0 };
     }
 
     function calculateCredits(subj) {
-      if(!state.config) return subj.sum / 3;
-      return subj.sum / state.config.divC;
+      if(!state.config) return Number(subj.sum) / 3;
+      return Number(subj.sum) / state.config.divC;
     }
 
     function isBasicMathSubject(name) {
-      const n = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      if(!name) return false;
+      const n = String(name).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       const keywords = ["calculo", "fisica", "algebra", "estadistica", "ecuaciones", "matematicas", "quimica", "evaluacion"];
       return keywords.some(kw => n.includes(kw));
     }
 
     function getTypeClass(tipo) {
         if (!tipo) return 'type-formacion-profesional';
-        return 'type-' + tipo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+        return 'type-' + String(tipo).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
     }
 
     function setCachedResult(sheet, cellRef, numericResult) {
@@ -1391,23 +1397,34 @@
         };
 
         if (tipo === 'U DE INTEGRACIÓN CURRICULAR') {
-            const existing = state.subjects.find(s => s.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR');
+            let existing = null;
+            if (state.subjects && Array.isArray(state.subjects)) {
+                existing = state.subjects.find(s => s.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR');
+            }
             if (existing && (!isEdit || existing.id !== document.getElementById('edit-id').value)) {
                 showToast('Solo puede existir una Unidad de Integración Curricular por malla.', 'error');
                 revertToDefaultType();
                 return;
             }
         } else if (tipo === 'PRÁCTICAS LABORALES') {
-            const isEditingLaboral = isEdit && state.subjects.find(s => s.id === document.getElementById('edit-id').value)?.tipoMateria === 'PRÁCTICAS LABORALES';
-            const existingLab = state.subjects.find(s => s.tipoMateria === 'PRÁCTICAS LABORALES');
+            let isEditingLaboral = false;
+            let existingLab = null;
+            if (state.subjects && Array.isArray(state.subjects)) {
+                isEditingLaboral = isEdit && state.subjects.find(s => s.id === document.getElementById('edit-id').value)?.tipoMateria === 'PRÁCTICAS LABORALES';
+                existingLab = state.subjects.find(s => s.tipoMateria === 'PRÁCTICAS LABORALES');
+            }
             if (existingLab && !isEditingLaboral) {
                 showToast('Ya existen Prácticas Laborales en la malla.', 'error');
                 revertToDefaultType();
                 return;
             }
         } else if (tipo === 'PRÁCTICAS COMUNITARIAS') {
-            const isEditingComunitaria = isEdit && state.subjects.find(s => s.id === document.getElementById('edit-id').value)?.tipoMateria === 'PRÁCTICAS COMUNITARIAS';
-            const existingCom = state.subjects.find(s => s.tipoMateria === 'PRÁCTICAS COMUNITARIAS');
+            let isEditingComunitaria = false;
+            let existingCom = null;
+            if (state.subjects && Array.isArray(state.subjects)) {
+                isEditingComunitaria = isEdit && state.subjects.find(s => s.id === document.getElementById('edit-id').value)?.tipoMateria === 'PRÁCTICAS COMUNITARIAS';
+                existingCom = state.subjects.find(s => s.tipoMateria === 'PRÁCTICAS COMUNITARIAS');
+            }
             if (existingCom && !isEditingComunitaria) {
                  showToast('Ya existen Prácticas de Servicio Comunitario en la malla.', 'error');
                  revertToDefaultType();
@@ -1474,7 +1491,10 @@
             codeGroup.style.display = 'none';
         } else if (tipo === 'PRÁCTICAS LABORALES') {
             if (isEdit) {
-                const subj = state.subjects.find(s => s.id === document.getElementById('edit-id').value);
+                let subj = null;
+                if (state.subjects && Array.isArray(state.subjects)) {
+                    subj = state.subjects.find(s => s.id === document.getElementById('edit-id').value);
+                }
                 nameInput.value = 'PRÁCTICAS LABORALES'; 
             } else {
                 nameInput.value = 'PRÁCTICAS LABORALES'; 
@@ -1538,14 +1558,35 @@
           } else { 
               state = parsed; 
           }
-          if(!state.config) state.config = {};
-          // Fallback para evitar variables faltantes en caché antigua
+          
+          if (!state || typeof state !== 'object') state = JSON.parse(JSON.stringify(initialData));
+          
+          if (!state.config) state.config = JSON.parse(JSON.stringify(initialData.config));
           state.config = { ...initialData.config, ...state.config };
-          if(!state.levels) state.levels = JSON.parse(JSON.stringify(initialData.levels));
-          if(!state.subjects) state.subjects = [];
-          if(!state.connections) state.connections = [];
-        } catch(e){
+          state.config.semesters = parseInt(state.config.semesters) || 9;
+          
+          if (!state.levels || !Array.isArray(state.levels) || state.levels.length === 0) {
+              state.levels = JSON.parse(JSON.stringify(initialData.levels));
+          }
+          
+          if (!state.subjects || !Array.isArray(state.subjects)) state.subjects = [];
+          state.subjects = state.subjects.map(s => {
+              return {
+                  ...s,
+                  id: s.id || 'CUSTOM_' + Math.floor(Math.random() * 10000),
+                  tipoMateria: String(s.tipoMateria || 'FORMACIÓN PROFESIONAL'),
+                  components: String(s.components || '3/1/5'),
+                  sum: Number(s.sum) || 9,
+                  level: String(s.level || 'L100-1'),
+                  col: Number(s.col) || 0
+              };
+          });
+
+          if (!state.connections || !Array.isArray(state.connections)) state.connections = [];
+          
+        } catch(e) {
           console.error("Error al restaurar caché:", e);
+          state = JSON.parse(JSON.stringify(initialData));
         }
         tempSavedState = null;
       }
@@ -1568,27 +1609,34 @@
       document.getElementById('conf-weeks').value = state.config.weeks;
 
       updateSubtitleUI(); applyLineTypeUI(); 
-      if (state.baseCareer) { loadBaseCareerCodes(state.baseCareer); } 
-      else { renderBoard(); setTimeout(drawConnections, 100); }
+      if (state.baseCareer) { 
+          loadBaseCareerCodes(state.baseCareer); 
+      } else { 
+          renderBoard(); 
+          setTimeout(() => { drawConnections(); updateAnalyticsPanel(); }, 100); 
+      }
       
       window.addEventListener('resize', drawConnections); 
       updateUndoRedoButtons();
-      updateAnalyticsPanel();
     }
 
     function renderBoard() {
       const board = document.getElementById('board'); board.innerHTML = '';
       if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config));
+      if(!state.levels || !Array.isArray(state.levels) || state.levels.length === 0) state.levels = JSON.parse(JSON.stringify(initialData.levels));
+      
       const visibleLevels = state.levels.slice(0, state.config.semesters);
 
       visibleLevels.forEach(level => {
         const row = document.createElement('div'); row.className = 'level-row';
-        const subjectsInLevel = state.subjects.filter(s => s.level === level.id);
+        let subjectsInLevel = [];
+        if(state.subjects && Array.isArray(state.subjects)) {
+            subjectsInLevel = state.subjects.filter(s => s.level === level.id);
+        }
         const totalCredits = subjectsInLevel.reduce((acc, curr) => acc + calculateCredits(curr), 0);
         
         let totalACD = 0; let totalAPE = 0; let totalAA = 0;
         
-        // NO incluir en el cálculo del nivel las prácticas ni proyecto integrador
         const excludedTypes = ["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PROYECTO INTEGRADOR", "PRÁCTICAS EMPRESARIALES"];
 
         subjectsInLevel.forEach(subj => {
@@ -1663,13 +1711,12 @@
       const warningHTML = !validHours ? `<span class="warning-icon">⚠️</span>` : '';
       const customTooltipHTML = !validHours ? `<div class="custom-tooltip">Distribución de horas no permitida. Debe editar la materia.</div>` : '';
 
-      let isNew = state.baseCareer && baseSubjectCodes.length > 0 && !baseSubjectCodes.includes(subj.code.toUpperCase());
+      let isNew = state.baseCareer && baseSubjectCodes.length > 0 && !baseSubjectCodes.includes(String(subj.code).toUpperCase());
       if (["PRÁCTICAS LABORALES", "PROYECTO INTEGRADOR", "PRÁCTICAS COMUNITARIAS", "U DE INTEGRACIÓN CURRICULAR"].includes(subj.tipoMateria)) {
           isNew = false;
       }
       const newBadgeHTML = isNew ? `<div class="badge-new" title="Materia creada en esta versión de la malla">NUEVA</div>` : '';
 
-      // --- CAMBIO DE TEXTO PARA HORAS (No mostrar distribución en Prácticas) ---
       let displayComponents = subj.components;
       if (["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PROYECTO INTEGRADOR", "PRÁCTICAS EMPRESARIALES"].includes(subj.tipoMateria)) {
           if (subj.components === "0/0/3") displayComponents = "48h";
@@ -1679,7 +1726,6 @@
           else if (subj.components === "0/0/15") displayComponents = "240h";
       }
 
-      // --- OCULTAR CÓDIGO SEGÚN TIPO ---
       let displayCode = subj.code;
       const hideCodeTypes = ["ITINERARIO", "C. DE ARTE Y DEPORTES", "C. DE HUMANÍSTICA", "PRÁCTICAS LABORALES", "PRÁCTICAS COMUNITARIAS", "PROYECTO INTEGRADOR"];
       if (hideCodeTypes.includes(subj.tipoMateria)) {
@@ -1917,6 +1963,7 @@
 
     function highlightConnections(id) {
       clearHighlights();
+      if(!state.connections) return;
       state.connections.forEach(c => {
         if (c.to === id) { const cardReq = document.getElementById('card-' + c.from); if (cardReq) cardReq.classList.add('highlight-req'); }
         if (c.from === id) { const cardNext = document.getElementById('card-' + c.to); if (cardNext) cardNext.classList.add('highlight-next'); }
@@ -1961,10 +2008,17 @@
 
       saveStateToHistory(); state = dataToApply; 
       if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config));
+      if(!state.levels) state.levels = JSON.parse(JSON.stringify(initialData.levels));
       
       persistState(); pinnedSubjectId = null; updateSubtitleUI(); 
       
-      if (state.baseCareer) { loadBaseCareerCodes(state.baseCareer); } else { renderBoard(); drawConnections(); updateAnalyticsPanel(); }
+      if (state.baseCareer) { 
+          loadBaseCareerCodes(state.baseCareer); 
+      } else { 
+          renderBoard(); 
+          drawConnections(); 
+          updateAnalyticsPanel(); 
+      }
       showToast('Malla cargada con éxito.', 'success');
     }
 
@@ -2053,7 +2107,7 @@
             let changedName = (baseParsed.cleanName !== webParsed.cleanName); let changedReqNum = (baseParsed.reqNum !== webParsed.reqNum);
 
             let baseReqs = getConns(baseSubjects, originalData.connections, baseSubj.id); let webReqs = getConns(webSubjects, state.connections, webSubj.id);
-            const sortReqs = r => r.slice().sort((a,b) => a.code.localeCompare(b.code)); let reqsChanged = JSON.stringify(sortReqs(baseReqs)) !== JSON.stringify(sortReqs(webReqs));
+            const sortReqs = r => r.slice().sort((a,b) => String(a.code).localeCompare(String(b.code))); let reqsChanged = JSON.stringify(sortReqs(baseReqs)) !== JSON.stringify(sortReqs(webReqs));
 
             if (changedHours || changedLevel || changedName || changedReqNum || reqsChanged) {
               let comments = []; let modType = changedHours ? 'CAMBIO' : 'OTRO';
@@ -2238,7 +2292,13 @@
     }
 
     function openModalForEdit(e, id) {
-      e.stopPropagation(); const subj = state.subjects.find(s => s.id === id); if (!subj) return;
+      e.stopPropagation(); 
+      let subj = null;
+      if (state.subjects && Array.isArray(state.subjects)) {
+          subj = state.subjects.find(s => s.id === id);
+      }
+      if (!subj) return;
+
       document.getElementById('edit-id').value = subj.id; 
       document.getElementById('edit-name').value = subj.name; 
       document.getElementById('edit-code').value = subj.code; 
@@ -2314,7 +2374,7 @@
       saveStateToHistory();
 
       function insertSubj(cCode, cName, cComps, cLevelId, cType) {
-          const sumParts = cComps.split('/').reduce((a,b)=>a+parseFloat(b), 0);
+          const sumParts = String(cComps).split('/').reduce((a,b)=>a+parseFloat(b), 0);
           const codeExists = state.subjects.some(s => s.code.toUpperCase() === cCode && s.id !== id);
           if (codeExists && cType !== 'PRÁCTICAS LABORALES') { showToast(`El código ${cCode} ya existe.`, 'error'); return false; }
           const newId = 'CUSTOM_' + Date.now() + Math.floor(Math.random()*1000);
