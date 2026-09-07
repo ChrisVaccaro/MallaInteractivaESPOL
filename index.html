@@ -70,6 +70,8 @@
 
     .btn-add { background-color: #10b981; color: white; border-color: #10b981; }
     .btn-add:hover { background-color: #059669; }
+    .btn-analytic { background-color: #f8fafc; color: #8b5cf6; border: 1px solid #c4b5fd; font-weight: 700; }
+    .btn-analytic:hover { background-color: #f3e8ff; color: #6d28d9; border-color: #a78bfa; }
     .btn-help { background-color: #f8fafc; color: #3b82f6; border: 1px solid #93c5fd; font-weight: 700; }
     .btn-help:hover { background-color: #eff6ff; color: #1d4ed8; border-color: #3b82f6; }
     .btn-icon-only { padding: 8px; width: 36px; display: flex; justify-content: center; align-items: center; }
@@ -587,8 +589,6 @@
     <div class="modal" id="edit-modal-box" onclick="event.stopPropagation()">
       <h2 id="modal-title">Agregar Nueva Materia</h2>
       <input type="hidden" id="edit-id">
-      <div class="form-group"><label>Nombre de la Materia:</label><input type="text" id="edit-name" placeholder="Ej: CÁLCULO VECTORIAL & 3"></div>
-      <div class="form-group" id="group-code"><label>Código:</label><input type="text" id="edit-code" placeholder="Ej: MATG1046" style="text-transform: uppercase;"></div>
       
       <div class="form-group">
         <label>Tipo de Materia:</label>
@@ -604,6 +604,9 @@
           <option value="U DE INTEGRACIÓN CURRICULAR">UNIDAD DE INTEGRACIÓN CURRICULAR</option>
         </select>
       </div>
+      
+      <div class="form-group"><label>Nombre de la Materia:</label><input type="text" id="edit-name" placeholder="Ej: CÁLCULO VECTORIAL & 3"></div>
+      <div class="form-group" id="group-code"><label>Código:</label><input type="text" id="edit-code" placeholder="Ej: MATG1046" style="text-transform: uppercase;"></div>
 
       <div class="form-group" id="group-components">
         <label>Componentes (Horas semanales ACD/APE/AA):</label>
@@ -740,7 +743,7 @@
     };
 
     const niceSemesterNames = ['SEMESTRE I', 'SEMESTRE II', 'SEMESTRE III', 'SEMESTRE IV', 'SEMESTRE V', 'SEMESTRE VI', 'SEMESTRE VII', 'SEMESTRE VIII', 'SEMESTRE IX'];
-    const allowedCombinations = ["1/1/1", "2/0/1", "4/0/2", "2/0/4", "2/1/3", "2/2/2", "3/0/3", "3/0/6", "0/0/6", "3/1/5", "3/2/4", "4/0/5", "4/1/4", "0/0/9", "4/0/8", "4/1/7", "5/0/7", "0/0/15"];
+    const allowedCombinations = ["1/1/1", "2/0/1", "4/0/2", "2/0/4", "2/1/3", "2/2/2", "3/0/3", "3/0/6", "0/0/6", "3/1/5", "3/2/4", "4/0/5", "4/1/4", "0/0/9", "4/0/8", "4/1/7", "5/0/7", "0/0/15", "0/0/3", "0/0/12"];
 
     function isValidCombination(compStr) {
       if (!compStr) return false;
