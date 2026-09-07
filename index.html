@@ -35,13 +35,13 @@
       top: 0;
       z-index: 150;
       background-color: var(--bg-color);
-      padding: 15px 20px 5px 20px;
+      padding: 10px 20px 0px 20px;
       box-shadow: 0 4px 10px -4px rgba(0,0,0,0.1);
       border-bottom: 1px solid #e2e8f0;
     }
 
     .app-body {
-      padding: 10px 20px 20px 20px;
+      padding: 5px 20px 20px 20px;
     }
 
     h1 { text-align: center; margin-top: 0; margin-bottom: 4px; color: var(--primary-color); }
@@ -204,7 +204,7 @@
     svg#connections-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5 !important; }
     svg#ghost-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50 !important; }
     
-    .board { display: flex; flex-direction: column; gap: 32px; position: relative; padding-top: 15px; padding-bottom: 20px;}
+    .board { display: flex; flex-direction: column; gap: 32px; position: relative; padding-top: 40px; padding-bottom: 20px;}
 
     /* --- DISEÑO DEL NIVEL --- */
     .level-row { 
@@ -836,6 +836,15 @@
         panel.classList.toggle('open');
     }
 
+    function syncConfigUI() {
+        if(!state.config) return;
+        document.getElementById('conf-semesters').value = state.config.semesters;
+        document.getElementById('conf-min').value = state.config.minC;
+        document.getElementById('conf-max').value = state.config.maxC;
+        document.getElementById('conf-div').value = state.config.divC;
+        document.getElementById('conf-weeks').value = state.config.weeks;
+    }
+
     function updateConfig() {
         if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config));
         
@@ -895,8 +904,8 @@
         
         persistState(); 
         renderBoard(); 
-        drawConnections(); 
         updateAnalyticsPanel();
+        setTimeout(drawConnections, 200); 
         showToast('Materia corregida exitosamente.', 'success');
     };
 
@@ -1214,7 +1223,7 @@
         baseSubjectCodes = [];
         if (!catalogoGlobal || !careerName) { 
             renderBoard(); 
-            setTimeout(() => { drawConnections(); updateAnalyticsPanel(); }, 100);
+            setTimeout(() => { drawConnections(); updateAnalyticsPanel(); }, 200);
             return; 
         }
         
@@ -1234,7 +1243,7 @@
         }
         
         renderBoard();
-        setTimeout(() => { drawConnections(); updateAnalyticsPanel(); }, 100);
+        setTimeout(() => { drawConnections(); updateAnalyticsPanel(); }, 200);
     }
 
     function renderMenuFacultades() {
@@ -1673,11 +1682,13 @@
       document.getElementById('conf-weeks').value = state.config.weeks;
 
       updateSubtitleUI(); 
+      syncConfigUI(); // Actualiza el panel según la malla importada/restaurada
+
       if (state.baseCareer) { 
           loadBaseCareerCodes(state.baseCareer); 
       } else { 
           renderBoard(); 
-          setTimeout(() => { drawConnections(); updateAnalyticsPanel(); }, 100); 
+          setTimeout(() => { drawConnections(); updateAnalyticsPanel(); }, 200); 
       }
       
       window.addEventListener('resize', drawConnections); 
@@ -1771,7 +1782,6 @@
       card.className = `subject-card ${tipoClase} ${isPinned ? 'pinned' : ''}`; card.id = `card-${subj.id}`; card.draggable = true;
       const credits = calculateCredits(subj).toFixed(1).replace('.0', '');
       
-      // SISTEMA DE ALERTAS Y AUTOCORRECCIÓN
       const upperName = String(subj.name).toUpperCase();
       let warningMsg = '';
       let fixAction = null;
@@ -2098,14 +2108,13 @@
       if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config));
       if(!state.levels) state.levels = JSON.parse(JSON.stringify(initialData.levels));
       
-      persistState(); pinnedSubjectId = null; updateSubtitleUI(); 
+      persistState(); pinnedSubjectId = null; updateSubtitleUI(); syncConfigUI();
       
       if (state.baseCareer) { 
           loadBaseCareerCodes(state.baseCareer); 
       } else { 
           renderBoard(); 
-          drawConnections(); 
-          updateAnalyticsPanel(); 
+          setTimeout(() => { drawConnections(); updateAnalyticsPanel(); }, 200); 
       }
       showToast('Malla cargada con éxito.', 'success');
     }
