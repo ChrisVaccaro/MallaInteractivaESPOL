@@ -70,8 +70,6 @@
 
     .btn-add { background-color: #10b981; color: white; border-color: #10b981; }
     .btn-add:hover { background-color: #059669; }
-    .btn-analytic { background-color: #f8fafc; color: #8b5cf6; border: 1px solid #c4b5fd; font-weight: 700; }
-    .btn-analytic:hover { background-color: #f3e8ff; color: #6d28d9; border-color: #a78bfa; }
     .btn-help { background-color: #f8fafc; color: #3b82f6; border: 1px solid #93c5fd; font-weight: 700; }
     .btn-help:hover { background-color: #eff6ff; color: #1d4ed8; border-color: #3b82f6; }
     .btn-icon-only { padding: 8px; width: 36px; display: flex; justify-content: center; align-items: center; }
@@ -636,7 +634,15 @@
           <label style="color: #b45309; margin-bottom: 8px;">Distribución de Prácticas Laborales:</label>
           <div style="display:flex; flex-direction: column; gap: 8px; font-size: 0.85em; font-weight: 500;">
               <label><input type="radio" name="laboral-split" value="single" checked onchange="handleSplitChange()"> Crear 1 sola materia (240h = 5 Créditos)</label>
-              <label><input type="radio" name="laboral-split" value="split" onchange="handleSplitChange()"> Dividir en 2 materias (96h y 144h)</label>
+              <label><input type="radio" name="laboral-split" value="split" onchange="handleSplitChange()"> Dividir en 2 materias</label>
+              <div id="laboral-split-options" style="display:none; margin-left: 20px;">
+                  <select id="laboral-split-dist" style="width:100%; padding:4px; border: 1px solid var(--border-color); border-radius: 4px; font-weight: bold; color: #334155;">
+                      <option value="2-3">Parte 1: 96h (2 cr) | Parte 2: 144h (3 cr)</option>
+                      <option value="3-2">Parte 1: 144h (3 cr) | Parte 2: 96h (2 cr)</option>
+                      <option value="1-4">Parte 1: 48h (1 cr) | Parte 2: 192h (4 cr)</option>
+                      <option value="4-1">Parte 1: 192h (4 cr) | Parte 2: 48h (1 cr)</option>
+                  </select>
+              </div>
           </div>
       </div>
 
@@ -667,7 +673,7 @@
       </div>
 
       <div class="form-group" id="level-select-group-2" style="display:none;">
-        <label>Semestre para la segunda parte (144h):</label>
+        <label>Semestre para la segunda parte:</label>
         <select id="edit-level-2">
           <option value="L100-1">NIVEL 100 - I</option><option value="L100-2">NIVEL 100 - II</option>
           <option value="L200-1">NIVEL 200 - I</option><option value="L200-2">NIVEL 200 - II</option>
@@ -1452,7 +1458,7 @@
             if (isEdit) {
                 const subj = state.subjects.find(s => s.id === document.getElementById('edit-id').value);
                 if (subj && subj.code.startsWith('PRA-LAB')) {
-                    nameInput.value = subj.name; 
+                    nameInput.value = 'PRÁCTICAS LABORALES'; 
                     codeInput.value = subj.code;
                 } else {
                     nameInput.value = 'PRÁCTICAS LABORALES'; codeInput.value = 'PRA-LAB';
@@ -1481,11 +1487,14 @@
     function handleSplitChange() {
         const splitVal = document.querySelector('input[name="laboral-split"]:checked').value;
         const lvl2Group = document.getElementById('level-select-group-2');
+        const splitOpts = document.getElementById('laboral-split-options');
         if (splitVal === 'split') {
             lvl2Group.style.display = 'block';
-            document.getElementById('lbl-level-1').innerText = "Semestre para la primera parte (96h):";
+            splitOpts.style.display = 'block';
+            document.getElementById('lbl-level-1').innerText = "Semestre para la primera parte:";
         } else {
             lvl2Group.style.display = 'none';
+            splitOpts.style.display = 'none';
             document.getElementById('lbl-level-1').innerText = "Nivel / Semestre:";
         }
     }
@@ -1644,8 +1653,10 @@
       // --- CAMBIO DE TEXTO PARA HORAS (No mostrar distribución en Prácticas) ---
       let displayComponents = subj.components;
       if (["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PROYECTO INTEGRADOR", "PRÁCTICAS EMPRESARIALES"].includes(subj.tipoMateria)) {
-          if (subj.components === "0/0/6") displayComponents = "96h";
+          if (subj.components === "0/0/3") displayComponents = "48h";
+          else if (subj.components === "0/0/6") displayComponents = "96h";
           else if (subj.components === "0/0/9") displayComponents = "144h";
+          else if (subj.components === "0/0/12") displayComponents = "192h";
           else if (subj.components === "0/0/15") displayComponents = "240h";
       }
 
@@ -2257,16 +2268,21 @@
 
     function saveSubjectFromModal() {
       const id = document.getElementById('edit-id').value; 
-      const name = document.getElementById('edit-name').value.trim(); 
-      const code = document.getElementById('edit-code').value.trim().toUpperCase(); 
+      let name = document.getElementById('edit-name').value.trim(); 
+      let code = document.getElementById('edit-code').value.trim().toUpperCase(); 
       const components = document.getElementById('edit-components').value.trim(); 
       const sum = parseFloat(document.getElementById('edit-sum').value) || 0; 
       const tipoMateria = document.getElementById('edit-tipo-materia').value;
       const isSplit = document.getElementById('group-laborales-split').style.display === 'block' && 
                       document.querySelector('input[name="laboral-split"]:checked').value === 'split';
 
+      // Validación permisiva para prácticas (ya que ocultan su código)
       if (!name || (!code && tipoMateria !== 'PRÁCTICAS COMUNITARIAS' && tipoMateria !== 'PRÁCTICAS LABORALES')) { 
           showToast('Por favor ingresa un nombre y código válidos.', 'error'); return; 
+      }
+
+      if (tipoMateria === 'PRÁCTICAS LABORALES') {
+          name = 'PRÁCTICAS LABORALES';
       }
 
       const cfg = state.config || initialData.config;
@@ -2342,8 +2358,15 @@
                   if (used1 >= NUM_COLUMNS || used2 >= NUM_COLUMNS) {
                       showToast('No hay espacio suficiente en los niveles seleccionados.', 'error'); return;
                   }
-                  insertSubj("PRA-LAB-1", name+" I", '0/0/6', levelId, tipoMateria);
-                  insertSubj("PRA-LAB-2", name+" II", '0/0/9', level2, tipoMateria);
+
+                  const dist = document.getElementById('laboral-split-dist').value;
+                  let comp1 = '0/0/6'; let comp2 = '0/0/9';
+                  if (dist === '3-2') { comp1 = '0/0/9'; comp2 = '0/0/6'; }
+                  else if (dist === '1-4') { comp1 = '0/0/3'; comp2 = '0/0/12'; }
+                  else if (dist === '4-1') { comp1 = '0/0/12'; comp2 = '0/0/3'; }
+
+                  insertSubj("PRA-LAB-1", name, comp1, levelId, tipoMateria);
+                  insertSubj("PRA-LAB-2", name, comp2, level2, tipoMateria);
               }
           } else if (tipoMateria === 'U DE INTEGRACIÓN CURRICULAR') {
               const used = state.subjects.filter(s => s.level === lastLevelId).length;
