@@ -1597,6 +1597,7 @@
     function discardPreviousSession() {
       document.getElementById('restore-modal-overlay').style.display = 'none';
       localStorage.removeItem('malla_espol_autosave'); tempSavedState = null;
+      state = JSON.parse(JSON.stringify(initialData));
       finishInit();
     }
 
@@ -1608,7 +1609,7 @@
       document.getElementById('conf-div').value = state.config.divC;
       document.getElementById('conf-weeks').value = state.config.weeks;
 
-      updateSubtitleUI(); applyLineTypeUI(); 
+      updateSubtitleUI(); 
       if (state.baseCareer) { 
           loadBaseCareerCodes(state.baseCareer); 
       } else { 
