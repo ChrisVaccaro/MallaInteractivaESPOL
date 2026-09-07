@@ -70,6 +70,8 @@
 
     .btn-add { background-color: #10b981; color: white; border-color: #10b981; }
     .btn-add:hover { background-color: #059669; }
+    .btn-analytic { background-color: #f8fafc; color: #8b5cf6; border: 1px solid #c4b5fd; font-weight: 700; }
+    .btn-analytic:hover { background-color: #f3e8ff; color: #6d28d9; border-color: #a78bfa; }
     .btn-help { background-color: #f8fafc; color: #3b82f6; border: 1px solid #93c5fd; font-weight: 700; }
     .btn-help:hover { background-color: #eff6ff; color: #1d4ed8; border-color: #3b82f6; }
     .btn-icon-only { padding: 8px; width: 36px; display: flex; justify-content: center; align-items: center; }
@@ -1141,7 +1143,11 @@
 
     async function loadBaseCareerCodes(careerName) {
         baseSubjectCodes = [];
-        if (!catalogoGlobal || !careerName) { renderBoard(); updateAnalyticsPanel(); return; }
+        if (!catalogoGlobal || !careerName) { 
+            renderBoard(); 
+            setTimeout(() => { drawConnections(); updateAnalyticsPanel(); }, 100);
+            return; 
+        }
         
         let baseRuta = null;
         catalogoGlobal.facultades.forEach(f => f.carreras.forEach(c => { 
@@ -1154,11 +1160,12 @@
                 if (resp.ok) {
                     const baseData = await resp.json();
                     baseSubjectCodes = (baseData.subjects || []).map(s => s.code.toUpperCase());
-                    renderBoard();
-                    setTimeout(() => { drawConnections(); updateAnalyticsPanel(); }, 100);
                 }
             } catch(e) { console.error("Error cargando malla base para la etiqueta:", e); }
         }
+        
+        renderBoard();
+        setTimeout(() => { drawConnections(); updateAnalyticsPanel(); }, 100);
     }
 
     function renderMenuFacultades() {
@@ -1408,6 +1415,7 @@
             }
         }
 
+        // Reset de campos (UI Reset)
         compSelect.disabled = false;
         levelSelect.disabled = false;
         nameInput.disabled = false;
@@ -1526,13 +1534,19 @@
           const parsed = JSON.parse(tempSavedState);
           if (parsed.stateData) { 
               state = parsed.stateData; 
-              if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config)); 
               if(parsed.linePreference) lineType = parsed.linePreference; 
           } else { 
               state = parsed; 
-              if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config)); 
           }
-        } catch(e){}
+          if(!state.config) state.config = {};
+          // Fallback para evitar variables faltantes en caché antigua
+          state.config = { ...initialData.config, ...state.config };
+          if(!state.levels) state.levels = JSON.parse(JSON.stringify(initialData.levels));
+          if(!state.subjects) state.subjects = [];
+          if(!state.connections) state.connections = [];
+        } catch(e){
+          console.error("Error al restaurar caché:", e);
+        }
         tempSavedState = null;
       }
       showToast('Trabajo anterior restaurado.', 'success');
