@@ -714,7 +714,7 @@
         "PRÁCTICAS COMUNITARIAS": "Prácticas de Servicio Comunitario",
         "PRÁCTICAS LABORALES": "Prácticas Laborales",
         "U DE INTEGRACIÓN CURRICULAR": "Unidad de Integración Curricular",
-        "PROYECTO INTEGRADOR": "Unidad de Integración Curricular" // Se agrupa matemáticamente
+        "PROYECTO INTEGRADOR": "Unidad de Integración Curricular" // Se agrupa matemáticamente en el panel analítico
     };
 
     const niceSemesterNames = ['SEMESTRE I', 'SEMESTRE II', 'SEMESTRE III', 'SEMESTRE IV', 'SEMESTRE V', 'SEMESTRE VI', 'SEMESTRE VII', 'SEMESTRE VIII', 'SEMESTRE IX'];
@@ -1349,7 +1349,39 @@
         const cfg = state.config || initialData.config;
         const lastLevelId = state.levels[cfg.semesters - 1].id;
 
-        // Reset de campos
+        const revertToDefaultType = () => {
+            setTimeout(() => {
+                document.getElementById('edit-tipo-materia').value = 'FORMACIÓN PROFESIONAL';
+                handleTipoChange();
+            }, 10);
+        };
+
+        if (tipo === 'U DE INTEGRACIÓN CURRICULAR') {
+            const existing = state.subjects.find(s => s.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR');
+            if (existing && (!isEdit || existing.id !== document.getElementById('edit-id').value)) {
+                showToast('Solo puede existir una Unidad de Integración Curricular por malla.', 'error');
+                revertToDefaultType();
+                return;
+            }
+        } else if (tipo === 'PRÁCTICAS LABORALES') {
+            const isEditingLaboral = isEdit && state.subjects.find(s => s.id === document.getElementById('edit-id').value)?.tipoMateria === 'PRÁCTICAS LABORALES';
+            const existingLab = state.subjects.find(s => s.tipoMateria === 'PRÁCTICAS LABORALES');
+            if (existingLab && !isEditingLaboral) {
+                showToast('Ya existen Prácticas Laborales en la malla.', 'error');
+                revertToDefaultType();
+                return;
+            }
+        } else if (tipo === 'PRÁCTICAS COMUNITARIAS') {
+            const isEditingComunitaria = isEdit && state.subjects.find(s => s.id === document.getElementById('edit-id').value)?.tipoMateria === 'PRÁCTICAS COMUNITARIAS';
+            const existingCom = state.subjects.find(s => s.tipoMateria === 'PRÁCTICAS COMUNITARIAS');
+            if (existingCom && !isEditingComunitaria) {
+                 showToast('Ya existen Prácticas de Servicio Comunitario en la malla.', 'error');
+                 revertToDefaultType();
+                 return;
+            }
+        }
+
+        // Reset de campos (UI Reset)
         compSelect.disabled = false;
         levelSelect.disabled = false;
         nameInput.disabled = false;
@@ -1365,6 +1397,13 @@
         
         Array.from(document.getElementById('edit-level').options).forEach(opt => opt.disabled = false);
         Array.from(document.getElementById('edit-level-2').options).forEach(opt => opt.disabled = false);
+
+        if (!isEdit && tipo !== 'PRÁCTICAS COMUNITARIAS' && tipo !== 'PRÁCTICAS LABORALES') {
+            if (nameInput.value === 'PRÁCTICAS DE SERVICIO COMUNITARIO' || nameInput.value === 'PRÁCTICAS LABORALES') {
+                nameInput.value = '';
+                codeInput.value = '';
+            }
+        }
 
         if (tipo === 'ITINERARIO') {
             compSelect.value = '3/0/3';
@@ -1409,13 +1448,6 @@
             if (levelSelect.value === lastLevelId) { levelSelect.value = state.levels[cfg.semesters - 2].id; }
             if (document.getElementById('edit-level-2').value === lastLevelId) { document.getElementById('edit-level-2').value = state.levels[cfg.semesters - 2].id; }
         } else if (tipo === 'U DE INTEGRACIÓN CURRICULAR') {
-            const existing = state.subjects.find(s => s.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR');
-            if (existing && (!isEdit || existing.id !== document.getElementById('edit-id').value)) {
-                showToast('Solo puede existir una Unidad de Integración Curricular por malla.', 'error');
-                document.getElementById('edit-tipo-materia').value = 'FORMACIÓN PROFESIONAL';
-                handleTipoChange(); 
-                return;
-            }
             compSelect.value = '3/0/6';
             compSelect.disabled = true;
             levelSelect.value = lastLevelId;
@@ -2207,7 +2239,9 @@
       const isSplit = document.getElementById('group-laborales-split').style.display === 'block' && 
                       document.querySelector('input[name="laboral-split"]:checked').value === 'split';
 
-      if (!name || !code) { showToast('Por favor ingresa un nombre y código válidos.', 'error'); return; }
+      if (!name || (!code && tipoMateria !== 'PRÁCTICAS COMUNITARIAS' && tipoMateria !== 'PRÁCTICAS LABORALES')) { 
+          showToast('Por favor ingresa un nombre y código válidos.', 'error'); return; 
+      }
 
       const cfg = state.config || initialData.config;
       const lastLevelId = state.levels[cfg.semesters - 1].id;
@@ -2217,7 +2251,7 @@
       function insertSubj(cCode, cName, cComps, cLevelId, cType) {
           const sumParts = cComps.split('/').reduce((a,b)=>a+parseFloat(b), 0);
           const codeExists = state.subjects.some(s => s.code.toUpperCase() === cCode && s.id !== id);
-          if (codeExists) { showToast(`El código ${cCode} ya existe.`, 'error'); return false; }
+          if (codeExists && cType !== 'PRÁCTICAS LABORALES') { showToast(`El código ${cCode} ya existe.`, 'error'); return false; }
           const newId = 'CUSTOM_' + Date.now() + Math.floor(Math.random()*1000);
           const usedCols = state.subjects.filter(s => s.level === cLevelId).map(s => s.col);
           if (usedCols.length >= NUM_COLUMNS) return false;
@@ -2230,14 +2264,22 @@
           const subj = state.subjects.find(s => s.id === id); 
           if (subj) { 
              const codeExists = state.subjects.some(s => s.code.toUpperCase() === code && s.id !== id);
-             if (codeExists) { showToast(`El código ${code} ya existe.`, 'error'); return; }
+             if (codeExists && tipoMateria !== 'PRÁCTICAS LABORALES' && tipoMateria !== 'PRÁCTICAS COMUNITARIAS') { 
+                 showToast(`El código ${code} ya existe.`, 'error'); return; 
+             }
              const oldCode = subj.code;
              const oldType = subj.tipoMateria;
              
-             subj.name = name; subj.code = code; 
+             subj.name = name; 
              subj.components = components; 
              subj.sum = sum; 
              subj.tipoMateria = tipoMateria; 
+
+             if (tipoMateria === 'PRÁCTICAS COMUNITARIAS') subj.code = 'SER-COM';
+             else if (tipoMateria === 'PRÁCTICAS LABORALES') {
+                 if(!subj.code.startsWith('PRA-LAB')) subj.code = 'PRA-LAB';
+             }
+             else subj.code = code;
              
              if (oldType === 'U DE INTEGRACIÓN CURRICULAR' && tipoMateria !== 'U DE INTEGRACIÓN CURRICULAR') {
                  const pi = state.subjects.find(s => s.tipoMateria === 'PROYECTO INTEGRADOR' && s.level === subj.level);
@@ -2267,15 +2309,15 @@
           if (tipoMateria === 'PRÁCTICAS LABORALES' && isSplit) {
               const level2 = document.getElementById('edit-level-2').value;
               if (levelId === level2) {
-                  if(!insertSubj(code, name, '0/0/15', levelId, tipoMateria)) { showToast('No hay espacio en este nivel.', 'error'); return; }
+                  if(!insertSubj('PRA-LAB', name, '0/0/15', levelId, tipoMateria)) { showToast('No hay espacio en este nivel.', 'error'); return; }
               } else {
                   const used1 = state.subjects.filter(s => s.level === levelId).length;
                   const used2 = state.subjects.filter(s => s.level === level2).length;
                   if (used1 >= NUM_COLUMNS || used2 >= NUM_COLUMNS) {
                       showToast('No hay espacio suficiente en los niveles seleccionados.', 'error'); return;
                   }
-                  insertSubj(code+"-1", name+" I", '0/0/6', levelId, tipoMateria);
-                  insertSubj(code+"-2", name+" II", '0/0/9', level2, tipoMateria);
+                  insertSubj("PRA-LAB-1", name+" I", '0/0/6', levelId, tipoMateria);
+                  insertSubj("PRA-LAB-2", name+" II", '0/0/9', level2, tipoMateria);
               }
           } else if (tipoMateria === 'U DE INTEGRACIÓN CURRICULAR') {
               const used = state.subjects.filter(s => s.level === lastLevelId).length;
@@ -2284,6 +2326,8 @@
               }
               insertSubj(code, name, '3/0/6', lastLevelId, tipoMateria);
               insertSubj(code+"-PI", "PROYECTO INTEGRADOR", '0/0/15', lastLevelId, "PROYECTO INTEGRADOR");
+          } else if (tipoMateria === 'PRÁCTICAS COMUNITARIAS') {
+              if(!insertSubj('SER-COM', name, components, levelId, tipoMateria)) { showToast('No hay espacio en este nivel.', 'error'); return; }
           } else {
               if(!insertSubj(code, name, components, levelId, tipoMateria)) { showToast('No hay espacio en este nivel.', 'error'); return; }
           }
@@ -2307,10 +2351,18 @@
             }
         }
 
-        state.subjects = state.subjects.filter(s => s.id !== id); 
-        state.connections = state.connections.filter(c => c.from !== id && c.to !== id); 
+        if (subj.tipoMateria === 'PRÁCTICAS LABORALES') {
+            const laborales = state.subjects.filter(s => s.tipoMateria === 'PRÁCTICAS LABORALES');
+            laborales.forEach(lab => {
+                state.subjects = state.subjects.filter(s => s.id !== lab.id);
+                state.connections = state.connections.filter(c => c.from !== lab.id && c.to !== lab.id);
+            });
+        } else {
+            state.subjects = state.subjects.filter(s => s.id !== id); 
+            state.connections = state.connections.filter(c => c.from !== id && c.to !== id); 
+        }
 
-        persistState(); pinnedSubjectId = null; closeEditModal(); renderBoard(); drawConnections(); updateAnalyticsPanel(); showToast('Materia eliminada.', 'info');
+        persistState(); pinnedSubjectId = null; closeEditModal(); renderBoard(); drawConnections(); updateAnalyticsPanel(); showToast('Materia(s) eliminada(s).', 'info');
       }
     }
 
