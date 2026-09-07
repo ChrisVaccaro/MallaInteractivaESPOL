@@ -322,9 +322,39 @@
     }
     .subject-card:hover .connector-btn { display: flex; }
 
-    .custom-tooltip { position: absolute; bottom: 105%; left: 50%; transform: translateX(-50%); background: #1e293b; color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; text-align: center; width: 160px; z-index: 100; opacity: 0; visibility: hidden; transition: opacity 0.15s ease-out; pointer-events: none; box-shadow: 0 4px 6px rgba(0,0,0,0.15); }
-    .custom-tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #1e293b transparent transparent transparent; }
+    /* TOOLTIP Y BOTÓN DE AUTOCORRECCIÓN */
+    .custom-tooltip { 
+        position: absolute; 
+        bottom: calc(100% + 5px); 
+        left: 50%; 
+        transform: translateX(-50%); 
+        background: #1e293b; 
+        color: #fff; 
+        padding: 8px 12px; 
+        border-radius: 6px; 
+        font-size: 11px; 
+        font-weight: 500; 
+        text-align: center; 
+        width: 180px; 
+        z-index: 100; 
+        opacity: 0; 
+        visibility: hidden; 
+        transition: opacity 0.15s ease-out; 
+        box-shadow: 0 4px 6px rgba(0,0,0,0.15); 
+    }
+    .custom-tooltip::before {
+        content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 10px; background: transparent; 
+    }
+    .custom-tooltip::after { 
+        content: ''; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #1e293b transparent transparent transparent; 
+    }
     .subject-card:hover .custom-tooltip { opacity: 1; visibility: visible; }
+
+    .btn-fix {
+        display: block; margin-top: 8px; padding: 6px; width: 100%; background-color: #3b82f6; color: white;
+        border: none; border-radius: 4px; font-size: 10.5px; font-weight: bold; cursor: pointer; transition: background-color 0.2s;
+    }
+    .btn-fix:hover { background-color: #2563eb; }
 
     .edit-btn { position: absolute; top: -6px; right: -6px; background: #3b82f6; color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.3); z-index: 20; }
     .subject-card:hover .edit-btn { display: flex; }
@@ -593,8 +623,8 @@
           <option value="MATEMÁTICAS Y CIENCIAS BÁSICAS">MATEMÁTICAS Y CIENCIAS BÁSICAS</option>
           <option value="EDUCACIÓN GENERAL">EDUCACIÓN GENERAL</option>
           <option value="FORMACIÓN PROFESIONAL" selected>FORMACIÓN PROFESIONAL</option>
-          <option value="C. DE ARTE Y DEPORTES">COMPLEMENTARIA DE ARTES, DEPORTES E IDIOMAS</option>
-          <option value="C. DE HUMANÍSTICA">COMPLEMENTARIA DE HUMANÍSTICA</option>
+          <option value="C. DE ARTE Y DEPORTES">COMPLEMENTARIAS DE ARTES, DEPORTES E IDIOMAS</option>
+          <option value="C. DE HUMANÍSTICA">COMPLEMENTARIAS DE HUMANÍSTICAS</option>
           <option value="ITINERARIO">ITINERARIO</option>
           <option value="PRÁCTICAS COMUNITARIAS">PRÁCTICAS DE SERVICIO COMUNITARIO</option>
           <option value="PRÁCTICAS LABORALES">PRÁCTICAS LABORALES</option>
@@ -733,8 +763,8 @@
         "MATEMÁTICAS Y CIENCIAS BÁSICAS": "Matemáticas y Ciencias Básicas",
         "EDUCACIÓN GENERAL": "Educación General",
         "FORMACIÓN PROFESIONAL": "Formación Profesional",
-        "C. DE ARTE Y DEPORTES": "Complementaria de Artes, Deportes e Idiomas",
-        "C. DE HUMANÍSTICA": "Complementaria de Humanística",
+        "C. DE ARTE Y DEPORTES": "Complementarias de Artes, Deportes e Idiomas",
+        "C. DE HUMANÍSTICA": "Complementarias de Humanísticas",
         "ITINERARIO": "Itinerario",
         "PRÁCTICAS COMUNITARIAS": "Prácticas de Servicio Comunitario",
         "PRÁCTICAS LABORALES": "Prácticas Laborales",
@@ -836,6 +866,39 @@
         persistState(); renderBoard(); drawConnections(); updateAnalyticsPanel();
         showToast('Proyecto Integrador auto-completado.', 'success');
     }
+
+    // --- FUNCIÓN DE AUTOCORRECCIÓN DESDE EL TOOLTIP ---
+    window.fixSubject = function(e, id, fixType) {
+        e.stopPropagation();
+        saveStateToHistory();
+        const subj = state.subjects.find(s => s.id === id);
+        if(!subj) return;
+        
+        if (fixType === 'sostenibilidad') {
+            subj.name = 'SOSTENIBILIDAD &20';
+            subj.components = '3/0/3';
+            subj.sum = 6;
+            subj.tipoMateria = 'EDUCACIÓN GENERAL';
+        } else if (fixType === 'emprendimiento') {
+            subj.components = '4/0/5';
+            subj.sum = 9;
+        } else if (fixType === 'ingles') {
+            subj.components = '1/1/1';
+            subj.sum = 3;
+        } else if (fixType === 'itinerario') {
+            subj.components = '3/0/3';
+            subj.sum = 6;
+        } else if (fixType === 'complementaria') {
+            subj.components = '2/0/1';
+            subj.sum = 3;
+        }
+        
+        persistState(); 
+        renderBoard(); 
+        drawConnections(); 
+        updateAnalyticsPanel();
+        showToast('Materia corregida exitosamente.', 'success');
+    };
 
     function updateAnalyticsPanel() {
        if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config));
@@ -990,7 +1053,7 @@
     const boardContainer = document.getElementById('board-container');
     
     boardContainer.addEventListener('mousedown', (e) => {
-        if (e.target.closest('.subject-card') || e.target.closest('button') || e.target.closest('.toolbar') || e.target.tagName.toLowerCase() === 'path' || e.target.closest('.analytics-panel') || e.target.closest('.modal')) return;
+        if (e.target.closest('.subject-card') || e.target.closest('button') || e.target.closest('.toolbar') || e.target.tagName.toLowerCase() === 'path' || e.target.closest('.analytics-panel') || e.target.closest('.modal') || e.target.closest('.custom-tooltip')) return;
         isPanning = true; 
         startX = e.clientX; 
         startY = e.clientY;
@@ -1708,9 +1771,33 @@
       card.className = `subject-card ${tipoClase} ${isPinned ? 'pinned' : ''}`; card.id = `card-${subj.id}`; card.draggable = true;
       const credits = calculateCredits(subj).toFixed(1).replace('.0', '');
       
-      const validHours = isValidCombination(subj.components);
-      const warningHTML = !validHours ? `<span class="warning-icon">⚠️</span>` : '';
-      const customTooltipHTML = !validHours ? `<div class="custom-tooltip">Distribución de horas no permitida. Debe editar la materia.</div>` : '';
+      // SISTEMA DE ALERTAS Y AUTOCORRECCIÓN
+      const upperName = String(subj.name).toUpperCase();
+      let warningMsg = '';
+      let fixAction = null;
+
+      if (upperName.includes('CIENCIAS DE LA SOSTENIBILIDAD')) {
+          fixAction = 'sostenibilidad';
+          warningMsg = 'Requiere actualización a "SOSTENIBILIDAD &20" (3/0/3) y tipo Edu. General.';
+      } else if (upperName.startsWith('EMPRENDIMIENTO E INNOVACI') && subj.components !== '4/0/5') {
+          fixAction = 'emprendimiento';
+          warningMsg = 'Créditos incorrectos. Debe ser 4/0/5 (3 CR).';
+      } else if (upperName.match(/INGL[EÉ]S\s*(4|IV|5|V)\b/) && subj.components !== '1/1/1') {
+          fixAction = 'ingles';
+          warningMsg = 'Créditos incorrectos. Debe ser 1/1/1 (1 CR).';
+      } else if (subj.tipoMateria === 'ITINERARIO' && subj.components !== '3/0/3') {
+          fixAction = 'itinerario';
+          warningMsg = 'Créditos incorrectos. Debe ser 3/0/3 (2 CR).';
+      } else if ((subj.tipoMateria === 'C. DE ARTE Y DEPORTES' || subj.tipoMateria === 'C. DE HUMANÍSTICA') && subj.components !== '2/0/1') {
+          fixAction = 'complementaria';
+          warningMsg = 'Créditos incorrectos. Debe ser 2/0/1 (1 CR).';
+      } else if (!isValidCombination(subj.components)) {
+          warningMsg = 'Distribución de horas no permitida. Debe editar la materia a una permitida.';
+      }
+
+      const warningHTML = warningMsg ? `<span class="warning-icon">⚠️</span>` : '';
+      let btnHtml = fixAction ? `<button class="btn-fix" onclick="fixSubject(event, '${subj.id}', '${fixAction}')">Corregir</button>` : '';
+      const customTooltipHTML = warningMsg ? `<div class="custom-tooltip">${warningMsg}${btnHtml}</div>` : '';
 
       let isNew = state.baseCareer && baseSubjectCodes.length > 0 && !baseSubjectCodes.includes(String(subj.code).toUpperCase());
       if (["PRÁCTICAS LABORALES", "PROYECTO INTEGRADOR", "PRÁCTICAS COMUNITARIAS", "U DE INTEGRACIÓN CURRICULAR"].includes(subj.tipoMateria)) {
