@@ -1,5 +1,5 @@
 {
-  "baseCareer": null,
+  "baseCareer": "Ingeniería Industrial",
   "config": {
     "semesters": 9,
     "minC": 14,
@@ -94,7 +94,7 @@
       "sum": 3,
       "level": "L100-1",
       "col": 4,
-      "tipoMateria": "COMPLEMENTARIAS DE ARTES, DEPORTES E IDIOMAS"
+      "tipoMateria": "C. DE ARTE Y DEPORTES"
     },
     {
       "id": "IDIG1006",
@@ -154,7 +154,7 @@
       "sum": 3,
       "level": "L100-2",
       "col": 4,
-      "tipoMateria": "COMPLEMENTARIAS DE HUMANÍSTICAS"
+      "tipoMateria": "C. DE HUMANÍSTICA"
     },
     {
       "id": "IDIG1007",
@@ -273,7 +273,7 @@
       "components": "2/2/2",
       "sum": 6,
       "level": "L200-2",
-      "col": 4,
+      "col": 5,
       "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
@@ -493,7 +493,7 @@
       "components": "3/0/6",
       "sum": 9,
       "level": "L400-2",
-      "col": 4,
+      "col": 5,
       "tipoMateria": "ITINERARIO"
     },
     {
@@ -503,7 +503,7 @@
       "components": "3/1/5",
       "sum": 9,
       "level": "L500-1",
-      "col": 0,
+      "col": 1,
       "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
@@ -513,7 +513,7 @@
       "components": "3/0/6",
       "sum": 9,
       "level": "L500-1",
-      "col": 1,
+      "col": 4,
       "tipoMateria": "U DE INTEGRACIÓN CURRICULAR"
     },
     {
@@ -523,7 +523,7 @@
       "components": "3/0/6",
       "sum": 9,
       "level": "L500-1",
-      "col": 2,
+      "col": 5,
       "tipoMateria": "ITINERARIO"
     }
   ],
