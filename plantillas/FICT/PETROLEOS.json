@@ -94,7 +94,7 @@
       "sum": 3,
       "level": "L100-1",
       "col": 4,
-      "tipoMateria": "COMPLEMENTARIAS DE ARTES, DEPORTES E IDIOMAS"
+      "tipoMateria": "C. DE ARTE Y DEPORTES"
     },
     {
       "id": "IDIG1006",
@@ -174,7 +174,7 @@
       "sum": 3,
       "level": "L200-1",
       "col": 0,
-      "tipoMateria": "COMPLEMENTARIAS DE HUMANÍSTICAS"
+      "tipoMateria": "C. DE HUMANÍSTICA"
     },
     {
       "id": "ESTG1034",

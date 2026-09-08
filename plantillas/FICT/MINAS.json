@@ -344,7 +344,7 @@
       "sum": 3,
       "level": "L300-1",
       "col": 5,
-      "tipoMateria": "COMPLEMENTARIAS DE ARTES, DEPORTES E IDIOMAS"
+      "tipoMateria": "C. DE ARTE Y DEPORTES"
     },
     {
       "id": "IDIG1010",
@@ -474,7 +474,7 @@
       "sum": 3,
       "level": "L400-1",
       "col": 5,
-      "tipoMateria": "COMPLEMENTARIAS DE HUMANÍSTICAS"
+      "tipoMateria": "C. DE HUMANÍSTICA"
     },
     {
       "id": "ITIN1",
