@@ -20,7 +20,10 @@
     {
       "nombre": "FICT",
       "carreras": [
-        { "nombre": "Ingeniería Civil", "ruta": "./plantillas/FICT/INGENIERIA CIVIL.json" }
+        { "nombre": "Ingeniería Civil", "ruta": "./plantillas/FICT/INGENIERIA CIVIL.json" },
+        { "nombre": "Petróleos", "ruta": "./plantillas/FICT/PETROLEOS.json" },
+        { "nombre": "Geología", "ruta": "./plantillas/FICT/GEOLOGIA.json" },
+        { "nombre": "Minas", "ruta": "./plantillas/FICT/MINAS.json" }
       ]
     }
   ]
