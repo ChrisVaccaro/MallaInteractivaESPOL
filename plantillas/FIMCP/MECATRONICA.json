@@ -386,7 +386,7 @@
       "sum": 6,
       "level": "L300-2",
       "col": 6,
-      "tipoMateria": "PRÁCTICAS COMUNITARIAS"
+      "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
       "id": "COMP2",
@@ -503,7 +503,7 @@
       "code": "ITINERARIO 1",
       "name": "ITINERARIO",
       "components": "3/0/6",
-      "sum": 6,
+      "sum": 9,
       "level": "L400-2",
       "col": 6,
       "tipoMateria": "ITINERARIO"
@@ -523,7 +523,7 @@
       "code": "ITINERARIO 2",
       "name": "ITINERARIO",
       "components": "3/0/6",
-      "sum": 6,
+      "sum": 9,
       "level": "L500-1",
       "col": 6,
       "tipoMateria": "ITINERARIO"
