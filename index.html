@@ -35,7 +35,7 @@
       top: 0;
       z-index: 150;
       background-color: var(--bg-color);
-      padding: 15px 20px 5px 20px;
+      padding: 10px 20px 0px 20px;
       box-shadow: 0 4px 10px -4px rgba(0,0,0,0.1);
       border-bottom: 1px solid #e2e8f0;
     }
@@ -98,9 +98,8 @@
     /* --- BOTÓN FLOTANTE LATERAL --- */
     .floating-btn {
         position: fixed;
-        top: 50%;
+        top: 130px; /* Ajustado para quedar siempre bajo el menú superior */
         left: 0;
-        transform: translateY(-50%);
         background-color: #1e293b;
         color: white;
         padding: 15px 12px;
@@ -153,7 +152,6 @@
         font-size: 22px; cursor: pointer; color: #94a3b8; transition: color 0.2s; padding: 5px;
     }
     .close-panel:hover { color: #0f172a; background: none; }
-    .panel-header { font-size: 1.3em; color: var(--primary-color); margin-top: 0; margin-bottom: 25px; font-weight: 800; display: flex; align-items: center; gap: 8px;}
     .panel-section { margin-bottom: 25px; }
     .panel-section h3 { font-size: 1.05em; color: var(--primary-color); margin-top: 0; margin-bottom: 12px; border-bottom: 2px solid #f1f5f9; padding-bottom: 5px;}
     
@@ -405,10 +403,9 @@
   <!-- PANEL ANALÍTICO LATERAL -->
   <div id="analytics-panel" class="analytics-panel">
     <button class="close-panel" onclick="toggleAnalyticsPanel()">✖</button>
-    <h2 class="panel-header">📊 Auditoría Curricular</h2>
-
+    
     <!-- Resumen del programa -->
-    <div class="panel-section">
+    <div class="panel-section" style="margin-top: 30px;">
        <h3>Resumen del programa</h3>
        <div class="stats-grid">
           <div class="stat-box"><b id="stat-subjs">0</b><span>Asignaturas</span></div>
@@ -498,13 +495,8 @@
       <div class="toolbar-divider"></div>
 
       <div class="toolbar-group">
-        <div class="dropdown">
-          <button onclick="toggleSaveDropdown(event)" class="dropbtn">💾 Guardar 🔽</button>
-          <div id="dropdown-save" class="dropdown-content">
-            <a href="#" onclick="checkAndExportJSON(); closeAllDropdowns();">📄 Guardar borrador (JSON)</a>
-            <a href="#" onclick="checkAndProcessExcel(); closeAllDropdowns();" class="btn-primary-option">📊 Exportar excel final</a>
-          </div>
-        </div>
+        <button onclick="checkAndExportJSON()">Guardar malla</button>
+        <button onclick="checkAndProcessExcel()" style="color: #059669; border-color: #10b981;">Exportar Excel</button>
         
         <div class="dropdown">
           <button onclick="toggleJSONDropdown(event)" class="dropbtn">📂 Cargar Malla 🔽</button>
@@ -551,7 +543,7 @@
       <h2>Seleccionar Malla Base</h2>
       <p style="font-size: 0.9em; color: #475569; line-height: 1.4;">Esta malla no tiene una carrera base asignada o fue creada desde cero. Por favor, selecciona con qué carrera deseas asociarla para continuar:</p>
       <div class="form-group">
-        <label>Carrera de comparison:</label>
+        <label>Carrera de comparación:</label>
         <select id="modal-career-select"></select>
       </div>
       <div class="modal-actions">
@@ -1779,7 +1771,7 @@
       document.getElementById('conf-weeks').value = state.config.weeks;
 
       updateSubtitleUI(); 
-      syncConfigUI(); // Actualiza el panel según la malla importada/restaurada
+      syncConfigUI(); 
 
       if (state.baseCareer) { 
           loadBaseCareerCodes(state.baseCareer); 
@@ -1809,7 +1801,6 @@
         
         let totalACD = 0; let totalAPE = 0; let totalAA = 0;
         
-        // NO incluir en el cálculo del nivel las prácticas ni proyecto integrador
         const excludedTypes = ["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PROYECTO INTEGRADOR", "PRÁCTICAS EMPRESARIALES"];
 
         subjectsInLevel.forEach(subj => {
