@@ -384,7 +384,7 @@
     .modal h2 { margin-top: 0; font-size: 1.2em; color: var(--primary-color); }
     .form-group { margin-bottom: 14px; }
     .form-group label { display: block; font-size: 0.85em; font-weight: 600; margin-bottom: 4px; }
-    .form-group input[type="text"], .form-group select { width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box; }
+    .form-group input[type="text"], .form-group input[type="number"], .form-group select { width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box; }
     .modal-actions { display: flex; justify-content: space-between; margin-top: 20px; }
   </style>
 </head>
@@ -2617,6 +2617,7 @@
       document.getElementById('edit-code').value = subj.code; 
       
       document.getElementById('edit-name').disabled = false;
+      document.getElementById('edit-code').disabled = false;
       document.getElementById('edit-tipo-materia').disabled = false;
       document.getElementById('btn-save').style.display = 'inline-block';
       document.getElementById('group-code').style.display = 'block';
