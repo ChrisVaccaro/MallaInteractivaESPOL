@@ -31,6 +31,10 @@
     {
       "id": "L400-2",
       "name": "NIVEL 400 - II"
+    },
+    {
+      "id": "L500-1",
+      "name": "NIVEL 500 - I"
     }
   ],
   "subjects": [
@@ -467,7 +471,7 @@
     {
       "id": "CCPG1035",
       "code": "CCPG1035",
-      "name": "MATERIA INTEGRADORA DE COMPUTACIÓN",
+      "name": "MATERIA INTEGRADORA DE COMPUTACIÓN &39",
       "components": "3/0/6",
       "sum": 9,
       "level": "L400-2",
