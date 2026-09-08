@@ -1,5 +1,5 @@
 {
-  "baseCareer": null,
+  "baseCareer": "Turismo",
   "config": {
     "semesters": 8,
     "minC": 14,
@@ -39,6 +39,10 @@
     {
       "id": "L400-2",
       "name": "NIVEL 400 - II"
+    },
+    {
+      "id": "L500-1",
+      "name": "NIVEL 500 - I"
     }
   ],
   "subjects": [
@@ -320,7 +324,7 @@
       "sum": 9,
       "level": "L300-1",
       "col": 3,
-      "tipoMateria": "MATEMÁTICAS Y CIENCIAS BÁSICAS"
+      "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
       "id": "ADMG1005",
@@ -350,7 +354,7 @@
       "sum": 3,
       "level": "L300-2",
       "col": 0,
-      "tipoMateria": "COMPLEMENTARIAS DE ARTES, DEPORTES E IDIOMAS"
+      "tipoMateria": "C. DE ARTE Y DEPORTES"
     },
     {
       "id": "TURG2031",
@@ -410,7 +414,7 @@
       "sum": 3,
       "level": "L400-1",
       "col": 0,
-      "tipoMateria": "COMPLEMENTARIAS DE HUMANÍSTICAS"
+      "tipoMateria": "C. DE HUMANÍSTICA"
     },
     {
       "id": "TURG2023",
@@ -469,7 +473,7 @@
       "components": "3/1/5",
       "sum": 9,
       "level": "L400-2",
-      "col": 0,
+      "col": 3,
       "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
@@ -479,7 +483,7 @@
       "components": "3/0/6",
       "sum": 9,
       "level": "L400-2",
-      "col": 1,
+      "col": 4,
       "tipoMateria": "U DE INTEGRACIÓN CURRICULAR"
     },
     {
@@ -489,7 +493,7 @@
       "components": "3/0/6",
       "sum": 9,
       "level": "L400-2",
-      "col": 2,
+      "col": 5,
       "tipoMateria": "ITINERARIO"
     }
   ],

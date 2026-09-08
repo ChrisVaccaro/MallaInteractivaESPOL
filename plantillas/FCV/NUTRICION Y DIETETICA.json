@@ -1,5 +1,5 @@
 {
-  "baseCareer": null,
+  "baseCareer": "Nutrición y Dietética",
   "config": {
     "semesters": 8,
     "minC": 14,
@@ -39,6 +39,10 @@
     {
       "id": "L400-2",
       "name": "NIVEL 400 - II"
+    },
+    {
+      "id": "L500-1",
+      "name": "NIVEL 500 - I"
     }
   ],
   "subjects": [
@@ -99,7 +103,7 @@
       "components": "2/2/2",
       "sum": 6,
       "level": "L100-1",
-      "col": 5,
+      "col": 6,
       "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
@@ -230,7 +234,7 @@
       "sum": 3,
       "level": "L200-1",
       "col": 5,
-      "tipoMateria": "COMPLEMENTARIAS DE ARTES, DEPORTES E IDIOMAS"
+      "tipoMateria": "C. DE ARTE Y DEPORTES"
     },
     {
       "id": "IDIG1008",
@@ -370,7 +374,7 @@
       "sum": 3,
       "level": "L300-1",
       "col": 5,
-      "tipoMateria": "COMPLEMENTARIAS DE HUMANÍSTICAS"
+      "tipoMateria": "C. DE HUMANÍSTICA"
     },
     {
       "id": "IDIG1010",
@@ -535,7 +539,7 @@
     {
       "id": "NUTG2031",
       "code": "NUTG2031",
-      "name": "MATERIA INTEGRADORA DE NUTRICIÓN Y DIETÉTICA &",
+      "name": "MATERIA INTEGRADORA DE NUTRICIÓN Y DIETÉTICA &44",
       "components": "3/0/6",
       "sum": 9,
       "level": "L400-2",

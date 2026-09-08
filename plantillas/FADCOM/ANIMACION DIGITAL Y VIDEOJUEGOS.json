@@ -1,5 +1,5 @@
 {
-  "baseCareer": null,
+  "baseCareer": "Animación Digital y Videojuegos",
   "config": {
     "semesters": 8,
     "minC": 14,
@@ -39,6 +39,10 @@
     {
       "id": "L400-2",
       "name": "NIVEL 400 - II"
+    },
+    {
+      "id": "L500-1",
+      "name": "NIVEL 500 - I"
     }
   ],
   "subjects": [
@@ -50,7 +54,7 @@
       "sum": 3,
       "level": "L100-1",
       "col": 0,
-      "tipoMateria": "COMPLEMENTARIAS DE ARTES, DEPORTES E IDIOMAS"
+      "tipoMateria": "C. DE ARTE Y DEPORTES"
     },
     {
       "id": "ADVG2001",
@@ -99,7 +103,7 @@
       "components": "2/2/2",
       "sum": 6,
       "level": "L100-1",
-      "col": 5,
+      "col": 6,
       "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
@@ -110,7 +114,7 @@
       "sum": 3,
       "level": "L100-2",
       "col": 0,
-      "tipoMateria": "COMPLEMENTARIAS DE HUMANÍSTICAS"
+      "tipoMateria": "C. DE HUMANÍSTICA"
     },
     {
       "id": "CADG2034",
@@ -159,7 +163,7 @@
       "components": "2/2/2",
       "sum": 6,
       "level": "L100-2",
-      "col": 5,
+      "col": 6,
       "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
@@ -219,7 +223,7 @@
       "components": "2/2/2",
       "sum": 6,
       "level": "L200-1",
-      "col": 5,
+      "col": 6,
       "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
@@ -279,7 +283,7 @@
       "components": "2/2/2",
       "sum": 6,
       "level": "L200-2",
-      "col": 5,
+      "col": 6,
       "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
@@ -339,7 +343,7 @@
       "components": "2/2/2",
       "sum": 6,
       "level": "L300-1",
-      "col": 5,
+      "col": 6,
       "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
@@ -469,7 +473,7 @@
       "components": "3/0/6",
       "sum": 9,
       "level": "L400-1",
-      "col": 5,
+      "col": 7,
       "tipoMateria": "ITINERARIO"
     },
     {
@@ -479,7 +483,7 @@
       "components": "3/0/6",
       "sum": 9,
       "level": "L400-2",
-      "col": 0,
+      "col": 5,
       "tipoMateria": "U DE INTEGRACIÓN CURRICULAR"
     },
     {
@@ -489,7 +493,7 @@
       "components": "3/0/6",
       "sum": 9,
       "level": "L400-2",
-      "col": 1,
+      "col": 7,
       "tipoMateria": "ITINERARIO"
     }
   ],

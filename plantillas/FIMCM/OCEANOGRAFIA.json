@@ -1,5 +1,5 @@
 {
-  "baseCareer": null,
+  "baseCareer": "Oceanografía",
   "config": {
     "semesters": 9,
     "minC": 14,
@@ -94,7 +94,7 @@
       "sum": 3,
       "level": "L100-1",
       "col": 4,
-      "tipoMateria": "COMPLEMENTARIAS DE ARTES, DEPORTES E IDIOMAS"
+      "tipoMateria": "C. DE ARTE Y DEPORTES"
     },
     {
       "id": "IDIG1006",
@@ -313,7 +313,7 @@
       "components": "3/2/4",
       "sum": 9,
       "level": "L300-1",
-      "col": 2,
+      "col": 3,
       "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
@@ -323,7 +323,7 @@
       "components": "3/1/5",
       "sum": 9,
       "level": "L300-1",
-      "col": 3,
+      "col": 4,
       "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
@@ -333,7 +333,7 @@
       "components": "2/2/2",
       "sum": 6,
       "level": "L300-1",
-      "col": 4,
+      "col": 5,
       "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
@@ -523,7 +523,7 @@
       "components": "3/0/6",
       "sum": 9,
       "level": "L500-1",
-      "col": 0,
+      "col": 2,
       "tipoMateria": "U DE INTEGRACIÓN CURRICULAR"
     },
     {
@@ -533,7 +533,7 @@
       "components": "2/0/4",
       "sum": 6,
       "level": "L500-1",
-      "col": 1,
+      "col": 3,
       "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
@@ -543,8 +543,8 @@
       "components": "1/1/1",
       "sum": 3,
       "level": "L500-1",
-      "col": 2,
-      "tipoMateria": "COMPLEMENTARIAS DE HUMANÍSTICAS"
+      "col": 4,
+      "tipoMateria": "C. DE HUMANÍSTICA"
     },
     {
       "id": "ITIN2",
@@ -553,7 +553,7 @@
       "components": "3/0/6",
       "sum": 9,
       "level": "L500-1",
-      "col": 3,
+      "col": 5,
       "tipoMateria": "ITINERARIO"
     }
   ],

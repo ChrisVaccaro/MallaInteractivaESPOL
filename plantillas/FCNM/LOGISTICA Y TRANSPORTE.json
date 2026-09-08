@@ -1,5 +1,5 @@
 {
-  "baseCareer": null,
+  "baseCareer": "Logística y Transporte",
   "config": {
     "semesters": 8,
     "minC": 14,
@@ -39,6 +39,10 @@
     {
       "id": "L400-2",
       "name": "NIVEL 400 - II"
+    },
+    {
+      "id": "L500-1",
+      "name": "NIVEL 500 - I"
     }
   ],
   "subjects": [
@@ -50,7 +54,7 @@
       "sum": 3,
       "level": "L100-1",
       "col": 0,
-      "tipoMateria": "COMPLEMENTARIAS DE ARTES, DEPORTES E IDIOMAS"
+      "tipoMateria": "C. DE ARTE Y DEPORTES"
     },
     {
       "id": "MATG1045",
@@ -150,7 +154,7 @@
       "sum": 3,
       "level": "L100-2",
       "col": 4,
-      "tipoMateria": "COMPLEMENTARIAS DE HUMANÍSTICAS"
+      "tipoMateria": "C. DE HUMANÍSTICA"
     },
     {
       "id": "IDIG1007",
@@ -319,7 +323,7 @@
       "components": "3/1/5",
       "sum": 9,
       "level": "L300-1",
-      "col": 3,
+      "col": 4,
       "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
@@ -329,7 +333,7 @@
       "components": "2/2/2",
       "sum": 6,
       "level": "L300-1",
-      "col": 4,
+      "col": 5,
       "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
@@ -379,7 +383,7 @@
       "components": "2/2/2",
       "sum": 6,
       "level": "L300-2",
-      "col": 4,
+      "col": 5,
       "tipoMateria": "PRÁCTICAS COMUNITARIAS"
     },
     {
@@ -399,7 +403,7 @@
       "components": "3/1/5",
       "sum": 9,
       "level": "L400-1",
-      "col": 1,
+      "col": 2,
       "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
@@ -409,7 +413,7 @@
       "components": "3/1/5",
       "sum": 9,
       "level": "L400-1",
-      "col": 2,
+      "col": 3,
       "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
@@ -419,7 +423,7 @@
       "components": "3/0/6",
       "sum": 9,
       "level": "L400-1",
-      "col": 3,
+      "col": 4,
       "tipoMateria": "MATEMÁTICAS Y CIENCIAS BÁSICAS"
     },
     {
@@ -429,7 +433,7 @@
       "components": "3/0/6",
       "sum": 9,
       "level": "L400-1",
-      "col": 4,
+      "col": 5,
       "tipoMateria": "ITINERARIO"
     },
     {
@@ -439,7 +443,7 @@
       "components": "2/0/4",
       "sum": 6,
       "level": "L400-2",
-      "col": 0,
+      "col": 2,
       "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
@@ -449,17 +453,17 @@
       "components": "2/2/2",
       "sum": 6,
       "level": "L400-2",
-      "col": 1,
+      "col": 3,
       "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
       "id": "LOGG1027",
       "code": "LOGG1027",
-      "name": "MATERIA INTEGRADORA DE LOGÍSTICA Y TRANSPORTE",
+      "name": "MATERIA INTEGRADORA DE LOGÍSTICA Y TRANSPORTE &38",
       "components": "3/0/6",
       "sum": 9,
       "level": "L400-2",
-      "col": 2,
+      "col": 4,
       "tipoMateria": "U DE INTEGRACIÓN CURRICULAR"
     },
     {
@@ -469,7 +473,7 @@
       "components": "3/0/6",
       "sum": 9,
       "level": "L400-2",
-      "col": 3,
+      "col": 5,
       "tipoMateria": "ITINERARIO"
     }
   ],
