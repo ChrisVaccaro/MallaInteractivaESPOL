@@ -41,7 +41,8 @@
       "components": "3/2/4",
       "sum": 9,
       "level": "L100-1",
-      "col": 0
+      "col": 0,
+      "tipoMateria": "MATEMÁTICAS Y CIENCIAS BÁSICAS"
     },
     {
       "id": "FISG1005",
@@ -50,7 +51,8 @@
       "components": "3/2/4",
       "sum": 9,
       "level": "L100-1",
-      "col": 1
+      "col": 1,
+      "tipoMateria": "MATEMÁTICAS Y CIENCIAS BÁSICAS"
     },
     {
       "id": "INDG1033",
@@ -59,7 +61,8 @@
       "components": "3/0/6",
       "sum": 9,
       "level": "L100-1",
-      "col": 2
+      "col": 2,
+      "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
       "id": "CCPG1043",
@@ -68,7 +71,8 @@
       "components": "3/1/5",
       "sum": 9,
       "level": "L100-1",
-      "col": 3
+      "col": 3,
+      "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
       "id": "COMP1",
@@ -78,7 +82,8 @@
       "sum": 3,
       "level": "L100-1",
       "col": 4,
-      "isBasic": false
+      "isBasic": false,
+      "tipoMateria": "C. DE ARTE Y DEPORTES"
     },
     {
       "id": "IDIG1006",
@@ -87,7 +92,8 @@
       "components": "2/2/2",
       "sum": 6,
       "level": "L100-1",
-      "col": 5
+      "col": 5,
+      "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
       "id": "MATG1049",
@@ -96,7 +102,8 @@
       "components": "3/1/5",
       "sum": 9,
       "level": "L100-2",
-      "col": 0
+      "col": 0,
+      "tipoMateria": "MATEMÁTICAS Y CIENCIAS BÁSICAS"
     },
     {
       "id": "MATG1046",
@@ -105,7 +112,8 @@
       "components": "3/2/4",
       "sum": 9,
       "level": "L100-2",
-      "col": 1
+      "col": 1,
+      "tipoMateria": "MATEMÁTICAS Y CIENCIAS BÁSICAS"
     },
     {
       "id": "CCPG1039",
@@ -114,7 +122,8 @@
       "components": "2/1/3",
       "sum": 6,
       "level": "L100-2",
-      "col": 2
+      "col": 2,
+      "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
       "id": "CCPG1052",
@@ -123,7 +132,8 @@
       "components": "3/1/5",
       "sum": 9,
       "level": "L100-2",
-      "col": 3
+      "col": 3,
+      "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
       "id": "IDIG2012",
@@ -133,7 +143,8 @@
       "sum": 6,
       "level": "L100-2",
       "col": 4,
-      "isBasic": false
+      "isBasic": false,
+      "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
       "id": "IDIG1007",
@@ -142,7 +153,8 @@
       "components": "2/2/2",
       "sum": 6,
       "level": "L100-2",
-      "col": 5
+      "col": 5,
+      "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
       "id": "EYAG1037",
@@ -151,7 +163,8 @@
       "components": "2/1/3",
       "sum": 6,
       "level": "L200-1",
-      "col": 0
+      "col": 0,
+      "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
       "id": "MATG1051",
@@ -160,7 +173,8 @@
       "components": "3/1/5",
       "sum": 9,
       "level": "L200-1",
-      "col": 1
+      "col": 1,
+      "tipoMateria": "MATEMÁTICAS Y CIENCIAS BÁSICAS"
     },
     {
       "id": "CCPG1034",
@@ -169,7 +183,8 @@
       "components": "3/1/5",
       "sum": 9,
       "level": "L200-1",
-      "col": 2
+      "col": 2,
+      "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
       "id": "CCPG1042",
@@ -178,7 +193,8 @@
       "components": "2/2/2",
       "sum": 6,
       "level": "L200-1",
-      "col": 3
+      "col": 3,
+      "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
       "id": "TICG1018",
@@ -187,7 +203,8 @@
       "components": "3/1/5",
       "sum": 9,
       "level": "L200-1",
-      "col": 4
+      "col": 4,
+      "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
       "id": "IDIG1008",
@@ -196,7 +213,8 @@
       "components": "2/2/2",
       "sum": 6,
       "level": "L200-1",
-      "col": 5
+      "col": 5,
+      "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
       "id": "CCPG1049",
@@ -205,7 +223,8 @@
       "components": "2/1/3",
       "sum": 6,
       "level": "L200-2",
-      "col": 0
+      "col": 0,
+      "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
       "id": "CCPG1051",
@@ -214,7 +233,8 @@
       "components": "3/1/5",
       "sum": 9,
       "level": "L200-2",
-      "col": 1
+      "col": 1,
+      "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
       "id": "ESTG1034",
@@ -223,7 +243,8 @@
       "components": "3/1/5",
       "sum": 9,
       "level": "L200-2",
-      "col": 2
+      "col": 2,
+      "tipoMateria": "MATEMÁTICAS Y CIENCIAS BÁSICAS"
     },
     {
       "id": "CCPG1046",
@@ -232,7 +253,8 @@
       "components": "2/2/2",
       "sum": 6,
       "level": "L200-2",
-      "col": 3
+      "col": 3,
+      "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
       "id": "TLMG1032",
@@ -242,7 +264,8 @@
       "sum": 9,
       "level": "L200-2",
       "col": 4,
-      "isBasic": false
+      "isBasic": false,
+      "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
       "id": "IDIG1009",
@@ -251,7 +274,8 @@
       "components": "2/2/2",
       "sum": 6,
       "level": "L200-2",
-      "col": 5
+      "col": 5,
+      "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
       "id": "CCPG1056",
@@ -260,7 +284,8 @@
       "components": "3/0/6",
       "sum": 9,
       "level": "L300-1",
-      "col": 0
+      "col": 0,
+      "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
       "id": "CCPG1036",
@@ -269,7 +294,8 @@
       "components": "2/1/3",
       "sum": 6,
       "level": "L300-1",
-      "col": 1
+      "col": 1,
+      "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
       "id": "SOFG1006",
@@ -278,7 +304,8 @@
       "components": "3/1/5",
       "sum": 9,
       "level": "L300-1",
-      "col": 2
+      "col": 2,
+      "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
       "id": "SOFG1007",
@@ -287,7 +314,8 @@
       "components": "2/2/2",
       "sum": 6,
       "level": "L300-1",
-      "col": 3
+      "col": 3,
+      "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
       "id": "ADMG1005",
@@ -297,7 +325,8 @@
       "sum": 9,
       "level": "L300-1",
       "col": 4,
-      "isBasic": false
+      "isBasic": false,
+      "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
       "id": "IDIG1010",
@@ -306,7 +335,8 @@
       "components": "2/2/2",
       "sum": 6,
       "level": "L300-1",
-      "col": 5
+      "col": 5,
+      "tipoMateria": "EDUCACIÓN GENERAL"
     },
     {
       "id": "CCPG1053",
@@ -315,7 +345,8 @@
       "components": "2/1/3",
       "sum": 6,
       "level": "L300-2",
-      "col": 0
+      "col": 0,
+      "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
       "id": "CCPG1048",
@@ -324,7 +355,8 @@
       "components": "2/1/3",
       "sum": 6,
       "level": "L300-2",
-      "col": 1
+      "col": 1,
+      "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
       "id": "SOFG1009",
@@ -334,7 +366,8 @@
       "sum": 9,
       "level": "L300-2",
       "col": 2,
-      "isBasic": false
+      "isBasic": false,
+      "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
       "id": "SOFG1008",
@@ -343,17 +376,19 @@
       "components": "3/1/5",
       "sum": 9,
       "level": "L300-2",
-      "col": 3
+      "col": 3,
+      "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
       "id": "ADSG1026",
       "code": "ADSG1026",
-      "name": "SOSTENIBILIDAD &20",
+      "name": "CIENCIAS DE LA SOSTENIBILIDAD &20",
       "components": "3/0/6",
       "sum": 9,
       "level": "L300-2",
       "col": 4,
-      "isBasic": false
+      "isBasic": false,
+      "tipoMateria": "MATEMÁTICAS Y CIENCIAS BÁSICAS"
     },
     {
       "id": "PSC1000",
@@ -363,7 +398,8 @@
       "sum": 6,
       "level": "L300-2",
       "col": 5,
-      "isBasic": false
+      "isBasic": false,
+      "tipoMateria": "PRÁCTICAS COMUNITARIAS"
     },
     {
       "id": "CCPG1044",
@@ -372,7 +408,8 @@
       "components": "3/0/6",
       "sum": 9,
       "level": "L400-1",
-      "col": 1
+      "col": 1,
+      "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
       "id": "CCPG1054",
@@ -382,7 +419,8 @@
       "sum": 6,
       "level": "L400-1",
       "col": 2,
-      "isBasic": false
+      "isBasic": false,
+      "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
       "id": "CCPG1055",
@@ -391,7 +429,8 @@
       "components": "3/1/5",
       "sum": 9,
       "level": "L400-1",
-      "col": 3
+      "col": 3,
+      "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
       "id": "CCPG1041",
@@ -400,7 +439,8 @@
       "components": "2/1/3",
       "sum": 6,
       "level": "L400-1",
-      "col": 4
+      "col": 4,
+      "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
       "id": "ITIN1",
@@ -410,7 +450,8 @@
       "sum": 9,
       "level": "L400-1",
       "col": 5,
-      "isBasic": false
+      "isBasic": false,
+      "tipoMateria": "ITINERARIO"
     },
     {
       "id": "COMP2",
@@ -420,7 +461,8 @@
       "sum": 3,
       "level": "L400-2",
       "col": 2,
-      "isBasic": false
+      "isBasic": false,
+      "tipoMateria": "C. DE HUMANÍSTICA"
     },
     {
       "id": "CCPG1035",
@@ -429,7 +471,8 @@
       "components": "3/0/6",
       "sum": 9,
       "level": "L400-2",
-      "col": 3
+      "col": 3,
+      "tipoMateria": "U DE INTEGRACIÓN CURRICULAR"
     },
     {
       "id": "ITIN2",
@@ -439,7 +482,8 @@
       "sum": 9,
       "level": "L400-2",
       "col": 5,
-      "isBasic": false
+      "isBasic": false,
+      "tipoMateria": "ITINERARIO"
     }
   ],
   "connections": [
@@ -571,5 +615,13 @@
       "from": "CCPG1051",
       "to": "CCPG1055"
     }
-  ]
+  ],
+  "baseCareer": "Computación",
+  "config": {
+    "semesters": 8,
+    "minC": 14,
+    "maxC": 16,
+    "divC": 3,
+    "weeks": 16
+  }
 }
