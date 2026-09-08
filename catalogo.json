@@ -14,7 +14,11 @@
     {
       "nombre": "FIMCP",
       "carreras": [
-        { "nombre": "Mecatrónica", "ruta": "./plantillas/FIMCP/MECATRONICA.json" }
+        { "nombre": "Mecatrónica", "ruta": "./plantillas/FIMCP/MECATRONICA.json" },
+        { "nombre": "Mecánica", "ruta": "./plantillas/FIMCP/MECANICA.json" },
+        { "nombre": "Ingeniería Industrial", "ruta": "./plantillas/FIMCP/INGENIERIA INDUSTRIAL.json" },
+        { "nombre": "Alimentos", "ruta": "./plantillas/FIMCP/ALIMENTOS.json" },
+        { "nombre": "Materiales", "ruta": "./plantillas/FIMCP/MATERIALES.json" }
       ]
     },
     {
