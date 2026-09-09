@@ -2523,7 +2523,7 @@
                     const mergedHoursCell = worksheet.getCell(hoursRow, startCol);
                     mergedHoursCell.value = totalHorasMateria;
                     
-                    // Limpieza segura de las celdas ocultas tras el merge
+                    // Limpieza de las celdas que quedan ocultas tras el merge para que no sumen valores basura
                     for(let c = startCol + 1; c <= startCol + 7; c++) {
                         worksheet.getCell(hoursRow, c).value = null;
                     }
@@ -2541,6 +2541,7 @@
                     setCachedResult(worksheet, worksheet.getCell(hoursRow, startCol + 7).address, totalHorasMateria);
                 }
 
+                // Inyectar el número real de créditos, sobreescribiendo el 0 de la plantilla
                 setCachedResult(worksheet, credCell.address, credsMateria);
 
                 // Acumuladores
@@ -2563,7 +2564,7 @@
                 }
 
             } else { 
-                // Limpieza de bloques vacíos sin borrar el formato de celda
+                // Limpieza de bloques vacíos sin alterar el fill o los borders
                 nameCell.value = null; 
                 for(let c = startCol; c <= startCol + 7; c++) {
                     worksheet.getCell(hoursRow, c).value = null;
@@ -2603,6 +2604,7 @@
             const srcRow = sheet1.getRow(4 + offset); const destRow = sheet1.getRow(destStartRow + offset); destRow.height = srcRow.height;
             for (let col = 1; col <= 14; col++) {
               const srcCell = srcRow.getCell(col); const destCell = destRow.getCell(col);
+              if (srcCell.style) { destCell.style = JSON.parse(JSON.stringify(srcCell.style)); }
               if (srcCell.type !== 1 && srcCell.type !== 6 && srcCell.value !== null) { destCell.value = srcCell.value; }
             }
           }
