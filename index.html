@@ -2466,7 +2466,7 @@
         const worksheet = workbook.getWorksheet('MALLA CURRICULAR');
         if (!worksheet) throw new Error('La pestaña MALLA CURRICULAR no existe en la plantilla.');
 
-        // Actualizar el título de la malla
+        // Título dinámico
         const titleCell = worksheet.getCell('H1');
         const careerName = state.baseCareer ? state.baseCareer.toUpperCase() : "";
         titleCell.value = `MALLA CURRICULAR CARRERA ${careerName}`;
@@ -2479,13 +2479,12 @@
         const divC = state.config.divC;
         const weeks = state.config.weeks;
 
-        // BUCLE MAESTRO
         for (let lvlIdx = 0; lvlIdx < visibleLevels.length; lvlIdx++) {
           const levelId = visibleLevels[lvlIdx].id; 
           const baseRow = 9 + (lvlIdx * 5); 
           const nameRow = baseRow; 
-          const hoursRow = baseRow + 2; 
-          const credRow = baseRow + 3;  
+          const hoursRow = baseRow + 2; // Fila 11
+          const credRow = baseRow + 3;  // Fila 12
           
           let levelACD = 0, levelAPE = 0, levelAA = 0, levelCreds = 0;
 
@@ -2565,15 +2564,39 @@
                     globalAPE += targetHours.ape * weeks;
                     globalAA += targetHours.aa * weeks;
                 }
+
+                // --- CORRECCIÓN DE BORDES PARA LA TARJETA ---
+                // Aplica a las filas del nombre (nameRow y nameRow+1) y de horas (hoursRow). Ej. filas 9, 10 y 11.
+                for (let r = nameRow; r <= hoursRow; r++) {
+                    for (let c = startCol; c <= startCol + 7; c++) {
+                        let cellToStyle = worksheet.getCell(r, c);
+                        
+                        // Lados externos son gruesos ('medium'), divisiones internas son delgadas ('thin')
+                        let isTop = (r === nameRow);
+                        let isBottom = (r === hoursRow);
+                        let isLeft = (c === startCol);
+                        let isRight = (c === startCol + 7);
+                        
+                        cellToStyle.border = {
+                            top: { style: isTop ? 'medium' : 'thin' },
+                            bottom: { style: isBottom ? 'medium' : 'thin' },
+                            left: { style: isLeft ? 'medium' : 'thin' },
+                            right: { style: isRight ? 'medium' : 'thin' }
+                        };
+                    }
+                }
+                
             } else { 
                 // Limpieza visual profunda para bloques vacíos (remueve valores, bordes y fondos)
-                nameCell.value = null; nameCell.border = null; nameCell.fill = null;
-                for(let c = startCol; c <= startCol + 7; c++) {
-                    let cellToClear = worksheet.getCell(hoursRow, c);
-                    cellToClear.value = null; cellToClear.border = null; cellToClear.fill = null;
+                // Usamos un bucle para limpiar todo el subbloque asegurándonos de que no queden bordes huérfanos
+                for (let r = nameRow; r <= credRow; r++) {
+                    for (let c = startCol; c <= startCol + 7; c++) {
+                        let cellToClear = worksheet.getCell(r, c);
+                        cellToClear.value = null; 
+                        cellToClear.border = null; 
+                        cellToClear.fill = null;
+                    }
                 }
-                credTextCell.value = null; credTextCell.border = null; credTextCell.fill = null;
-                credCell.value = null; credCell.border = null; credCell.fill = null;
             }
           }
 
@@ -2670,7 +2693,6 @@
         const buffer = await workbook.xlsx.writeBuffer(); 
         const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }); 
         
-        // Se actualiza el nombre del archivo final
         saveAs(blob, "Malla Formato CES.xlsx");
         
         showToast('Malla exportada a Excel con éxito.', 'success');
