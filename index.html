@@ -2493,6 +2493,7 @@
             const subject = state.subjects.find(s => s.level === levelId && s.col === colIdx);
             
             const nameCell = worksheet.getCell(nameRow, startCol);
+            const credTextCell = worksheet.getCell(hoursRow + 1, startCol + 6);
             const credCell = worksheet.getCell(hoursRow + 1, startCol + 7);
 
             // DESCOMBINAR CELDAS PREVENTIVAMENTE (Solo estructura, sin tocar formato)
@@ -2508,27 +2509,29 @@
                 
                 // Activar ajuste de texto preservando alineaciones previas si existen
                 let currentAlign = nameCell.alignment || {};
-                nameCell.alignment = { ...currentAlign, wrapText: true };
+                nameCell.alignment = { ...currentAlign, wrapText: true, vertical: 'middle', horizontal: 'center' };
                 
-                const isSpecialPracOrProj = ["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PRÁCTICAS EMPRESARIALES", "PROYECTO INTEGRADOR", "U DE INTEGRACIÓN CURRICULAR"].includes(subject.tipoMateria);
+                // NOTA: Se excluyó a la U DE INTEGRACIÓN CURRICULAR de esta lista para que desglosé sus componentes
+                const isSpecialPracOrProj = ["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PRÁCTICAS EMPRESARIALES", "PROYECTO INTEGRADOR"].includes(subject.tipoMateria);
 
                 let credsMateria = calculateCredits(subject);
                 let totalHorasMateria;
 
                 if (isSpecialPracOrProj) {
-                    // Lógica para bloques fusionados: Créditos * Divisor * Semanas
+                    // Lógica para bloques de Prácticas y Proy. Integrador: Créditos * Divisor * Semanas
                     totalHorasMateria = credsMateria * state.config.divC * state.config.weeks;
                     
                     worksheet.mergeCells(hoursRow, startCol, hoursRow, startCol + 7);
                     const mergedHoursCell = worksheet.getCell(hoursRow, startCol);
                     mergedHoursCell.value = totalHorasMateria;
+                    mergedHoursCell.alignment = { horizontal: 'center', vertical: 'middle' };
                     
                     // Limpieza de las celdas que quedan ocultas tras el merge para que no sumen valores basura
                     for(let c = startCol + 1; c <= startCol + 7; c++) {
                         worksheet.getCell(hoursRow, c).value = null;
                     }
                 } else {
-                    // Lógica para bloques normales (Desglosado)
+                    // Lógica para bloques normales e Integradora (Desglosado)
                     totalHorasMateria = (targetHours.acd + targetHours.ape + targetHours.aa) * state.config.weeks;
 
                     worksheet.getCell(hoursRow, startCol).value = "ACD:";
@@ -2541,7 +2544,8 @@
                     setCachedResult(worksheet, worksheet.getCell(hoursRow, startCol + 7).address, totalHorasMateria);
                 }
 
-                // Inyectar el número real de créditos, sobreescribiendo el 0 de la plantilla
+                // Inyectar el texto CRÉD y el número de créditos, sobreescribiendo si había valores nulos
+                credTextCell.value = "CRÉD.";
                 setCachedResult(worksheet, credCell.address, credsMateria);
 
                 // Acumuladores
@@ -2569,6 +2573,7 @@
                 for(let c = startCol; c <= startCol + 7; c++) {
                     worksheet.getCell(hoursRow, c).value = null;
                 }
+                credTextCell.value = null;
                 credCell.value = null; 
             }
           }
@@ -2593,6 +2598,20 @@
         worksheet.getCell('CG59').value = { formula: `5*(${dC}*${wks})` };
         setCachedResult(worksheet, 'CG60', globalACD + globalAPE + globalAA + pracEmp + pracCom + intCur);
         setCachedResult(worksheet, 'CG61', globalCreds);
+
+        // --- COMPRESIÓN VERTICAL DE SEMESTRES ---
+        if (state.config.semesters === 8) {
+            worksheet.spliceRows(46, 5); // Borrar el semestre 9
+        }
+
+        // --- COMPRESIÓN HORIZONTAL DE COLUMNAS VACÍAS (De derecha a izquierda) ---
+        for (let colIdx = NUM_COLUMNS - 1; colIdx >= 0; colIdx--) {
+            const hasSubjects = state.subjects.some(s => s.col === colIdx && visibleLevels.some(l => l.id === s.level));
+            if (!hasSubjects) {
+                // Borra 9 columnas exactamente del bloque vacío (8 datos + 1 separación)
+                worksheet.spliceColumns(8 + (colIdx * 9), 9);
+            }
+        }
 
         // 2. PESTAÑA 2: MODIFICACIONES EN ASIGNATURAS
         const sheet1 = workbook.getWorksheet('MODIFICACIONES EN ASIGNATURAS'); 
@@ -2666,210 +2685,6 @@
         const buffer = await workbook.xlsx.writeBuffer(); const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }); saveAs(blob, "2. Estructura curricular propuesta y tabla de equivalencias.xlsx");
         showToast('Malla exportada a Excel con éxito.', 'success');
       } catch (error) { console.error("Error al generar el Excel:", error); showToast('Error al generar la malla. Revisa la consola.', 'error'); }
-    }
-    
-    function openModalForEdit(e, id) {
-      e.stopPropagation(); 
-      let subj = null;
-      if (state.subjects && Array.isArray(state.subjects)) {
-          subj = state.subjects.find(s => s.id === id);
-      }
-      if (!subj) return;
-
-      document.getElementById('edit-id').value = subj.id; 
-      document.getElementById('edit-name').value = subj.name; 
-      document.getElementById('edit-code').value = subj.code; 
-      
-      document.getElementById('edit-name').disabled = false;
-      document.getElementById('edit-code').disabled = false;
-      document.getElementById('edit-tipo-materia').disabled = false;
-      document.getElementById('btn-save').style.display = 'inline-block';
-      document.getElementById('group-code').style.display = 'block';
-
-      const isNewCb = document.getElementById('edit-is-new');
-      if(isNewCb) { 
-          isNewCb.checked = subj.code.startsWith('NUEVO-');
-          toggleCodeInput();
-      }
-
-      document.getElementById('edit-tipo-materia').value = subj.tipoMateria || 'FORMACIÓN PROFESIONAL';
-
-      const compSelect = document.getElementById('edit-components');
-      Array.from(compSelect.options).forEach(opt => { if(opt.classList.contains('invalid-opt')) opt.remove(); });
-      if (subj.components && !isValidCombination(subj.components)) {
-        const newOpt = document.createElement('option'); newOpt.value = subj.components; newOpt.text = `⚠️ Actual (${subj.components}) - DEBE SELECCIONAR OTRA OPCIÓN`; newOpt.classList.add('invalid-opt'); compSelect.insertBefore(newOpt, compSelect.firstChild); compSelect.value = subj.components;
-      } else { compSelect.value = subj.components || '3/1/5'; }
-      
-      handleTipoChange();
-      
-      if (["PRÁCTICAS LABORALES", "PRÁCTICAS COMUNITARIAS", "PROYECTO INTEGRADOR"].includes(subj.tipoMateria)) {
-          compSelect.value = subj.components;
-      }
-
-      if (subj.tipoMateria === 'PROYECTO INTEGRADOR') {
-          document.getElementById('edit-name').disabled = true;
-          document.getElementById('edit-code').disabled = true;
-          document.getElementById('edit-tipo-materia').disabled = true;
-          document.getElementById('edit-components').disabled = true;
-          document.getElementById('edit-level').disabled = true;
-          document.getElementById('btn-save').style.display = 'none';
-          document.getElementById('group-integracion-msg').innerText = 'El Proyecto Integrador se gestiona automáticamente con la Unidad de Integración Curricular. Solo puedes eliminarlo de forma independiente.';
-          document.getElementById('group-integracion-msg').style.display = 'block';
-      } else {
-          document.getElementById('group-integracion-msg').innerText = '💡 Se creará la materia principal (3/0/6) y automáticamente se agregará la tarjeta de "Proyecto Integrador" (240h) en este mismo nivel si no existe.';
-      }
-
-      document.getElementById('edit-sum').value = subj.sum; 
-      document.getElementById('level-select-group').style.display = 'none'; 
-      document.getElementById('btn-delete').style.display = 'block';
-      document.getElementById('modal-overlay').style.display = 'flex';
-      updateSumFromSelect();
-    }
-
-    function closeEditModal() { document.getElementById('modal-overlay').style.display = 'none'; }
-
-    function saveSubjectFromModal() {
-      const id = document.getElementById('edit-id').value; 
-      let name = document.getElementById('edit-name').value.trim(); 
-      let code = document.getElementById('edit-code').value.trim().toUpperCase(); 
-      const components = document.getElementById('edit-components').value.trim(); 
-      const sum = parseFloat(document.getElementById('edit-sum').value) || 0; 
-      const tipoMateria = document.getElementById('edit-tipo-materia').value;
-      const isSplit = document.getElementById('group-laborales-split').style.display === 'block' && 
-                      document.querySelector('input[name="laboral-split"]:checked').value === 'split';
-      const isNew = document.getElementById('edit-is-new').checked;
-      
-      const typesWithoutCode = ['PRÁCTICAS COMUNITARIAS', 'PRÁCTICAS LABORALES', 'ITINERARIO', 'C. DE ARTE Y DEPORTES', 'C. DE HUMANÍSTICA'];
-
-      if (!name || (!code && !typesWithoutCode.includes(tipoMateria) && !isNew)) { 
-          showToast('Por favor ingresa un nombre y código válidos.', 'error'); return; 
-      }
-
-      if (isNew && !code) {
-          if (id) {
-              const existing = state.subjects.find(s => s.id === id);
-              code = (existing && existing.code.startsWith('NUEVO-')) ? existing.code : 'NUEVO-' + Math.floor(Math.random()*10000);
-          } else {
-              code = 'NUEVO-' + Math.floor(Math.random()*10000);
-          }
-      }
-
-      if (tipoMateria === 'PRÁCTICAS LABORALES') {
-          name = 'PRÁCTICAS LABORALES';
-      } else if (tipoMateria === 'PRÁCTICAS COMUNITARIAS') {
-          name = 'PRÁCTICAS DE SERVICIO COMUNITARIO';
-      }
-
-      const cfg = state.config || initialData.config;
-      const lastLevelId = state.levels[cfg.semesters - 1].id;
-
-      saveStateToHistory();
-
-      function insertSubj(cCode, cName, cComps, cLevelId, cType) {
-          const sumParts = String(cComps).split('/').reduce((a,b)=>a+parseFloat(b), 0);
-          const codeExists = state.subjects.some(s => s.code.toUpperCase() === cCode && s.id !== id);
-          if (codeExists && cType !== 'PRÁCTICAS LABORALES') { showToast(`El código ${cCode} ya existe.`, 'error'); return false; }
-          const newId = 'CUSTOM_' + Date.now() + Math.floor(Math.random()*1000);
-          const usedCols = state.subjects.filter(s => s.level === cLevelId).map(s => s.col);
-          if (usedCols.length >= NUM_COLUMNS) return false;
-          let freeCol = 0; for (let i = 0; i < NUM_COLUMNS; i++) { if (!usedCols.includes(i)) { freeCol = i; break; } } 
-          state.subjects.push({ id: newId, code: cCode, name: cName, components: cComps, sum: sumParts, level: cLevelId, col: freeCol, tipoMateria: cType });
-          return true;
-      }
-
-      if (id) { 
-          const subj = state.subjects.find(s => s.id === id); 
-          if (subj) { 
-             const codeExists = state.subjects.some(s => s.code.toUpperCase() === code && s.id !== id);
-             if (codeExists && !typesWithoutCode.includes(tipoMateria)) { 
-                 showToast(`El código ${code} ya existe.`, 'error'); return; 
-             }
-             const oldCode = subj.code;
-             const oldType = subj.tipoMateria;
-             
-             subj.name = name; 
-             subj.components = components; 
-             subj.sum = sum; 
-             subj.tipoMateria = tipoMateria; 
-
-             if (!code && typesWithoutCode.includes(tipoMateria)) {
-                 subj.code = oldCode || (
-                    tipoMateria === 'ITINERARIO' ? 'ITIN-' + Math.floor(Math.random()*10000) :
-                    tipoMateria === 'C. DE ARTE Y DEPORTES' ? 'ART-' + Math.floor(Math.random()*10000) :
-                    tipoMateria === 'C. DE HUMANÍSTICA' ? 'HUM-' + Math.floor(Math.random()*10000) : 
-                    tipoMateria === 'PRÁCTICAS COMUNITARIAS' ? 'SER-COM' : 'PRA-LAB'
-                 );
-             } else {
-                 subj.code = code;
-             }
-             
-             if (oldType === 'U DE INTEGRACIÓN CURRICULAR' && tipoMateria !== 'U DE INTEGRACIÓN CURRICULAR') {
-                 const pi = state.subjects.find(s => s.tipoMateria === 'PROYECTO INTEGRADOR' && s.level === subj.level);
-                 if (pi) {
-                     state.subjects = state.subjects.filter(s => s.id !== pi.id);
-                     state.connections = state.connections.filter(c => c.from !== pi.id && c.to !== pi.id);
-                 }
-             }
-
-             if (tipoMateria === 'U DE INTEGRACIÓN CURRICULAR') {
-                 const pi = state.subjects.find(s => s.tipoMateria === 'PROYECTO INTEGRADOR' && s.level === subj.level);
-                 if (!pi) {
-                     const used = state.subjects.filter(s => s.level === subj.level);
-                     if (used.length < NUM_COLUMNS) {
-                         insertSubj(subj.code+"-PI", "PROYECTO INTEGRADOR", '0/0/15', subj.level, "PROYECTO INTEGRADOR");
-                     } else {
-                         showToast('No hay espacio para generar automáticamente el Proyecto Integrador.', 'error');
-                     }
-                 } else if (oldCode !== subj.code) {
-                     pi.code = subj.code + "-PI";
-                 }
-             }
-          } 
-      } else { 
-          const levelId = document.getElementById('edit-level').value; 
-          
-          if (!code) {
-             if (tipoMateria === 'ITINERARIO') code = 'ITIN-' + Math.floor(Math.random()*10000);
-             else if (tipoMateria === 'C. DE ARTE Y DEPORTES') code = 'ART-' + Math.floor(Math.random()*10000);
-             else if (tipoMateria === 'C. DE HUMANÍSTICA') code = 'HUM-' + Math.floor(Math.random()*10000);
-          }
-
-          if (tipoMateria === 'PRÁCTICAS LABORALES' && isSplit) {
-              const level2 = document.getElementById('edit-level-2').value;
-              if (levelId === level2) {
-                  if(!insertSubj('PRA-LAB', name, '0/0/15', levelId, tipoMateria)) { showToast('No hay espacio en este nivel.', 'error'); return; }
-              } else {
-                  const used1 = state.subjects.filter(s => s.level === levelId).length;
-                  const used2 = state.subjects.filter(s => s.level === level2).length;
-                  if (used1 >= NUM_COLUMNS || used2 >= NUM_COLUMNS) {
-                      showToast('No hay espacio suficiente en los niveles seleccionados.', 'error'); return;
-                  }
-
-                  const dist = document.getElementById('laboral-split-dist').value;
-                  let comp1 = '0/0/6'; let comp2 = '0/0/9';
-                  if (dist === '3-2') { comp1 = '0/0/9'; comp2 = '0/0/6'; }
-                  else if (dist === '1-4') { comp1 = '0/0/3'; comp2 = '0/0/12'; }
-                  else if (dist === '4-1') { comp1 = '0/0/12'; comp2 = '0/0/3'; }
-
-                  insertSubj("PRA-LAB-1", name, comp1, levelId, tipoMateria);
-                  insertSubj("PRA-LAB-2", name, comp2, level2, tipoMateria);
-              }
-          } else if (tipoMateria === 'U DE INTEGRACIÓN CURRICULAR') {
-              const used = state.subjects.filter(s => s.level === lastLevelId).length;
-              if (used >= NUM_COLUMNS - 1) {
-                  showToast('Asegura tener 2 espacios libres en el último nivel.', 'error'); return;
-              }
-              insertSubj(code, name, '3/0/6', lastLevelId, tipoMateria);
-              insertSubj(code+"-PI", "PROYECTO INTEGRADOR", '0/0/15', lastLevelId, "PROYECTO INTEGRADOR");
-          } else if (tipoMateria === 'PRÁCTICAS COMUNITARIAS') {
-              if(!insertSubj('SER-COM', name, components, levelId, tipoMateria)) { showToast('No hay espacio en este nivel.', 'error'); return; }
-          } else {
-              if(!insertSubj(code, name, components, levelId, tipoMateria)) { showToast('No hay espacio en este nivel.', 'error'); return; }
-          }
-      }
-      
-      persistState(); closeEditModal(); renderBoard(); setTimeout(drawConnections, 200); updateAnalyticsPanel();
-      showToast(id ? 'Materia actualizada.' : 'Nueva(s) materia(s) agregada(s).', 'success');
     }
 
     function deleteSubject() {
