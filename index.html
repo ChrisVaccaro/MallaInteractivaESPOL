@@ -2496,63 +2496,55 @@
             const credTextCell = worksheet.getCell(credRow, startCol + 6);
             const credCell = worksheet.getCell(credRow, startCol + 7);
 
-            // Descombinar preventivamente todo el bloque para redibujar correctamente
-            try {
-                let cellH = worksheet.getCell(hoursRow, startCol);
-                if (cellH.isMerged) worksheet.unMergeCells(cellH.master.address);
-            } catch(e) {}
+            // Descombinar de forma segura TODA el área afectada ANTES de tocar bordes
+            try { worksheet.unMergeCells(nameRow, startCol, nameRow + 1, startCol + 7); } catch(e) {}
             try { worksheet.unMergeCells(hoursRow, startCol, hoursRow, startCol + 7); } catch(e) {}
 
             if (subject) { 
                 let targetHours = parseHoursComponents(subject.components); 
-                
-                // --- 1. DIBUJAR CUADRÍCULA INDIVIDUAL A LAS 24 CELDAS ---
+                const isSpecialPracOrProj = ["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PRÁCTICAS EMPRESARIALES", "PROYECTO INTEGRADOR"].includes(subject.tipoMateria);
+
+                // --- 1. DIBUJADO DE BORDES CELDA POR CELDA (El truco maestro para exceljs) ---
                 for (let r = nameRow; r <= hoursRow; r++) {
                     for (let c = startCol; c <= startCol + 7; c++) {
-                        let cell = worksheet.getCell(r, c);
+                        let cellToStyle = worksheet.getCell(r, c);
                         
                         let isTop = (r === nameRow);
                         let isBottom = (r === hoursRow);
                         let isLeft = (c === startCol);
                         let isRight = (c === startCol + 7);
                         
-                        cell.border = {
-                            top: { style: isTop ? 'medium' : 'thin', color: { argb: 'FF000000' } },
-                            bottom: { style: isBottom ? 'medium' : 'thin', color: { argb: 'FF000000' } },
-                            left: { style: isLeft ? 'medium' : 'thin', color: { argb: 'FF000000' } },
-                            right: { style: isRight ? 'medium' : 'thin', color: { argb: 'FF000000' } }
+                        // Forzamos el objeto style asegurando que exceljs lo registre en el XML
+                        let currentStyle = cellToStyle.style || {};
+                        cellToStyle.style = {
+                            ...currentStyle,
+                            alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+                            border: {
+                                top: { style: isTop ? 'medium' : 'thin', color: { argb: 'FF000000' } },
+                                bottom: { style: isBottom ? 'medium' : 'thin', color: { argb: 'FF000000' } },
+                                left: { style: isLeft ? 'medium' : 'thin', color: { argb: 'FF000000' } },
+                                right: { style: isRight ? 'medium' : 'thin', color: { argb: 'FF000000' } }
+                            }
                         };
                     }
                 }
 
-                // Inyectar nombre y alinear (la combinación de las filas 9 y 10 suele respetarse, si no, se re-combina)
+                // --- 2. INYECTAR DATOS ---
                 nameCell.value = subject.name;
-                nameCell.alignment = { wrapText: true, vertical: 'middle', horizontal: 'center' };
-                try { worksheet.mergeCells(nameRow, startCol, nameRow + 1, startCol + 7); } catch(e) {}
                 
-                const isSpecialPracOrProj = ["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PRÁCTICAS EMPRESARIALES", "PROYECTO INTEGRADOR"].includes(subject.tipoMateria);
-
-                // --- 2. REGLA DE ORO ---
                 if (isSpecialPracOrProj) {
                     let credsMateria = calculateCredits(subject); 
                     let totalHorasMateria = credsMateria * divC * weeks;
                     
-                    // Limpieza previa de valores antes del merge para no confundir a ExcelJS
-                    for(let c = startCol; c <= startCol + 7; c++) {
+                    // Asegurar que las celdas esclavas no tengan valores basura que confundan al renderizado
+                    for(let c = startCol + 1; c <= startCol + 7; c++) {
                         worksheet.getCell(hoursRow, c).value = null;
                     }
-
-                    // Ahora sí, fusionar
-                    worksheet.mergeCells(hoursRow, startCol, hoursRow, startCol + 7);
-                    const mergedHoursCell = worksheet.getCell(hoursRow, startCol);
-                    mergedHoursCell.value = totalHorasMateria;
-                    mergedHoursCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    worksheet.getCell(hoursRow, startCol).value = totalHorasMateria;
                     
-                    // Fila de créditos
                     credTextCell.value = "CRÉD.";
                     credCell.value = credsMateria;
 
-                    // Acumuladores
                     levelCreds += credsMateria;
                     globalCreds += credsMateria;
                     if (subject.tipoMateria === 'PRÁCTICAS LABORALES' || subject.tipoMateria === 'PRÁCTICAS EMPRESARIALES') pracEmp += totalHorasMateria;
@@ -2560,7 +2552,6 @@
                     else if (subject.tipoMateria === 'PROYECTO INTEGRADOR') intCur += totalHorasMateria;
 
                 } else {
-                    // Materias Normales
                     worksheet.getCell(hoursRow, startCol).value = "ACD:";
                     worksheet.getCell(hoursRow, startCol + 1).value = targetHours.acd;
                     worksheet.getCell(hoursRow, startCol + 2).value = "APE:";
@@ -2570,18 +2561,12 @@
                     worksheet.getCell(hoursRow, startCol + 6).value = "Horas Totales:";
                     worksheet.getCell(hoursRow, startCol + 7).value = (targetHours.acd + targetHours.ape + targetHours.aa) * weeks;
 
-                    for(let c = startCol; c <= startCol + 7; c++) {
-                        worksheet.getCell(hoursRow, c).alignment = { horizontal: 'center', vertical: 'middle' };
-                    }
-
-                    // Fórmula para créditos
                     credTextCell.value = "CRÉD.";
                     const colACD = worksheet.getColumn(startCol + 1).letter;
                     const colAPE = worksheet.getColumn(startCol + 3).letter;
                     const colAA = worksheet.getColumn(startCol + 5).letter;
                     credCell.value = { formula: `(${colACD}${hoursRow}+${colAPE}${hoursRow}+${colAA}${hoursRow})/${divC}` };
 
-                    // Acumuladores
                     let creditosCalculados = (targetHours.acd + targetHours.ape + targetHours.aa) / divC;
                     levelCreds += creditosCalculados;
                     globalCreds += creditosCalculados;
@@ -2592,20 +2577,26 @@
                     globalAPE += targetHours.ape * weeks;
                     globalAA += targetHours.aa * weeks;
                 }
-                
+
+                // --- 3. RE-FUSIONAR CON BORDES GARANTIZADOS ---
+                // Al fusionar AHORA, excel respetará los bordes de todo el perímetro que acabamos de dibujar
+                try { worksheet.mergeCells(nameRow, startCol, nameRow + 1, startCol + 7); } catch(e) {}
+                if (isSpecialPracOrProj) {
+                    try { worksheet.mergeCells(hoursRow, startCol, hoursRow, startCol + 7); } catch(e) {}
+                }
+
             } else { 
                 // --- LIMPIEZA TOTAL PARA ESPACIOS VACÍOS ---
-                // Iteramos por las 3 filas superiores de la tarjeta y removemos toda propiedad de estilo (bordes y colores)
+                // Aplicamos un borrado completo de estilo (`{}`) para dejar la celda "invisible" en la grilla
                 for (let r = nameRow; r <= hoursRow; r++) {
                     for (let c = startCol; c <= startCol + 7; c++) {
                         let cellToClear = worksheet.getCell(r, c);
                         cellToClear.value = null; 
-                        cellToClear.border = undefined; 
-                        cellToClear.fill = undefined;
+                        cellToClear.style = {}; // Elimina todo: bordes, rellenos, fuentes
                     }
                 }
                 
-                // La fila 12 mantiene sus estilos de la plantilla (solo limpiamos el valor)
+                // La fila 12 se queda sin valor pero intacta en su estilo base
                 for(let c = startCol; c <= startCol + 7; c++) {
                     worksheet.getCell(credRow, c).value = null;
                 }
