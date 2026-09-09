@@ -2674,6 +2674,144 @@
         showToast('Malla exportada a Excel con éxito.', 'success');
       } catch (error) { console.error("Error al generar el Excel:", error); showToast('Error al generar la malla. Revisa la consola.', 'error'); }
     }
+
+    // --- CONTROL DE MODALES (AGREGAR / EDITAR) --------------------------------------------------------------------------------
+    function openModalForCreate() {
+        document.getElementById('edit-id').value = '';
+        document.getElementById('modal-title').innerText = 'Agregar Nueva Materia';
+        document.getElementById('edit-tipo-materia').value = 'FORMACIÓN PROFESIONAL';
+        document.getElementById('edit-name').value = '';
+        document.getElementById('edit-is-new').checked = false;
+        document.getElementById('edit-code').value = '';
+        document.getElementById('edit-components').value = '3/1/5';
+        document.getElementById('btn-delete').style.display = 'none';
+
+        handleTipoChange(); // Refresca los campos dinámicos
+        document.getElementById('modal-overlay').style.display = 'flex';
+    }
+
+    function openModalForEdit(e, id) {
+        if (e) e.stopPropagation();
+        const subj = state.subjects.find(s => s.id === id);
+        if (!subj) return;
+
+        document.getElementById('edit-id').value = subj.id;
+        document.getElementById('modal-title').innerText = 'Editar Materia';
+        document.getElementById('edit-tipo-materia').value = subj.tipoMateria || 'FORMACIÓN PROFESIONAL';
+        document.getElementById('edit-name').value = subj.name;
+        
+        const isNew = String(subj.code).toUpperCase().startsWith('NUEVO-');
+        document.getElementById('edit-is-new').checked = isNew;
+        document.getElementById('edit-code').value = isNew ? '' : subj.code;
+        
+        // Asignación de componentes
+        const compSelect = document.getElementById('edit-components');
+        if (["PRÁCTICAS LABORALES", "PRÁCTICAS COMUNITARIAS", "PROYECTO INTEGRADOR", "U DE INTEGRACIÓN CURRICULAR", "ITINERARIO", "C. DE ARTE Y DEPORTES", "C. DE HUMANÍSTICA"].includes(subj.tipoMateria)) {
+            let found = Array.from(compSelect.options).some(o => o.value === subj.components);
+            if(found) compSelect.value = subj.components;
+        } else {
+            compSelect.value = subj.components;
+        }
+
+        document.getElementById('edit-level').value = subj.level;
+        document.getElementById('btn-delete').style.display = 'inline-block';
+
+        handleTipoChange(); // Refresca los campos
+        document.getElementById('modal-overlay').style.display = 'flex';
+    }
+
+    function closeEditModal() {
+        document.getElementById('modal-overlay').style.display = 'none';
+    }
+
+    function saveSubjectFromModal() {
+        const id = document.getElementById('edit-id').value;
+        const tipo = document.getElementById('edit-tipo-materia').value;
+        const name = document.getElementById('edit-name').value.trim().toUpperCase();
+        const isNew = document.getElementById('edit-is-new').checked;
+        let code = document.getElementById('edit-code').value.trim().toUpperCase();
+        const components = document.getElementById('edit-components').value;
+        const sum = parseInt(document.getElementById('edit-sum').value) || 0;
+        const level = document.getElementById('edit-level').value;
+
+        if (!name && !["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES"].includes(tipo)) {
+            showToast('El nombre de la materia es obligatorio.', 'error');
+            return;
+        }
+
+        if (isNew) {
+            code = 'NUEVO-' + Math.floor(Math.random() * 10000);
+        } else if (!code && !["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "ITINERARIO", "C. DE ARTE Y DEPORTES", "C. DE HUMANÍSTICA", "PROYECTO INTEGRADOR"].includes(tipo)) {
+            showToast('El código es obligatorio si no es materia nueva.', 'error');
+            return;
+        }
+
+        // Validación de espacio en el semestre
+        if (!id || (id && state.subjects.find(s=>s.id===id).level !== level)) {
+            const usedCols = state.subjects.filter(s => s.level === level && s.id !== id).map(s => s.col);
+            if (usedCols.length >= NUM_COLUMNS) {
+                showToast('No hay espacio en el semestre seleccionado.', 'error');
+                return;
+            }
+        }
+
+        saveStateToHistory();
+
+        if (tipo === 'PRÁCTICAS LABORALES' && !id) {
+            const splitVal = document.querySelector('input[name="laboral-split"]:checked').value;
+            if (splitVal === 'split') {
+                const dist = document.getElementById('laboral-split-dist').value;
+                const level2 = document.getElementById('edit-level-2').value;
+                
+                let p1 = {c: '0/0/6', s: 6, n: 'PRÁCTICAS LABORALES 1'};
+                let p2 = {c: '0/0/9', s: 9, n: 'PRÁCTICAS LABORALES 2'};
+                if (dist === '3-2') { p1 = {c: '0/0/9', s: 9, n: 'PRÁCTICAS LABORALES 1'}; p2 = {c: '0/0/6', s: 6, n: 'PRÁCTICAS LABORALES 2'}; }
+                if (dist === '1-4') { p1 = {c: '0/0/3', s: 3, n: 'PRÁCTICAS LABORALES 1'}; p2 = {c: '0/0/12', s: 12, n: 'PRÁCTICAS LABORALES 2'}; }
+                if (dist === '4-1') { p1 = {c: '0/0/12', s: 12, n: 'PRÁCTICAS LABORALES 1'}; p2 = {c: '0/0/3', s: 3, n: 'PRÁCTICAS LABORALES 2'}; }
+                
+                let freeCol1 = 0; while(state.subjects.some(s => s.level === level && s.col === freeCol1)) freeCol1++;
+                state.subjects.push({ id: 'CUSTOM_' + Date.now(), code: 'NUEVO-PL1', name: p1.n, components: p1.c, sum: p1.s, level: level, col: freeCol1, tipoMateria: 'PRÁCTICAS LABORALES' });
+                
+                let freeCol2 = 0; while(state.subjects.some(s => s.level === level2 && s.col === freeCol2)) freeCol2++;
+                state.subjects.push({ id: 'CUSTOM_' + (Date.now()+1), code: 'NUEVO-PL2', name: p2.n, components: p2.c, sum: p2.s, level: level2, col: freeCol2, tipoMateria: 'PRÁCTICAS LABORALES' });
+            } else {
+                let freeCol = 0; while(state.subjects.some(s => s.level === level && s.col === freeCol)) freeCol++;
+                state.subjects.push({ id: 'CUSTOM_' + Date.now(), code: 'NUEVO-PL', name: 'PRÁCTICAS LABORALES', components: '0/0/15', sum: 15, level: level, col: freeCol, tipoMateria: 'PRÁCTICAS LABORALES' });
+            }
+        } else {
+            let subj = state.subjects.find(s => s.id === id);
+            let isNewSubj = false;
+            
+            if (!subj) {
+                subj = { id: 'CUSTOM_' + Date.now() };
+                isNewSubj = true;
+                let freeCol = 0;
+                while(state.subjects.some(s => s.level === level && s.col === freeCol)) freeCol++;
+                subj.col = freeCol;
+            }
+
+            subj.tipoMateria = tipo;
+            subj.name = name || tipo; 
+            subj.code = code;
+            subj.components = components;
+            subj.sum = sum;
+            subj.level = level;
+
+            if (isNewSubj) state.subjects.push(subj);
+
+            // Autocompletar Proyecto Integrador
+            if (tipo === 'U DE INTEGRACIÓN CURRICULAR' && isNewSubj) {
+                 setTimeout(() => window.autoCompletePI(level), 100);
+            }
+        }
+
+        persistState();
+        closeEditModal();
+        renderBoard();
+        drawConnections();
+        updateAnalyticsPanel();
+        showToast('Materia guardada correctamente.', 'success');
+    }
     
     function deleteSubject() {
       const id = document.getElementById('edit-id').value; if (!id) return;
