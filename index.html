@@ -2492,43 +2492,67 @@
             const startCol = 8 + (colIdx * 9); 
             const subject = state.subjects.find(s => s.level === levelId && s.col === colIdx);
             
-            const nameCell = worksheet.getCell(nameRow, startCol); // Celda maestra del bloque de nombre
+            const nameCell = worksheet.getCell(nameRow, startCol);
             const credTextCell = worksheet.getCell(credRow, startCol + 6);
             const credCell = worksheet.getCell(credRow, startCol + 7);
 
-            // Descombinar preventivamente la fila de horas
+            // Descombinar preventivamente todo el bloque para redibujar correctamente
             try {
-                let cell = worksheet.getCell(hoursRow, startCol);
-                if (cell.isMerged) worksheet.unMergeCells(cell.master.address);
+                let cellH = worksheet.getCell(hoursRow, startCol);
+                if (cellH.isMerged) worksheet.unMergeCells(cellH.master.address);
             } catch(e) {}
             try { worksheet.unMergeCells(hoursRow, startCol, hoursRow, startCol + 7); } catch(e) {}
 
             if (subject) { 
                 let targetHours = parseHoursComponents(subject.components); 
-                nameCell.value = subject.name;
                 
-                let currentAlign = nameCell.alignment || {};
-                nameCell.alignment = { ...currentAlign, wrapText: true, vertical: 'middle', horizontal: 'center' };
+                // --- 1. DIBUJAR CUADRÍCULA INDIVIDUAL A LAS 24 CELDAS ---
+                for (let r = nameRow; r <= hoursRow; r++) {
+                    for (let c = startCol; c <= startCol + 7; c++) {
+                        let cell = worksheet.getCell(r, c);
+                        
+                        let isTop = (r === nameRow);
+                        let isBottom = (r === hoursRow);
+                        let isLeft = (c === startCol);
+                        let isRight = (c === startCol + 7);
+                        
+                        cell.border = {
+                            top: { style: isTop ? 'medium' : 'thin', color: { argb: 'FF000000' } },
+                            bottom: { style: isBottom ? 'medium' : 'thin', color: { argb: 'FF000000' } },
+                            left: { style: isLeft ? 'medium' : 'thin', color: { argb: 'FF000000' } },
+                            right: { style: isRight ? 'medium' : 'thin', color: { argb: 'FF000000' } }
+                        };
+                    }
+                }
+
+                // Inyectar nombre y alinear (la combinación de las filas 9 y 10 suele respetarse, si no, se re-combina)
+                nameCell.value = subject.name;
+                nameCell.alignment = { wrapText: true, vertical: 'middle', horizontal: 'center' };
+                try { worksheet.mergeCells(nameRow, startCol, nameRow + 1, startCol + 7); } catch(e) {}
                 
                 const isSpecialPracOrProj = ["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PRÁCTICAS EMPRESARIALES", "PROYECTO INTEGRADOR"].includes(subject.tipoMateria);
 
+                // --- 2. REGLA DE ORO ---
                 if (isSpecialPracOrProj) {
                     let credsMateria = calculateCredits(subject); 
                     let totalHorasMateria = credsMateria * divC * weeks;
                     
-                    // Limpieza previa antes del merge
+                    // Limpieza previa de valores antes del merge para no confundir a ExcelJS
                     for(let c = startCol; c <= startCol + 7; c++) {
                         worksheet.getCell(hoursRow, c).value = null;
                     }
 
+                    // Ahora sí, fusionar
                     worksheet.mergeCells(hoursRow, startCol, hoursRow, startCol + 7);
                     const mergedHoursCell = worksheet.getCell(hoursRow, startCol);
                     mergedHoursCell.value = totalHorasMateria;
                     mergedHoursCell.alignment = { horizontal: 'center', vertical: 'middle' };
                     
+                    // Fila de créditos
                     credTextCell.value = "CRÉD.";
                     credCell.value = credsMateria;
 
+                    // Acumuladores
                     levelCreds += credsMateria;
                     globalCreds += credsMateria;
                     if (subject.tipoMateria === 'PRÁCTICAS LABORALES' || subject.tipoMateria === 'PRÁCTICAS EMPRESARIALES') pracEmp += totalHorasMateria;
@@ -2536,6 +2560,7 @@
                     else if (subject.tipoMateria === 'PROYECTO INTEGRADOR') intCur += totalHorasMateria;
 
                 } else {
+                    // Materias Normales
                     worksheet.getCell(hoursRow, startCol).value = "ACD:";
                     worksheet.getCell(hoursRow, startCol + 1).value = targetHours.acd;
                     worksheet.getCell(hoursRow, startCol + 2).value = "APE:";
@@ -2549,12 +2574,14 @@
                         worksheet.getCell(hoursRow, c).alignment = { horizontal: 'center', vertical: 'middle' };
                     }
 
+                    // Fórmula para créditos
                     credTextCell.value = "CRÉD.";
                     const colACD = worksheet.getColumn(startCol + 1).letter;
                     const colAPE = worksheet.getColumn(startCol + 3).letter;
                     const colAA = worksheet.getColumn(startCol + 5).letter;
                     credCell.value = { formula: `(${colACD}${hoursRow}+${colAPE}${hoursRow}+${colAA}${hoursRow})/${divC}` };
 
+                    // Acumuladores
                     let creditosCalculados = (targetHours.acd + targetHours.ape + targetHours.aa) / divC;
                     levelCreds += creditosCalculados;
                     globalCreds += creditosCalculados;
@@ -2565,45 +2592,10 @@
                     globalAPE += targetHours.ape * weeks;
                     globalAA += targetHours.aa * weeks;
                 }
-
-                // --- DIBUJADO DE BORDES QUIRÚRGICO ---
-                // 1. Bloque de Nombre (Celdas combinadas = aplicamos solo a la celda maestra)
-                nameCell.border = {
-                    top: { style: 'medium', color: { argb: 'FF000000' } },
-                    left: { style: 'medium', color: { argb: 'FF000000' } },
-                    right: { style: 'medium', color: { argb: 'FF000000' } },
-                    bottom: { style: 'thin', color: { argb: 'FF000000' } }
-                };
-
-                // 2. Bloque de Horas
-                if (isSpecialPracOrProj) {
-                    // Celda combinada = aplicamos a la celda maestra
-                    const mergedHoursCell = worksheet.getCell(hoursRow, startCol);
-                    mergedHoursCell.border = {
-                        top: { style: 'thin', color: { argb: 'FF000000' } },
-                        bottom: { style: 'medium', color: { argb: 'FF000000' } },
-                        left: { style: 'medium', color: { argb: 'FF000000' } },
-                        right: { style: 'medium', color: { argb: 'FF000000' } }
-                    };
-                } else {
-                    // Celdas desglosadas = aplicamos individualmente
-                    for (let c = startCol; c <= startCol + 7; c++) {
-                        let cellH = worksheet.getCell(hoursRow, c);
-                        let isLeftEdge = (c === startCol);
-                        let isRightEdge = (c === startCol + 7);
-                        
-                        cellH.border = {
-                            top: { style: 'thin', color: { argb: 'FF000000' } },
-                            bottom: { style: 'medium', color: { argb: 'FF000000' } },
-                            left: { style: isLeftEdge ? 'medium' : 'thin', color: { argb: 'FF000000' } },
-                            right: { style: isRightEdge ? 'medium' : 'thin', color: { argb: 'FF000000' } }
-                        };
-                    }
-                }
                 
             } else { 
                 // --- LIMPIEZA TOTAL PARA ESPACIOS VACÍOS ---
-                // Iteramos por las 3 filas superiores de la tarjeta y removemos toda propiedad de estilo
+                // Iteramos por las 3 filas superiores de la tarjeta y removemos toda propiedad de estilo (bordes y colores)
                 for (let r = nameRow; r <= hoursRow; r++) {
                     for (let c = startCol; c <= startCol + 7; c++) {
                         let cellToClear = worksheet.getCell(r, c);
@@ -2718,7 +2710,7 @@
         showToast('Malla exportada a Excel con éxito.', 'success');
       } catch (error) { console.error("Error al generar el Excel:", error); showToast('Error al generar la malla. Revisa la consola.', 'error'); }
     }
-
+    
     function deleteSubject() {
       const id = document.getElementById('edit-id').value; if (!id) return;
       if (confirm('¿Seguro que deseas eliminar esta materia?')) { 
