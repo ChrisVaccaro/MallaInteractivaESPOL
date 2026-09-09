@@ -2474,25 +2474,6 @@
         const worksheet = workbook.getWorksheet('MALLA CURRICULAR');
         if (!worksheet) throw new Error('La pestaña MALLA CURRICULAR no existe en la plantilla.');
 
-        // MAPEO DE COLORES (RGB -> ARGB Hex)
-        const rgbToArgb = (r, g, b) => {
-            const hex = (x) => x.toString(16).padStart(2, '0').toUpperCase();
-            return `FF${hex(r)}${hex(g)}${hex(b)}`;
-        };
-        const colorMap = {
-            "MATEMÁTICAS Y CIENCIAS BÁSICAS": rgbToArgb(255, 255, 255),
-            "EDUCACIÓN GENERAL": rgbToArgb(214, 223, 230),
-            "C. DE ARTE Y DEPORTES": rgbToArgb(248, 193, 160),
-            "U DE INTEGRACIÓN CURRICULAR": rgbToArgb(0, 53, 102),
-            "PROYECTO INTEGRADOR": rgbToArgb(0, 53, 102),
-            "ITINERARIO": rgbToArgb(112, 146, 190),
-            "PRÁCTICAS COMUNITARIAS": rgbToArgb(252, 220, 125),
-            "PRÁCTICAS LABORALES": rgbToArgb(252, 220, 125),
-            "FORMACIÓN PROFESIONAL": rgbToArgb(251, 239, 174),
-            "C. DE HUMANÍSTICA": rgbToArgb(147, 208, 204),
-            "PRÁCTICAS EMPRESARIALES": rgbToArgb(252, 220, 125)
-        };
-
         let globalACD = 0, globalAPE = 0, globalAA = 0;
         let pracEmp = 0, pracCom = 0, intCur = 0;
         let globalCreds = 0;
@@ -2513,9 +2494,8 @@
             
             const nameCell = worksheet.getCell(nameRow, startCol);
             const credCell = worksheet.getCell(hoursRow + 1, startCol + 7);
-            const credTextCell = worksheet.getCell(hoursRow + 1, startCol + 6); // La celda que dice "CRÉD."
 
-            // 1. DESCOMBINAR CELDAS PREVENTIVAMENTE
+            // DESCOMBINAR CELDAS PREVENTIVAMENTE (Solo estructura, sin tocar formato)
             try {
                 let cell = worksheet.getCell(hoursRow, startCol);
                 if (cell.isMerged) worksheet.unMergeCells(cell.master.address);
@@ -2525,71 +2505,32 @@
             if (subject) { 
                 let targetHours = parseHoursComponents(subject.components); 
                 nameCell.value = subject.name;
-                nameCell.alignment = { wrapText: true, vertical: 'middle', horizontal: 'center' };
+                
+                // Activar ajuste de texto preservando alineaciones previas si existen
+                let currentAlign = nameCell.alignment || {};
+                nameCell.alignment = { ...currentAlign, wrapText: true };
                 
                 const isSpecialPracOrProj = ["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PRÁCTICAS EMPRESARIALES", "PROYECTO INTEGRADOR", "U DE INTEGRACIÓN CURRICULAR"].includes(subject.tipoMateria);
-                const isIntegrationOrProj = subject.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR' || subject.tipoMateria === 'PROYECTO INTEGRADOR';
 
-                let totalHorasMateria = (targetHours.acd + targetHours.ape + targetHours.aa) * state.config.weeks;
                 let credsMateria = calculateCredits(subject);
+                let totalHorasMateria;
 
-                // --- 2. COLOREADO Y BORDES (TÍTULO) ---
-                const argbColor = colorMap[subject.tipoMateria] || rgbToArgb(251, 239, 174);
-                nameCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: argbColor } };
-                
-                if (isIntegrationOrProj) {
-                    nameCell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
-                    nameCell.border = {
-                        top: { style: 'medium', color: { argb: 'FF000000' } },
-                        left: { style: 'medium', color: { argb: 'FF000000' } },
-                        right: { style: 'medium', color: { argb: 'FF000000' } },
-                        bottom: { style: 'thin', color: { argb: 'FFFFFFFF' } }
-                    };
-                } else {
-                    nameCell.font = { color: { argb: 'FF000000' } };
-                    nameCell.border = {
-                        top: { style: 'medium', color: { argb: 'FF000000' } },
-                        left: { style: 'medium', color: { argb: 'FF000000' } },
-                        right: { style: 'medium', color: { argb: 'FF000000' } },
-                        bottom: { style: 'thin', color: { argb: 'FF000000' } }
-                    };
-                }
-
-                // --- 3. INYECCIÓN DE HORAS Y ESTILOS INFERIORES ---
                 if (isSpecialPracOrProj) {
-                    totalHorasMateria = subject.sum * state.config.weeks;
+                    // Lógica para bloques fusionados: Créditos * Divisor * Semanas
+                    totalHorasMateria = credsMateria * state.config.divC * state.config.weeks;
                     
-                    // Fusión de bloque
                     worksheet.mergeCells(hoursRow, startCol, hoursRow, startCol + 7);
                     const mergedHoursCell = worksheet.getCell(hoursRow, startCol);
-                    mergedHoursCell.value = `Horas Totales: ${totalHorasMateria}`;
-                    mergedHoursCell.alignment = { horizontal: 'center', vertical: 'middle' };
-                    mergedHoursCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: argbColor } };
+                    mergedHoursCell.value = totalHorasMateria;
                     
-                    if (isIntegrationOrProj) {
-                        mergedHoursCell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
-                        mergedHoursCell.border = {
-                            top: { style: 'thin', color: { argb: 'FFFFFFFF' } },
-                            left: { style: 'medium', color: { argb: 'FF000000' } },
-                            right: { style: 'medium', color: { argb: 'FF000000' } },
-                            bottom: { style: 'medium', color: { argb: 'FF000000' } }
-                        };
-                    } else {
-                        mergedHoursCell.font = { color: { argb: 'FF000000' }, bold: true };
-                        mergedHoursCell.border = {
-                            top: { style: 'thin', color: { argb: 'FF000000' } },
-                            left: { style: 'medium', color: { argb: 'FF000000' } },
-                            right: { style: 'medium', color: { argb: 'FF000000' } },
-                            bottom: { style: 'medium', color: { argb: 'FF000000' } }
-                        };
-                    }
-
-                    // Forzar limpieza a las celdas ocultas tras el merge
+                    // Limpieza segura de las celdas ocultas tras el merge
                     for(let c = startCol + 1; c <= startCol + 7; c++) {
                         worksheet.getCell(hoursRow, c).value = null;
                     }
                 } else {
-                    // Bloque Normal Desglosado
+                    // Lógica para bloques normales (Desglosado)
+                    totalHorasMateria = (targetHours.acd + targetHours.ape + targetHours.aa) * state.config.weeks;
+
                     worksheet.getCell(hoursRow, startCol).value = "ACD:";
                     worksheet.getCell(hoursRow, startCol + 1).value = targetHours.acd;
                     worksheet.getCell(hoursRow, startCol + 2).value = "APE:";
@@ -2598,30 +2539,11 @@
                     worksheet.getCell(hoursRow, startCol + 5).value = targetHours.aa;
                     worksheet.getCell(hoursRow, startCol + 6).value = "Horas Totales:";
                     setCachedResult(worksheet, worksheet.getCell(hoursRow, startCol + 7).address, totalHorasMateria);
-
-                    for(let c = startCol; c <= startCol + 7; c++) {
-                        let cell = worksheet.getCell(hoursRow, c);
-                        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: argbColor } };
-                        cell.font = { color: { argb: 'FF000000' }, bold: [startCol, startCol+2, startCol+4, startCol+6].includes(c) };
-                        
-                        let bLeft = (c === startCol) ? 'medium' : 'thin';
-                        let bRight = (c === startCol + 7) ? 'medium' : 'thin';
-                        
-                        cell.border = {
-                            top: { style: 'thin', color: { argb: 'FF000000' } },
-                            bottom: { style: 'medium', color: { argb: 'FF000000' } },
-                            left: { style: bLeft, color: { argb: 'FF000000' } },
-                            right: { style: bRight, color: { argb: 'FF000000' } }
-                        };
-                    }
                 }
 
-                // Escribir créditos
-                credCell.value = credsMateria;
-                if(!credTextCell.value) credTextCell.value = "CRÉD."; // Restaurar texto si fue borrado
+                setCachedResult(worksheet, credCell.address, credsMateria);
 
-                // Sumatorias
+                // Acumuladores
                 levelCreds += credsMateria;
                 globalCreds += credsMateria;
 
@@ -2641,28 +2563,25 @@
                 }
 
             } else { 
-                // LIMPIEZA COMPLETA DE BLOQUES VACÍOS (Borrando formatos)
-                nameCell.value = null; nameCell.fill = null; nameCell.border = null;
+                // Limpieza de bloques vacíos sin borrar el formato de celda
+                nameCell.value = null; 
                 for(let c = startCol; c <= startCol + 7; c++) {
-                    let cell = worksheet.getCell(hoursRow, c);
-                    cell.value = null; cell.fill = null; cell.border = null;
+                    worksheet.getCell(hoursRow, c).value = null;
                 }
-                // Limpiar valores de créditos, pero RESPETANDO FORMATO/BORDER/FILL
                 credCell.value = null; 
-                credTextCell.value = null; 
             }
           }
 
-          // TOTALES POR NIVEL HACIA LA COLUMNA CG
+          // TOTALES POR NIVEL EN COLUMNA CG (Indice 85)
           let levelHoursRow = hoursRow - 1;
-          setCachedResult(worksheet, worksheet.getCell(levelHoursRow, 81).address, levelACD); // CC
-          setCachedResult(worksheet, worksheet.getCell(levelHoursRow, 83).address, levelAPE); // CE
-          setCachedResult(worksheet, worksheet.getCell(levelHoursRow, 85).address, levelAA);  // CG
-          setCachedResult(worksheet, worksheet.getCell(hoursRow, 85).address, levelACD + levelAPE + levelAA); // CG (Horas)
-          setCachedResult(worksheet, worksheet.getCell(hoursRow + 1, 85).address, levelCreds); // CG (Creditos)
+          setCachedResult(worksheet, worksheet.getCell(levelHoursRow, 81).address, levelACD); // CC (ACD)
+          setCachedResult(worksheet, worksheet.getCell(levelHoursRow, 83).address, levelAPE); // CE (APE)
+          setCachedResult(worksheet, worksheet.getCell(levelHoursRow, 85).address, levelAA);  // CG (AA)
+          setCachedResult(worksheet, worksheet.getCell(hoursRow, 85).address, levelACD + levelAPE + levelAA); // CG (Horas Totales Nivel)
+          setCachedResult(worksheet, worksheet.getCell(hoursRow + 1, 85).address, levelCreds); // CG (Créditos Nivel)
         }
         
-        // TOTALES GLOBALES (Columna CG)
+        // TOTALES GLOBALES EN COLUMNA CG (Indice 85)
         const dC = state.config.divC;
         const wks = state.config.weeks;
         setCachedResult(worksheet, 'CG54', globalACD);
@@ -2674,20 +2593,6 @@
         setCachedResult(worksheet, 'CG60', globalACD + globalAPE + globalAA + pracEmp + pracCom + intCur);
         setCachedResult(worksheet, 'CG61', globalCreds);
 
-        // --- COMPRESIÓN VERTICAL DE SEMESTRES ---
-        if (state.config.semesters === 8) {
-            worksheet.spliceRows(46, 5); // Borrar el semestre 9
-        }
-
-        // --- COMPRESIÓN HORIZONTAL DE COLUMNAS VACÍAS (De derecha a izquierda) ---
-        for (let colIdx = NUM_COLUMNS - 1; colIdx >= 0; colIdx--) {
-            const hasSubjects = state.subjects.some(s => s.col === colIdx && visibleLevels.some(l => l.id === s.level));
-            if (!hasSubjects) {
-                // Borra 9 columnas exactamente del bloque vacío (8 datos + 1 separación)
-                worksheet.spliceColumns(8 + (colIdx * 9), 9);
-            }
-        }
-
         // 2. PESTAÑA 2: MODIFICACIONES EN ASIGNATURAS
         const sheet1 = workbook.getWorksheet('MODIFICACIONES EN ASIGNATURAS'); 
         if (!sheet1) throw new Error('La pestaña MODIFICACIONES EN ASIGNATURAS no existe en la plantilla.');
@@ -2698,7 +2603,6 @@
             const srcRow = sheet1.getRow(4 + offset); const destRow = sheet1.getRow(destStartRow + offset); destRow.height = srcRow.height;
             for (let col = 1; col <= 14; col++) {
               const srcCell = srcRow.getCell(col); const destCell = destRow.getCell(col);
-              if (srcCell.style) { destCell.style = JSON.parse(JSON.stringify(srcCell.style)); }
               if (srcCell.type !== 1 && srcCell.type !== 6 && srcCell.value !== null) { destCell.value = srcCell.value; }
             }
           }
