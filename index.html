@@ -20,7 +20,6 @@
       --highlight-next: #10b981;
     }
 
-    /* --- CAMBIOS PARA EMBEBER EN IFRAME (FLEXBOX) --- */
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
@@ -160,7 +159,6 @@
         font-size: 22px; cursor: pointer; color: #94a3b8; transition: color 0.2s; padding: 5px;
     }
     .close-panel:hover { color: #0f172a; background: none; }
-    .panel-header { font-size: 1.3em; color: var(--primary-color); margin-top: 0; margin-bottom: 25px; font-weight: 800; display: flex; align-items: center; gap: 8px;}
     .panel-section { margin-bottom: 25px; }
     .panel-section h3 { font-size: 1.05em; color: var(--primary-color); margin-top: 0; margin-bottom: 12px; border-bottom: 2px solid #f1f5f9; padding-bottom: 5px;}
     
@@ -293,7 +291,7 @@
     .subject-title { font-size: 0.72em; font-weight: 700; text-align: center; text-transform: uppercase; line-height: 1.15; margin: 2px 0; color: #0f172a; }
     .subject-footer { display: flex; justify-content: space-between; font-size: 0.65em; color: #64748b; }
     
-    /* --- ESTILOS DE CATEGORÍAS DE MATERIAS --- */
+    /* --- ESTILOS DE CATEGORÍAS DE MATERIAS (RGB EXACTOS) --- */
     .type-matematicas-y-ciencias-basicas { background-color: rgb(255, 255, 255) !important; }
     .type-educacion-general { background-color: rgb(214, 223, 230) !important; }
     .type-c-de-arte-y-deportes { background-color: rgb(248, 193, 160) !important; }
@@ -1634,7 +1632,6 @@
         levelSelect.disabled = false;
         nameInput.disabled = false;
         
-        // Si está chequeado "Materia Nueva", el código ya está deshabilitado.
         const isNewCb = document.getElementById('edit-is-new');
         if (!isNewCb.checked) {
             codeInput.disabled = false;
@@ -1993,7 +1990,6 @@
       let btnHtml = fixAction ? `<button class="btn-fix" onclick="fixSubject(event, '${subj.id}', '${fixAction}')">Corregir</button>` : '';
       const customTooltipHTML = warningMsg ? `<div class="custom-tooltip">${warningMsg}${btnHtml}</div>` : '';
 
-      // Mostrar "NUEVA" si se marcó en el checkbox (empieza con NUEVO-) o si no existe en la base comparada
       let isNew = (upperCode.startsWith('NUEVO-')) || (state.baseCareer && baseSubjectCodes.length > 0 && !baseSubjectCodes.includes(upperCode));
       
       if (["PRÁCTICAS LABORALES", "PROYECTO INTEGRADOR", "PRÁCTICAS COMUNITARIAS", "U DE INTEGRACIÓN CURRICULAR"].includes(subj.tipoMateria)) {
@@ -2074,7 +2070,6 @@
               const upperName = String(subject.name).toUpperCase();
               const upperCode = String(subject.code).toUpperCase();
 
-              // Validaciones de Arrastre Restrictivas
               if (subject.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR' && targetLevelId !== lastLevelId) {
                   showToast('La Unidad de Integración Curricular debe permanecer en el último nivel.', 'error'); return;
               }
@@ -2391,6 +2386,7 @@
       showToast(`Archivo ${fileName} exportado correctamente.`, 'success');
     }
 
+    // --- NUEVO MOTOR DE EXPORTACIÓN A EXCEL ADAPTADO A LA NUEVA PLANTILLA ---
     async function procesarYDescargarExcel() {
       try {
         showToast('Analizando cruce de datos y procesando matriz...', 'info');
@@ -2440,14 +2436,12 @@
                 
                 let passedToPre = webPre.filter(x => baseCor.includes(x)); let passedToCor = webCor.filter(x => basePre.includes(x));
                 let pureAddedPre = webPre.filter(x => !basePre.includes(x) && !passedToPre.includes(x)); let pureAddedCor = webCor.filter(x => !baseCor.includes(x) && !passedToCor.includes(x));
-                let pureDeletedPre = basePre.filter(x => !webPre.includes(x) && !passedToCor.includes(x)); let pureDeletedCor = baseCor.filter(x => !webCor.includes(x) && !passedToPre.includes(x));
+                let pureDeletedPre = basePre.filter(x => !webPre.includes(x) && !passedToCor.includes(x)); let pureDeletedCor = baseCor.filter(x => !baseCor.includes(x) && !passedToPre.includes(x));
 
                 if (pureAddedPre.length > 0) comments.push(`Nuevos prerrequisitos: ${pureAddedPre.join(', ')}.`);
                 if (pureAddedCor.length > 0) comments.push(`Nuevos correquisitos: ${pureAddedCor.join(', ')}.`);
                 if (pureDeletedPre.length > 0) comments.push(`Prerrequisitos eliminados: ${pureDeletedPre.join(', ')}.`);
                 if (pureDeletedCor.length > 0) comments.push(`Correquisitos eliminados: ${pureDeletedCor.join(', ')}.`);
-                if (passedToPre.length > 0) comments.push(`El requisito ${passedToPre.join(', ')} pasó de correquisito a prerrequisito.`);
-                if (passedToCor.length > 0) comments.push(`El requisito ${passedToCor.join(', ')} pasó de prerrequisito a correquisito.`);
                 
                 if (comments.length === 0 && !changedLevel && !changedName && !changedReqNum) comments.push("Actualización de requisitos.");
               }
@@ -2472,7 +2466,162 @@
         if (!response.ok) throw new Error(`No se pudo obtener el archivo base (${response.status})`);
         
         const arrayBuffer = await response.arrayBuffer(); const workbook = new ExcelJS.Workbook(); await workbook.xlsx.load(arrayBuffer);
-        const sheet1 = workbook.getWorksheet('MODIFICACIONES EN ASIGNATURAS'); if (!sheet1) throw new Error('La pestaña 1 no existe en la plantilla.');
+        
+        // 1. Pestaña 1: MALLA CURRICULAR
+        const worksheet = workbook.getWorksheet('MALLA CURRICULAR');
+        if (!worksheet) throw new Error('La pestaña MALLA CURRICULAR no existe en la plantilla.');
+
+        // Si la carrera tiene 8 semestres, eliminar filas 46-50
+        if (state.config.semesters === 8) {
+            worksheet.spliceRows(46, 5);
+        }
+
+        // Determinar qué columnas están vacías en todos los semestres activos para eliminarlas (de derecha a izquierda)
+        const visibleLevels = state.levels.slice(0, state.config.semesters);
+        const activeCols = [];
+        for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
+            let hasAnySubject = visibleLevels.some(lvl => state.subjects.some(s => s.level === lvl.id && s.col === colIdx));
+            if (hasAnySubject) activeCols.push(colIdx);
+        }
+
+        // Mapeo de colores RGB a ARGB Hex
+        const rgbToArgb = (r, g, b) => {
+            const hex = (x) => x.toString(16).padStart(2, '0').toUpperCase();
+            return `FF${hex(r)}${hex(g)}${hex(b)}`;
+        };
+        const colorMap = {
+            "MATEMÁTICAS Y CIENCIAS BÁSICAS": rgbToArgb(255, 255, 255),
+            "EDUCACIÓN GENERAL": rgbToArgb(214, 223, 230),
+            "C. DE ARTE Y DEPORTES": rgbToArgb(248, 193, 160),
+            "U DE INTEGRACIÓN CURRICULAR": rgbToArgb(0, 53, 102),
+            "PROYECTO INTEGRADOR": rgbToArgb(0, 53, 102),
+            "ITINERARIO": rgbToArgb(112, 146, 190),
+            "PRÁCTICAS COMUNITARIAS": rgbToArgb(252, 220, 125),
+            "PRÁCTICAS LABORALES": rgbToArgb(252, 220, 125),
+            "FORMACIÓN PROFESIONAL": rgbToArgb(251, 239, 174),
+            "C. DE HUMANÍSTICA": rgbToArgb(147, 208, 204),
+            "PRÁCTICAS EMPRESARIALES": rgbToArgb(252, 220, 125)
+        };
+
+        let globalACD = 0, globalAPE = 0, globalAA = 0;
+        let pracEmp = 0, pracCom = 0, intCur = 0;
+        let globalCreds = 0;
+
+        for (let lvlIdx = 0; lvlIdx < visibleLevels.length; lvlIdx++) {
+          const levelId = visibleLevels[lvlIdx].id; 
+          const nameRow = 6 + (lvlIdx * 5); 
+          const hoursRow = 8 + (lvlIdx * 5);
+          
+          let levelACD = 0; let levelAPE = 0; let levelAA = 0;
+          let levelCreds = 0;
+
+          for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
+            const startCol = 7 + (colIdx * 10); 
+            const subject = state.subjects.find(s => s.level === levelId && s.col === colIdx);
+            
+            // Celdas del bloque en Excel
+            const nameCell = worksheet.getCell(nameRow, startCol);
+            const acdCell = worksheet.getCell(hoursRow, startCol + 1);
+            const apeCell = worksheet.getCell(hoursRow, startCol + 3);
+            const aaCell = worksheet.getCell(hoursRow, startCol + 5);
+            const totalHoursCell = worksheet.getCell(hoursRow, startCol + 8);
+            const credCell = worksheet.getCell(hoursRow + 1, startCol + 8);
+
+            if (subject) { 
+                let targetHours = parseHoursComponents(subject.components); 
+                nameCell.value = subject.name;
+                
+                const isSpecialPracOrProj = ["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PRÁCTICAS EMPRESARIALES", "PROYECTO INTEGRADOR", "U DE INTEGRACIÓN CURRICULAR"].includes(subject.tipoMateria);
+
+                if (isSpecialPracOrProj) {
+                    acdCell.value = null;
+                    apeCell.value = null;
+                    aaCell.value = null;
+                } else {
+                    acdCell.value = targetHours.acd; 
+                    apeCell.value = targetHours.ape; 
+                    aaCell.value = targetHours.aa;    
+                }
+
+                let totalHorasMateria = (targetHours.acd + targetHours.ape + targetHours.aa) * state.config.weeks;
+                if (isSpecialPracOrProj) {
+                    totalHorasMateria = subject.sum * state.config.weeks;
+                }
+                let credsMateria = calculateCredits(subject);
+
+                setCachedResult(worksheet, totalHoursCell.address, totalHorasMateria);
+                setCachedResult(worksheet, credCell.address, credsMateria);
+
+                levelCreds += credsMateria;
+                globalCreds += credsMateria;
+
+                if (subject.tipoMateria === 'PRÁCTICAS LABORALES' || subject.tipoMateria === 'PRÁCTICAS EMPRESARIALES') {
+                    pracEmp += totalHorasMateria;
+                } else if (subject.tipoMateria === 'PRÁCTICAS COMUNITARIAS') {
+                    pracCom += totalHorasMateria;
+                } else if (subject.tipoMateria === 'PROYECTO INTEGRADOR' || subject.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR') {
+                    intCur += totalHorasMateria;
+                } else {
+                    levelACD += targetHours.acd * state.config.weeks;
+                    levelAPE += targetHours.ape * state.config.weeks;
+                    levelAA += targetHours.aa * state.config.weeks;
+                    globalACD += targetHours.acd * state.config.weeks;
+                    globalAPE += targetHours.ape * state.config.weeks;
+                    globalAA += targetHours.aa * state.config.weeks;
+                }
+
+                // Aplicar colores RGB (respetando la celda de créditos)
+                const argbColor = colorMap[subject.tipoMateria] || rgbToArgb(251, 239, 174);
+                const isIntegrationOrProj = subject.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR' || subject.tipoMateria === 'PROYECTO INTEGRADOR';
+
+                [nameCell, acdCell, apeCell, aaCell, totalHoursCell].forEach(cell => {
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: argbColor } };
+                    if (isIntegrationOrProj) {
+                        cell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
+                        cell.border = {
+                            top: { style: 'thin', color: { argb: 'FFFFFFFF' } },
+                            left: { style: 'thin', color: { argb: 'FFFFFFFF' } },
+                            bottom: { style: 'thin', color: { argb: 'FFFFFFFF' } },
+                            right: { style: 'thin', color: { argb: 'FFFFFFFF' } }
+                        };
+                    }
+                });
+
+            } else { 
+                // Limpiar formato y contenido de bloques vacíos
+                nameCell.value = null; nameCell.fill = null; nameCell.border = null;
+                acdCell.value = null; acdCell.fill = null; acdCell.border = null;
+                apeCell.value = null; apeCell.fill = null; apeCell.border = null;
+                aaCell.value = null; aaCell.fill = null; aaCell.border = null;
+                totalHoursCell.value = null; totalHoursCell.fill = null; totalHoursCell.border = null;
+                credCell.value = null; credCell.fill = null; credCell.border = null;
+            }
+          }
+
+          // Totales por nivel (CC, CE, CG, CF)
+          let levelHoursRow = hoursRow - 1;
+          setCachedResult(worksheet, worksheet.getCell(levelHoursRow, 81).address, levelACD); // CC
+          setCachedResult(worksheet, worksheet.getCell(levelHoursRow, 83).address, levelAPE); // CE
+          setCachedResult(worksheet, worksheet.getCell(levelHoursRow, 85).address, levelAA);  // CG
+          setCachedResult(worksheet, worksheet.getCell(hoursRow, 84).address, levelACD + levelAPE + levelAA); // CF
+          setCachedResult(worksheet, worksheet.getCell(hoursRow + 1, 84).address, levelCreds); // CF
+        }
+        
+        // Totales Globales con fórmulas fijas quemadas en columna CG (CG57, CG58, CG59)
+        const dC = state.config.divC;
+        const wks = state.config.weeks;
+        setCachedResult(worksheet, 'CF54', globalACD);
+        setCachedResult(worksheet, 'CF55', globalAPE);
+        setCachedResult(worksheet, 'CF56', globalAA);
+        worksheet.getCell('CG57').value = `=5*(${dC}*${wks})`;
+        worksheet.getCell('CG58').value = `=2*(${dC}*${wks})`;
+        worksheet.getCell('CG59').value = `=5*(${dC}*${wks})`;
+        setCachedResult(worksheet, 'CF60', globalACD + globalAPE + globalAA + pracEmp + pracCom + intCur);
+        setCachedResult(worksheet, 'CF61', globalCreds);
+
+        // 2. Pestaña 2: MODIFICACIONES EN ASIGNATURAS
+        const sheet1 = workbook.getWorksheet('MODIFICACIONES EN ASIGNATURAS'); 
+        if (!sheet1) throw new Error('La pestaña MODIFICACIONES EN ASIGNATURAS no existe en la plantilla.');
 
         for (let i = 1; i < modifications.length; i++) {
           let destStartRow = 4 + (i * 5);
@@ -2538,39 +2687,6 @@
               }
             });
         }
-
-        const worksheet = workbook.getWorksheet('MALLA CURRICULAR');
-        let globalACD = 0; let globalAPE = 0; let globalAA = 0;
-        
-        const visibleLevels = state.levels.slice(0, state.config.semesters);
-
-        for (let lvlIdx = 0; lvlIdx < visibleLevels.length; lvlIdx++) {
-          const levelId = visibleLevels[lvlIdx].id; const nameRow = 6 + (lvlIdx * 4); const hoursRow = 7 + (lvlIdx * 4);
-          let levelACD = 0; let levelAPE = 0; let levelAA = 0;
-
-          for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
-            const startCol = 7 + (colIdx * 9); 
-            const subject = state.subjects.find(s => s.level === levelId && s.col === colIdx);
-            let targetHours = { acd: 0, ape: 0, aa: 0 };
-            
-            if (subject) { targetHours = parseHoursComponents(subject.components); worksheet.getCell(nameRow, startCol).value = subject.name; } 
-            else { worksheet.getCell(nameRow, startCol).value = null; }
-
-            worksheet.getCell(hoursRow, startCol + 1).value = targetHours.acd; worksheet.getCell(hoursRow, startCol + 3).value = targetHours.ape; worksheet.getCell(hoursRow, startCol + 5).value = targetHours.aa;    
-
-            levelACD += targetHours.acd; levelAPE += targetHours.ape; levelAA += targetHours.aa;
-            setCachedResult(worksheet, worksheet.getCell(hoursRow, startCol + 7).address, targetHours.acd + targetHours.ape + targetHours.aa);
-          }
-
-          setCachedResult(worksheet, `CB${hoursRow}`, levelACD); setCachedResult(worksheet, `CD${hoursRow}`, levelAPE); setCachedResult(worksheet, `CF${hoursRow}`, levelAA);
-          let lvlTotalHoras = (levelACD + levelAPE + levelAA) * 16;
-          setCachedResult(worksheet, `CF${hoursRow + 1}`, lvlTotalHoras); setCachedResult(worksheet, `CF${hoursRow + 2}`, lvlTotalHoras / 48); 
-          globalACD += levelACD; globalAPE += levelAPE; globalAA += levelAA;
-        }
-        
-        setCachedResult(worksheet, `CF46`, globalACD); setCachedResult(worksheet, `CF47`, globalAPE); setCachedResult(worksheet, `CF48`, globalAA);
-        let globalTotalHoras = (globalACD + globalAPE + globalAA) * 16;
-        setCachedResult(worksheet, `CF52`, globalTotalHoras); setCachedResult(worksheet, `CF53`, globalTotalHoras / 48);
         
         const buffer = await workbook.xlsx.writeBuffer(); const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }); saveAs(blob, "2. Estructura curricular propuesta y tabla de equivalencias.xlsx");
         showToast('Malla exportada a Excel con éxito.', 'success');
@@ -2677,7 +2793,6 @@
       
       const typesWithoutCode = ['PRÁCTICAS COMUNITARIAS', 'PRÁCTICAS LABORALES', 'ITINERARIO', 'C. DE ARTE Y DEPORTES', 'C. DE HUMANÍSTICA'];
 
-      // Validación permisiva para prácticas e itinerarios/complementarias (ya que ocultan su código) o si es nueva
       if (!name || (!code && !typesWithoutCode.includes(tipoMateria) && !isNew)) { 
           showToast('Por favor ingresa un nombre y código válidos.', 'error'); return; 
       }
@@ -2730,7 +2845,6 @@
              subj.tipoMateria = tipoMateria; 
 
              if (!code && typesWithoutCode.includes(tipoMateria)) {
-                 // Si el código está vacío (porque se ocultó en el UI) usar el existente o crear uno interno
                  subj.code = oldCode || (
                     tipoMateria === 'ITINERARIO' ? 'ITIN-' + Math.floor(Math.random()*10000) :
                     tipoMateria === 'C. DE ARTE Y DEPORTES' ? 'ART-' + Math.floor(Math.random()*10000) :
