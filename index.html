@@ -159,6 +159,7 @@
         font-size: 22px; cursor: pointer; color: #94a3b8; transition: color 0.2s; padding: 5px;
     }
     .close-panel:hover { color: #0f172a; background: none; }
+    .panel-header { font-size: 1.3em; color: var(--primary-color); margin-top: 0; margin-bottom: 25px; font-weight: 800; display: flex; align-items: center; gap: 8px;}
     .panel-section { margin-bottom: 25px; }
     .panel-section h3 { font-size: 1.05em; color: var(--primary-color); margin-top: 0; margin-bottom: 12px; border-bottom: 2px solid #f1f5f9; padding-bottom: 5px;}
     
@@ -1990,6 +1991,7 @@
       let btnHtml = fixAction ? `<button class="btn-fix" onclick="fixSubject(event, '${subj.id}', '${fixAction}')">Corregir</button>` : '';
       const customTooltipHTML = warningMsg ? `<div class="custom-tooltip">${warningMsg}${btnHtml}</div>` : '';
 
+      // Mostrar "NUEVA" si se marcó en el checkbox (empieza con NUEVO-) o si no existe en la base comparada
       let isNew = (upperCode.startsWith('NUEVO-')) || (state.baseCareer && baseSubjectCodes.length > 0 && !baseSubjectCodes.includes(upperCode));
       
       if (["PRÁCTICAS LABORALES", "PROYECTO INTEGRADOR", "PRÁCTICAS COMUNITARIAS", "U DE INTEGRACIÓN CURRICULAR"].includes(subj.tipoMateria)) {
@@ -2070,6 +2072,7 @@
               const upperName = String(subject.name).toUpperCase();
               const upperCode = String(subject.code).toUpperCase();
 
+              // Validaciones de Arrastre Restrictivas
               if (subject.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR' && targetLevelId !== lastLevelId) {
                   showToast('La Unidad de Integración Curricular debe permanecer en el último nivel.', 'error'); return;
               }
@@ -2386,7 +2389,7 @@
       showToast(`Archivo ${fileName} exportado correctamente.`, 'success');
     }
 
-    // --- NUEVO MOTOR DE EXPORTACIÓN A EXCEL ADAPTADO A LA NUEVA PLANTILLA ---
+    // --- NUEVO MOTOR DE EXPORTACIÓN A EXCEL SIN FORMATO (SOLO CONTENIDO) ---
     async function procesarYDescargarExcel() {
       try {
         showToast('Analizando cruce de datos y procesando matriz...', 'info');
@@ -2436,7 +2439,7 @@
                 
                 let passedToPre = webPre.filter(x => baseCor.includes(x)); let passedToCor = webCor.filter(x => basePre.includes(x));
                 let pureAddedPre = webPre.filter(x => !basePre.includes(x) && !passedToPre.includes(x)); let pureAddedCor = webCor.filter(x => !baseCor.includes(x) && !passedToCor.includes(x));
-                let pureDeletedPre = basePre.filter(x => !webPre.includes(x) && !passedToCor.includes(x)); let pureDeletedCor = baseCor.filter(x => !baseCor.includes(x) && !passedToPre.includes(x));
+                let pureDeletedPre = basePre.filter(x => !webPre.includes(x) && !passedToCor.includes(x)); let pureDeletedCor = baseCor.filter(x => !webCor.includes(x) && !passedToPre.includes(x));
 
                 if (pureAddedPre.length > 0) comments.push(`Nuevos prerrequisitos: ${pureAddedPre.join(', ')}.`);
                 if (pureAddedCor.length > 0) comments.push(`Nuevos correquisitos: ${pureAddedCor.join(', ')}.`);
@@ -2471,41 +2474,11 @@
         const worksheet = workbook.getWorksheet('MALLA CURRICULAR');
         if (!worksheet) throw new Error('La pestaña MALLA CURRICULAR no existe en la plantilla.');
 
-        // Si la carrera tiene 8 semestres, eliminar filas 46-50
-        if (state.config.semesters === 8) {
-            worksheet.spliceRows(46, 5);
-        }
-
-        // Determinar qué columnas están vacías en todos los semestres activos para eliminarlas (de derecha a izquierda)
-        const visibleLevels = state.levels.slice(0, state.config.semesters);
-        const activeCols = [];
-        for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
-            let hasAnySubject = visibleLevels.some(lvl => state.subjects.some(s => s.level === lvl.id && s.col === colIdx));
-            if (hasAnySubject) activeCols.push(colIdx);
-        }
-
-        // Mapeo de colores RGB a ARGB Hex
-        const rgbToArgb = (r, g, b) => {
-            const hex = (x) => x.toString(16).padStart(2, '0').toUpperCase();
-            return `FF${hex(r)}${hex(g)}${hex(b)}`;
-        };
-        const colorMap = {
-            "MATEMÁTICAS Y CIENCIAS BÁSICAS": rgbToArgb(255, 255, 255),
-            "EDUCACIÓN GENERAL": rgbToArgb(214, 223, 230),
-            "C. DE ARTE Y DEPORTES": rgbToArgb(248, 193, 160),
-            "U DE INTEGRACIÓN CURRICULAR": rgbToArgb(0, 53, 102),
-            "PROYECTO INTEGRADOR": rgbToArgb(0, 53, 102),
-            "ITINERARIO": rgbToArgb(112, 146, 190),
-            "PRÁCTICAS COMUNITARIAS": rgbToArgb(252, 220, 125),
-            "PRÁCTICAS LABORALES": rgbToArgb(252, 220, 125),
-            "FORMACIÓN PROFESIONAL": rgbToArgb(251, 239, 174),
-            "C. DE HUMANÍSTICA": rgbToArgb(147, 208, 204),
-            "PRÁCTICAS EMPRESARIALES": rgbToArgb(252, 220, 125)
-        };
-
         let globalACD = 0, globalAPE = 0, globalAA = 0;
         let pracEmp = 0, pracCom = 0, intCur = 0;
         let globalCreds = 0;
+
+        const visibleLevels = state.levels.slice(0, state.config.semesters);
 
         for (let lvlIdx = 0; lvlIdx < visibleLevels.length; lvlIdx++) {
           const levelId = visibleLevels[lvlIdx].id; 
@@ -2569,32 +2542,13 @@
                     globalAPE += targetHours.ape * state.config.weeks;
                     globalAA += targetHours.aa * state.config.weeks;
                 }
-
-                // Aplicar colores RGB (respetando la celda de créditos)
-                const argbColor = colorMap[subject.tipoMateria] || rgbToArgb(251, 239, 174);
-                const isIntegrationOrProj = subject.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR' || subject.tipoMateria === 'PROYECTO INTEGRADOR';
-
-                [nameCell, acdCell, apeCell, aaCell, totalHoursCell].forEach(cell => {
-                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: argbColor } };
-                    if (isIntegrationOrProj) {
-                        cell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
-                        cell.border = {
-                            top: { style: 'thin', color: { argb: 'FFFFFFFF' } },
-                            left: { style: 'thin', color: { argb: 'FFFFFFFF' } },
-                            bottom: { style: 'thin', color: { argb: 'FFFFFFFF' } },
-                            right: { style: 'thin', color: { argb: 'FFFFFFFF' } }
-                        };
-                    }
-                });
-
             } else { 
-                // Limpiar formato y contenido de bloques vacíos
-                nameCell.value = null; nameCell.fill = null; nameCell.border = null;
-                acdCell.value = null; acdCell.fill = null; acdCell.border = null;
-                apeCell.value = null; apeCell.fill = null; apeCell.border = null;
-                aaCell.value = null; aaCell.fill = null; aaCell.border = null;
-                totalHoursCell.value = null; totalHoursCell.fill = null; totalHoursCell.border = null;
-                credCell.value = null; credCell.fill = null; credCell.border = null;
+                nameCell.value = null;
+                acdCell.value = null;
+                apeCell.value = null;
+                aaCell.value = null;
+                totalHoursCell.value = null;
+                credCell.value = null;
             }
           }
 
@@ -2629,7 +2583,6 @@
             const srcRow = sheet1.getRow(4 + offset); const destRow = sheet1.getRow(destStartRow + offset); destRow.height = srcRow.height;
             for (let col = 1; col <= 14; col++) {
               const srcCell = srcRow.getCell(col); const destCell = destRow.getCell(col);
-              if (srcCell.style) { destCell.style = JSON.parse(JSON.stringify(srcCell.style)); }
               if (srcCell.type !== 1 && srcCell.type !== 6 && srcCell.value !== null) { destCell.value = srcCell.value; }
             }
           }
