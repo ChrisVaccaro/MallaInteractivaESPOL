@@ -2489,7 +2489,8 @@
           let levelCreds = 0;
 
           for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
-            const startCol = 7 + (colIdx * 10); 
+            // Empieza en la columna H (8) y avanza en bloques de 9 columnas (8 de datos + 1 vacía)
+            const startCol = 8 + (colIdx * 9); 
             const subject = state.subjects.find(s => s.level === levelId && s.col === colIdx);
             
             // Celdas del bloque en Excel
@@ -2497,12 +2498,14 @@
             const acdCell = worksheet.getCell(hoursRow, startCol + 1);
             const apeCell = worksheet.getCell(hoursRow, startCol + 3);
             const aaCell = worksheet.getCell(hoursRow, startCol + 5);
-            const totalHoursCell = worksheet.getCell(hoursRow, startCol + 8);
-            const credCell = worksheet.getCell(hoursRow + 1, startCol + 8);
+            const totalHoursCell = worksheet.getCell(hoursRow, startCol + 7);
+            const credCell = worksheet.getCell(hoursRow + 1, startCol + 7);
 
             if (subject) { 
                 let targetHours = parseHoursComponents(subject.components); 
                 nameCell.value = subject.name;
+                // Activar ajuste de texto en el nombre de la materia
+                nameCell.alignment = { wrapText: true, vertical: 'middle', horizontal: 'center' };
                 
                 const isSpecialPracOrProj = ["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PRÁCTICAS EMPRESARIALES", "PROYECTO INTEGRADOR", "U DE INTEGRACIÓN CURRICULAR"].includes(subject.tipoMateria);
 
@@ -2543,7 +2546,7 @@
                     globalAA += targetHours.aa * state.config.weeks;
                 }
             } else { 
-                nameCell.value = null;
+                nameCell.value = null; nameCell.alignment = { wrapText: true, vertical: 'middle', horizontal: 'center' };
                 acdCell.value = null;
                 apeCell.value = null;
                 aaCell.value = null;
@@ -2567,9 +2570,9 @@
         setCachedResult(worksheet, 'CF54', globalACD);
         setCachedResult(worksheet, 'CF55', globalAPE);
         setCachedResult(worksheet, 'CF56', globalAA);
-        worksheet.getCell('CG57').value = `=5*(${dC}*${wks})`;
-        worksheet.getCell('CG58').value = `=2*(${dC}*${wks})`;
-        worksheet.getCell('CG59').value = `=5*(${dC}*${wks})`;
+        worksheet.getCell('CG57').value = { formula: `5*(${dC}*${wks})` };
+        worksheet.getCell('CG58').value = { formula: `2*(${dC}*${wks})` };
+        worksheet.getCell('CG59').value = { formula: `5*(${dC}*${wks})` };
         setCachedResult(worksheet, 'CF60', globalACD + globalAPE + globalAA + pracEmp + pracCom + intCur);
         setCachedResult(worksheet, 'CF61', globalCreds);
 
