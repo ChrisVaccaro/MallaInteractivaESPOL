@@ -2598,28 +2598,6 @@
         setCachedResult(worksheet, 'CG63', globalACD + globalAPE + globalAA + pracEmp + pracCom + intCur);
         setCachedResult(worksheet, 'CG64', globalCreds);
 
-        // --- 1.4 COMPRESIÓN DE LA MALLA (Eliminación de espacios vacíos) ---
-        // A. Compresión Vertical (Filas de semestres no usados)
-        const maxTemplateSemesters = 9; 
-        if (state.config.semesters < maxTemplateSemesters) {
-            const startRowDelete = 9 + (state.config.semesters * 5);
-            const numRowsToDelete = (maxTemplateSemesters - state.config.semesters) * 5;
-            // Al eliminar las filas de sobra, el Resumen General sube para encajar perfecto
-            worksheet.spliceRows(startRowDelete, numRowsToDelete);
-        }
-
-        // B. Compresión Horizontal (Columnas lógicas completamente vacías)
-        const visibleLevelIds = visibleLevels.map(l => l.id);
-        // Iteramos de DERECHA a IZQUIERDA para no alterar los índices de las columnas que aún faltan por analizar
-        for (let colIdx = NUM_COLUMNS - 1; colIdx >= 0; colIdx--) {
-            const isEmptyColumn = !state.subjects.some(s => s.col === colIdx && visibleLevelIds.includes(s.level));
-            if (isEmptyColumn) {
-                const startExcelCol = 8 + (colIdx * 9);
-                // Eliminamos las 9 columnas de Excel correspondientes a este bloque vacío
-                worksheet.spliceColumns(startExcelCol, 9);
-            }
-        }
-
         // --- 2. PESTAÑA 2: MODIFICACIONES EN ASIGNATURAS ---
         const sheet1 = workbook.getWorksheet('MODIFICACIONES EN ASIGNATURAS'); 
         if (!sheet1) throw new Error('La pestaña MODIFICACIONES EN ASIGNATURAS no existe en la plantilla.');
