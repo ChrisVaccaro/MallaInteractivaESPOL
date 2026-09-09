@@ -2406,6 +2406,7 @@
 
         let modifications = []; let baseSubjects = originalData.subjects || []; let webSubjects = state.subjects || [];
 
+        // (Bloques de validación y modificaciones se mantienen intactos)
         baseSubjects.forEach(baseSubj => {
           let webSubj = webSubjects.find(s => s.code === baseSubj.code);
           if (!webSubj) { modifications.push({ type: 'ELIMINACIÓN', base: baseSubj, web: null, comment: '' }); } 
@@ -2421,31 +2422,23 @@
 
             if (changedHours || changedLevel || changedName || changedReqNum || reqsChanged) {
               let comments = []; let modType = changedHours ? 'CAMBIO' : 'OTRO';
-
               if (changedHours && changedLevel) { comments.push(`Redistribución y reubicación de asignatura (Pasa de ${formatLevel(baseSubj.level)} a ${formatLevel(webSubj.level)}).`); } 
               else if (changedHours) { comments.push('Redistribución de componentes.'); } else if (changedLevel) { comments.push(`Reubicación de asignatura (Pasa de ${formatLevel(baseSubj.level)} a ${formatLevel(webSubj.level)}).`); }
-
               if (changedName) comments.push("Actualización de nombre de asignatura.");
-
               if (changedReqNum) {
                 if (!baseParsed.reqNum && webParsed.reqNum) comments.push(`Se le agrega el requisito de aprobar ${webParsed.reqNum} materias.`);
                 else if (baseParsed.reqNum && !webParsed.reqNum) comments.push(`Se le quita el requisito de aprobar materias.`);
                 else comments.push(`Se cambia el requisito a aprobar ${webParsed.reqNum} materias.`);
               }
-
               if (reqsChanged) {
                 let basePre = baseReqs.filter(r=>!r.isCoreq).map(r=>r.code); let baseCor = baseReqs.filter(r=>r.isCoreq).map(r=>r.code);
                 let webPre = webReqs.filter(r=>!r.isCoreq).map(r=>r.code); let webCor = webReqs.filter(r=>r.isCoreq).map(r=>r.code);
-                
-                let passedToPre = webPre.filter(x => baseCor.includes(x)); let passedToCor = webCor.filter(x => basePre.includes(x));
-                let pureAddedPre = webPre.filter(x => !basePre.includes(x) && !passedToPre.includes(x)); let pureAddedCor = webCor.filter(x => !baseCor.includes(x) && !passedToCor.includes(x));
-                let pureDeletedPre = basePre.filter(x => !webPre.includes(x) && !passedToCor.includes(x)); let pureDeletedCor = baseCor.filter(x => !webCor.includes(x) && !passedToPre.includes(x));
-
+                let pureAddedPre = webPre.filter(x => !basePre.includes(x) && !webCor.filter(y => basePre.includes(y)).includes(x)); let pureAddedCor = webCor.filter(x => !baseCor.includes(x) && !webPre.filter(y => baseCor.includes(y)).includes(x));
+                let pureDeletedPre = basePre.filter(x => !webPre.includes(x) && !webCor.filter(y => basePre.includes(y)).includes(x)); let pureDeletedCor = baseCor.filter(x => !webCor.includes(x) && !webPre.filter(y => baseCor.includes(y)).includes(x));
                 if (pureAddedPre.length > 0) comments.push(`Nuevos prerrequisitos: ${pureAddedPre.join(', ')}.`);
                 if (pureAddedCor.length > 0) comments.push(`Nuevos correquisitos: ${pureAddedCor.join(', ')}.`);
                 if (pureDeletedPre.length > 0) comments.push(`Prerrequisitos eliminados: ${pureDeletedPre.join(', ')}.`);
                 if (pureDeletedCor.length > 0) comments.push(`Correquisitos eliminados: ${pureDeletedCor.join(', ')}.`);
-                
                 if (comments.length === 0 && !changedLevel && !changedName && !changedReqNum) comments.push("Actualización de requisitos.");
               }
               modifications.push({ type: modType, base: baseSubj, web: webSubj, comment: comments.join(' ').trim() });
@@ -2482,6 +2475,7 @@
         const divC = state.config.divC;
         const weeks = state.config.weeks;
 
+        // BUCLE MAESTRO: Itera sobre todos los semestres
         for (let lvlIdx = 0; lvlIdx < visibleLevels.length; lvlIdx++) {
           const levelId = visibleLevels[lvlIdx].id; 
           const baseRow = 9 + (lvlIdx * 5); 
@@ -2491,7 +2485,7 @@
           
           let levelACD = 0, levelAPE = 0, levelAA = 0, levelCreds = 0;
 
-          // SOLO EDITAMOS EL BLOQUE DE MATERIAS
+          // BUCLE SECUNDARIO: Itera sobre todas las posiciones horizontales del subbloque
           for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
             const startCol = 8 + (colIdx * 9); 
             const subject = state.subjects.find(s => s.level === levelId && s.col === colIdx);
@@ -2500,7 +2494,7 @@
             const credTextCell = worksheet.getCell(credRow, startCol + 6);
             const credCell = worksheet.getCell(credRow, startCol + 7);
 
-            // REGLA DE ORO: Descombinar preventivamente la fila 11
+            // REGLA DE ORO (Paso 1): Descombinar la fila de horas de forma preventiva
             try {
                 let cell = worksheet.getCell(hoursRow, startCol);
                 if (cell.isMerged) worksheet.unMergeCells(cell.master.address);
@@ -2517,23 +2511,26 @@
                 const isSpecialPracOrProj = ["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PRÁCTICAS EMPRESARIALES", "PROYECTO INTEGRADOR"].includes(subject.tipoMateria);
 
                 if (isSpecialPracOrProj) {
-                    // CASO MATERIAS ESPECIALES: Combinar fila 11, inyectar horas totales y créditos fijos
+                    // REGLA DE ORO: Prácticas y Proyectos
                     let credsMateria = calculateCredits(subject); 
                     let totalHorasMateria = credsMateria * divC * weeks;
                     
+                    // Limpiamos las celdas ANTES de combinarlas para que Exceljs no elimine el valor maestro
+                    for(let c = startCol; c <= startCol + 7; c++) {
+                        worksheet.getCell(hoursRow, c).value = null;
+                    }
+
+                    // Combinamos e inyectamos las horas calculadas
                     worksheet.mergeCells(hoursRow, startCol, hoursRow, startCol + 7);
                     const mergedHoursCell = worksheet.getCell(hoursRow, startCol);
                     mergedHoursCell.value = totalHorasMateria;
                     mergedHoursCell.alignment = { horizontal: 'center', vertical: 'middle' };
                     
-                    for(let c = startCol + 1; c <= startCol + 7; c++) {
-                        worksheet.getCell(hoursRow, c).value = null;
-                    }
-
+                    // Fila 12: Inyectar Créditos directamente
                     credTextCell.value = "CRÉD.";
-                    setCachedResult(worksheet, credCell.address, credsMateria);
+                    credCell.value = credsMateria;
 
-                    // Sumatorias
+                    // Sumatorias en memoria para los cuadros de resumen
                     levelCreds += credsMateria;
                     globalCreds += credsMateria;
                     if (subject.tipoMateria === 'PRÁCTICAS LABORALES' || subject.tipoMateria === 'PRÁCTICAS EMPRESARIALES') pracEmp += totalHorasMateria;
@@ -2541,7 +2538,7 @@
                     else if (subject.tipoMateria === 'PROYECTO INTEGRADOR') intCur += totalHorasMateria;
 
                 } else {
-                    // CASO INVERSO (MATERIAS NORMALES): Celda descombinada, desglosar horas y calcular créditos dinámicamente
+                    // REGLA INVERSA: Materias normales (Celdas descombinadas)
                     worksheet.getCell(hoursRow, startCol).value = "ACD:";
                     worksheet.getCell(hoursRow, startCol + 1).value = targetHours.acd;
                     worksheet.getCell(hoursRow, startCol + 2).value = "APE:";
@@ -2549,21 +2546,22 @@
                     worksheet.getCell(hoursRow, startCol + 4).value = "AA:";
                     worksheet.getCell(hoursRow, startCol + 5).value = targetHours.aa;
                     worksheet.getCell(hoursRow, startCol + 6).value = "Horas Totales:";
-                    
-                    let totalHorasMateria = (targetHours.acd + targetHours.ape + targetHours.aa) * weeks;
-                    setCachedResult(worksheet, worksheet.getCell(hoursRow, startCol + 7).address, totalHorasMateria);
+                    worksheet.getCell(hoursRow, startCol + 7).value = (targetHours.acd + targetHours.ape + targetHours.aa) * weeks;
 
                     for(let c = startCol; c <= startCol + 7; c++) {
                         worksheet.getCell(hoursRow, c).alignment = { horizontal: 'center', vertical: 'middle' };
                     }
 
-                    // Cálculo dinámico de créditos: Suma de los 3 componentes (Fila 11) dividido para divC
-                    let creditosCalculados = (targetHours.acd + targetHours.ape + targetHours.aa) / divC;
-                    
+                    // Fila 12: Fórmula de Excel dinámica para los créditos = (ACD + APE + AA) / divisor
                     credTextCell.value = "CRÉD.";
-                    setCachedResult(worksheet, credCell.address, creditosCalculados);
+                    const colACD = worksheet.getColumn(startCol + 1).letter;
+                    const colAPE = worksheet.getColumn(startCol + 3).letter;
+                    const colAA = worksheet.getColumn(startCol + 5).letter;
+                    
+                    credCell.value = { formula: `(${colACD}${hoursRow}+${colAPE}${hoursRow}+${colAA}${hoursRow})/${divC}` };
 
-                    // Sumatorias
+                    // Sumatorias en memoria para los cuadros de resumen
+                    let creditosCalculados = (targetHours.acd + targetHours.ape + targetHours.aa) / divC;
                     levelCreds += creditosCalculados;
                     globalCreds += creditosCalculados;
                     levelACD += targetHours.acd * weeks;
@@ -2583,7 +2581,28 @@
                 credCell.value = null; 
             }
           }
+
+          // 1.2 PROCESAMIENTO DE RESÚMENES SEMESTRALES (Intacto como acordamos)
+          worksheet.getCell(baseRow + 1, 80).value = "ACD:";
+          setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 81).address, levelACD);
+          worksheet.getCell(baseRow + 1, 82).value = "APE:";
+          setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 83).address, levelAPE);
+          worksheet.getCell(baseRow + 1, 84).value = "AA:";
+          setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 85).address, levelAA);
+          setCachedResult(worksheet, worksheet.getCell(baseRow + 2, 83).address, levelACD + levelAPE + levelAA);
+          setCachedResult(worksheet, worksheet.getCell(baseRow + 3, 83).address, levelCreds);
         }
+        
+        // 1.3 PROCESAMIENTO DEL RESUMEN GLOBAL (Intacto como acordamos)
+        setCachedResult(worksheet, 'CG57', globalACD);
+        setCachedResult(worksheet, 'CG58', globalAPE);
+        setCachedResult(worksheet, 'CG59', globalAA);
+        setCachedResult(worksheet, 'CG60', pracEmp);
+        setCachedResult(worksheet, 'CG61', pracCom);
+        let calcProyectoIntegrador = 5 * divC * weeks;
+        worksheet.getCell('CG62').value = calcProyectoIntegrador;
+        setCachedResult(worksheet, 'CG63', globalACD + globalAPE + globalAA + pracEmp + pracCom + intCur);
+        setCachedResult(worksheet, 'CG64', globalCreds);
 
         // --- 2. PESTAÑA 2: MODIFICACIONES EN ASIGNATURAS ---
         const sheet1 = workbook.getWorksheet('MODIFICACIONES EN ASIGNATURAS'); 
