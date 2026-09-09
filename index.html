@@ -2492,11 +2492,11 @@
             const startCol = 8 + (colIdx * 9); 
             const subject = state.subjects.find(s => s.level === levelId && s.col === colIdx);
             
-            const nameCell = worksheet.getCell(nameRow, startCol);
+            const nameCell = worksheet.getCell(nameRow, startCol); // Celda maestra del bloque de nombre
             const credTextCell = worksheet.getCell(credRow, startCol + 6);
             const credCell = worksheet.getCell(credRow, startCol + 7);
 
-            // Descombinar preventivamente
+            // Descombinar preventivamente la fila de horas
             try {
                 let cell = worksheet.getCell(hoursRow, startCol);
                 if (cell.isMerged) worksheet.unMergeCells(cell.master.address);
@@ -2516,6 +2516,7 @@
                     let credsMateria = calculateCredits(subject); 
                     let totalHorasMateria = credsMateria * divC * weeks;
                     
+                    // Limpieza previa antes del merge
                     for(let c = startCol; c <= startCol + 7; c++) {
                         worksheet.getCell(hoursRow, c).value = null;
                     }
@@ -2565,37 +2566,54 @@
                     globalAA += targetHours.aa * weeks;
                 }
 
-                // --- DIBUJADO DE BORDES EXPLÍCITO (Con color negro obligatorio FF000000) ---
-                for (let r = nameRow; r <= hoursRow; r++) {
+                // --- DIBUJADO DE BORDES QUIRÚRGICO ---
+                // 1. Bloque de Nombre (Celdas combinadas = aplicamos solo a la celda maestra)
+                nameCell.border = {
+                    top: { style: 'medium', color: { argb: 'FF000000' } },
+                    left: { style: 'medium', color: { argb: 'FF000000' } },
+                    right: { style: 'medium', color: { argb: 'FF000000' } },
+                    bottom: { style: 'thin', color: { argb: 'FF000000' } }
+                };
+
+                // 2. Bloque de Horas
+                if (isSpecialPracOrProj) {
+                    // Celda combinada = aplicamos a la celda maestra
+                    const mergedHoursCell = worksheet.getCell(hoursRow, startCol);
+                    mergedHoursCell.border = {
+                        top: { style: 'thin', color: { argb: 'FF000000' } },
+                        bottom: { style: 'medium', color: { argb: 'FF000000' } },
+                        left: { style: 'medium', color: { argb: 'FF000000' } },
+                        right: { style: 'medium', color: { argb: 'FF000000' } }
+                    };
+                } else {
+                    // Celdas desglosadas = aplicamos individualmente
                     for (let c = startCol; c <= startCol + 7; c++) {
-                        let cellToStyle = worksheet.getCell(r, c);
+                        let cellH = worksheet.getCell(hoursRow, c);
+                        let isLeftEdge = (c === startCol);
+                        let isRightEdge = (c === startCol + 7);
                         
-                        let isTop = (r === nameRow);
-                        let isBottom = (r === hoursRow);
-                        let isLeft = (c === startCol);
-                        let isRight = (c === startCol + 7);
-                        
-                        cellToStyle.border = {
-                            top: { style: isTop ? 'medium' : 'thin', color: { argb: 'FF000000' } },
-                            bottom: { style: isBottom ? 'medium' : 'thin', color: { argb: 'FF000000' } },
-                            left: { style: isLeft ? 'medium' : 'thin', color: { argb: 'FF000000' } },
-                            right: { style: isRight ? 'medium' : 'thin', color: { argb: 'FF000000' } }
+                        cellH.border = {
+                            top: { style: 'thin', color: { argb: 'FF000000' } },
+                            bottom: { style: 'medium', color: { argb: 'FF000000' } },
+                            left: { style: isLeftEdge ? 'medium' : 'thin', color: { argb: 'FF000000' } },
+                            right: { style: isRightEdge ? 'medium' : 'thin', color: { argb: 'FF000000' } }
                         };
                     }
                 }
                 
             } else { 
-                // Limpieza de casillas vacías. Solo borramos bordes y fondos de las filas 9 a 11.
-                // La fila 12 se queda igual en formato (solo se le quita el valor).
+                // --- LIMPIEZA TOTAL PARA ESPACIOS VACÍOS ---
+                // Iteramos por las 3 filas superiores de la tarjeta y removemos toda propiedad de estilo
                 for (let r = nameRow; r <= hoursRow; r++) {
                     for (let c = startCol; c <= startCol + 7; c++) {
                         let cellToClear = worksheet.getCell(r, c);
                         cellToClear.value = null; 
-                        cellToClear.border = null; 
-                        cellToClear.fill = null;
+                        cellToClear.border = undefined; 
+                        cellToClear.fill = undefined;
                     }
                 }
                 
+                // La fila 12 mantiene sus estilos de la plantilla (solo limpiamos el valor)
                 for(let c = startCol; c <= startCol + 7; c++) {
                     worksheet.getCell(credRow, c).value = null;
                 }
