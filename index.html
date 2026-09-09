@@ -2406,7 +2406,6 @@
 
         let modifications = []; let baseSubjects = originalData.subjects || []; let webSubjects = state.subjects || [];
 
-        // (Bloques de validación y modificaciones se mantienen intactos)
         baseSubjects.forEach(baseSubj => {
           let webSubj = webSubjects.find(s => s.code === baseSubj.code);
           if (!webSubj) { modifications.push({ type: 'ELIMINACIÓN', base: baseSubj, web: null, comment: '' }); } 
@@ -2467,6 +2466,11 @@
         const worksheet = workbook.getWorksheet('MALLA CURRICULAR');
         if (!worksheet) throw new Error('La pestaña MALLA CURRICULAR no existe en la plantilla.');
 
+        // Actualizar el título de la malla
+        const titleCell = worksheet.getCell('H1');
+        const careerName = state.baseCareer ? state.baseCareer.toUpperCase() : "";
+        titleCell.value = `MALLA CURRICULAR CARRERA ${careerName}`;
+
         let globalACD = 0, globalAPE = 0, globalAA = 0;
         let pracEmp = 0, pracCom = 0, intCur = 0;
         let globalCreds = 0;
@@ -2475,17 +2479,16 @@
         const divC = state.config.divC;
         const weeks = state.config.weeks;
 
-        // BUCLE MAESTRO: Itera sobre todos los semestres
+        // BUCLE MAESTRO
         for (let lvlIdx = 0; lvlIdx < visibleLevels.length; lvlIdx++) {
           const levelId = visibleLevels[lvlIdx].id; 
           const baseRow = 9 + (lvlIdx * 5); 
           const nameRow = baseRow; 
-          const hoursRow = baseRow + 2; // Fila 11
-          const credRow = baseRow + 3;  // Fila 12
+          const hoursRow = baseRow + 2; 
+          const credRow = baseRow + 3;  
           
           let levelACD = 0, levelAPE = 0, levelAA = 0, levelCreds = 0;
 
-          // BUCLE SECUNDARIO: Itera sobre todas las posiciones horizontales del subbloque
           for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
             const startCol = 8 + (colIdx * 9); 
             const subject = state.subjects.find(s => s.level === levelId && s.col === colIdx);
@@ -2494,7 +2497,7 @@
             const credTextCell = worksheet.getCell(credRow, startCol + 6);
             const credCell = worksheet.getCell(credRow, startCol + 7);
 
-            // REGLA DE ORO (Paso 1): Descombinar la fila de horas de forma preventiva
+            // Descombinar preventivamente
             try {
                 let cell = worksheet.getCell(hoursRow, startCol);
                 if (cell.isMerged) worksheet.unMergeCells(cell.master.address);
@@ -2511,26 +2514,21 @@
                 const isSpecialPracOrProj = ["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PRÁCTICAS EMPRESARIALES", "PROYECTO INTEGRADOR"].includes(subject.tipoMateria);
 
                 if (isSpecialPracOrProj) {
-                    // REGLA DE ORO: Prácticas y Proyectos
                     let credsMateria = calculateCredits(subject); 
                     let totalHorasMateria = credsMateria * divC * weeks;
                     
-                    // Limpiamos las celdas ANTES de combinarlas para que Exceljs no elimine el valor maestro
                     for(let c = startCol; c <= startCol + 7; c++) {
                         worksheet.getCell(hoursRow, c).value = null;
                     }
 
-                    // Combinamos e inyectamos las horas calculadas
                     worksheet.mergeCells(hoursRow, startCol, hoursRow, startCol + 7);
                     const mergedHoursCell = worksheet.getCell(hoursRow, startCol);
                     mergedHoursCell.value = totalHorasMateria;
                     mergedHoursCell.alignment = { horizontal: 'center', vertical: 'middle' };
                     
-                    // Fila 12: Inyectar Créditos directamente
                     credTextCell.value = "CRÉD.";
                     credCell.value = credsMateria;
 
-                    // Sumatorias en memoria para los cuadros de resumen
                     levelCreds += credsMateria;
                     globalCreds += credsMateria;
                     if (subject.tipoMateria === 'PRÁCTICAS LABORALES' || subject.tipoMateria === 'PRÁCTICAS EMPRESARIALES') pracEmp += totalHorasMateria;
@@ -2538,7 +2536,6 @@
                     else if (subject.tipoMateria === 'PROYECTO INTEGRADOR') intCur += totalHorasMateria;
 
                 } else {
-                    // REGLA INVERSA: Materias normales (Celdas descombinadas)
                     worksheet.getCell(hoursRow, startCol).value = "ACD:";
                     worksheet.getCell(hoursRow, startCol + 1).value = targetHours.acd;
                     worksheet.getCell(hoursRow, startCol + 2).value = "APE:";
@@ -2552,15 +2549,12 @@
                         worksheet.getCell(hoursRow, c).alignment = { horizontal: 'center', vertical: 'middle' };
                     }
 
-                    // Fila 12: Fórmula de Excel dinámica para los créditos = (ACD + APE + AA) / divisor
                     credTextCell.value = "CRÉD.";
                     const colACD = worksheet.getColumn(startCol + 1).letter;
                     const colAPE = worksheet.getColumn(startCol + 3).letter;
                     const colAA = worksheet.getColumn(startCol + 5).letter;
-                    
                     credCell.value = { formula: `(${colACD}${hoursRow}+${colAPE}${hoursRow}+${colAA}${hoursRow})/${divC}` };
 
-                    // Sumatorias en memoria para los cuadros de resumen
                     let creditosCalculados = (targetHours.acd + targetHours.ape + targetHours.aa) / divC;
                     levelCreds += creditosCalculados;
                     globalCreds += creditosCalculados;
@@ -2572,17 +2566,18 @@
                     globalAA += targetHours.aa * weeks;
                 }
             } else { 
-                // Limpieza de espacios vacíos
-                nameCell.value = null; 
+                // Limpieza visual profunda para bloques vacíos (remueve valores, bordes y fondos)
+                nameCell.value = null; nameCell.border = null; nameCell.fill = null;
                 for(let c = startCol; c <= startCol + 7; c++) {
-                    worksheet.getCell(hoursRow, c).value = null;
+                    let cellToClear = worksheet.getCell(hoursRow, c);
+                    cellToClear.value = null; cellToClear.border = null; cellToClear.fill = null;
                 }
-                credTextCell.value = null;
-                credCell.value = null; 
+                credTextCell.value = null; credTextCell.border = null; credTextCell.fill = null;
+                credCell.value = null; credCell.border = null; credCell.fill = null;
             }
           }
 
-          // 1.2 PROCESAMIENTO DE RESÚMENES SEMESTRALES (Intacto como acordamos)
+          // 1.2 PROCESAMIENTO DE RESÚMENES SEMESTRALES
           worksheet.getCell(baseRow + 1, 80).value = "ACD:";
           setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 81).address, levelACD);
           worksheet.getCell(baseRow + 1, 82).value = "APE:";
@@ -2593,7 +2588,7 @@
           setCachedResult(worksheet, worksheet.getCell(baseRow + 3, 83).address, levelCreds);
         }
         
-        // 1.3 PROCESAMIENTO DEL RESUMEN GLOBAL (Intacto como acordamos)
+        // 1.3 PROCESAMIENTO DEL RESUMEN GLOBAL
         setCachedResult(worksheet, 'CG57', globalACD);
         setCachedResult(worksheet, 'CG58', globalAPE);
         setCachedResult(worksheet, 'CG59', globalAA);
@@ -2672,7 +2667,12 @@
             });
         }
         
-        const buffer = await workbook.xlsx.writeBuffer(); const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }); saveAs(blob, "2. Estructura curricular propuesta y tabla de equivalencias.xlsx");
+        const buffer = await workbook.xlsx.writeBuffer(); 
+        const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }); 
+        
+        // Se actualiza el nombre del archivo final
+        saveAs(blob, "Malla Formato CES.xlsx");
+        
         showToast('Malla exportada a Excel con éxito.', 'success');
       } catch (error) { console.error("Error al generar el Excel:", error); showToast('Error al generar la malla. Revisa la consola.', 'error'); }
     }
