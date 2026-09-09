@@ -2491,9 +2491,8 @@
           
           let levelACD = 0, levelAPE = 0, levelAA = 0, levelCreds = 0;
 
-          // 1.1 PROCESAMIENTO DE LAS TARJETAS DE MATERIAS
+          // SOLO EDITAMOS EL BLOQUE DE MATERIAS
           for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
-            // Cada subbloque empieza en la columna H (índice 8) y salta 9 columnas
             const startCol = 8 + (colIdx * 9); 
             const subject = state.subjects.find(s => s.level === levelId && s.col === colIdx);
             
@@ -2501,7 +2500,7 @@
             const credTextCell = worksheet.getCell(credRow, startCol + 6);
             const credCell = worksheet.getCell(credRow, startCol + 7);
 
-            // DESCOMBINAR preventivamente la fila 11 (horas) por si la plantilla base traía una Práctica
+            // REGLA DE ORO: Descombinar preventivamente la fila 11
             try {
                 let cell = worksheet.getCell(hoursRow, startCol);
                 if (cell.isMerged) worksheet.unMergeCells(cell.master.address);
@@ -2512,33 +2511,37 @@
                 let targetHours = parseHoursComponents(subject.components); 
                 nameCell.value = subject.name;
                 
-                // Activar ajuste de texto preservando alineaciones
                 let currentAlign = nameCell.alignment || {};
                 nameCell.alignment = { ...currentAlign, wrapText: true, vertical: 'middle', horizontal: 'center' };
                 
-                // U DE INTEGRACIÓN CURRICULAR (Materia) NO se incluye aquí porque debe mostrar sus componentes
                 const isSpecialPracOrProj = ["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PRÁCTICAS EMPRESARIALES", "PROYECTO INTEGRADOR"].includes(subject.tipoMateria);
 
-                let credsMateria = calculateCredits(subject);
-                let totalHorasMateria;
-
                 if (isSpecialPracOrProj) {
-                    // Bloques Especiales: Fusionar la fila 11 completa y mostrar Horas Totales
-                    totalHorasMateria = credsMateria * divC * weeks;
+                    // CASO MATERIAS ESPECIALES: Combinar fila 11, inyectar horas totales y créditos fijos
+                    let credsMateria = calculateCredits(subject); 
+                    let totalHorasMateria = credsMateria * divC * weeks;
                     
                     worksheet.mergeCells(hoursRow, startCol, hoursRow, startCol + 7);
                     const mergedHoursCell = worksheet.getCell(hoursRow, startCol);
                     mergedHoursCell.value = totalHorasMateria;
                     mergedHoursCell.alignment = { horizontal: 'center', vertical: 'middle' };
                     
-                    // Limpiar las celdas ocultas
                     for(let c = startCol + 1; c <= startCol + 7; c++) {
                         worksheet.getCell(hoursRow, c).value = null;
                     }
-                } else {
-                    // Materias Normales y Materia Integradora: Desglosado
-                    totalHorasMateria = (targetHours.acd + targetHours.ape + targetHours.aa) * weeks;
 
+                    credTextCell.value = "CRÉD.";
+                    setCachedResult(worksheet, credCell.address, credsMateria);
+
+                    // Sumatorias
+                    levelCreds += credsMateria;
+                    globalCreds += credsMateria;
+                    if (subject.tipoMateria === 'PRÁCTICAS LABORALES' || subject.tipoMateria === 'PRÁCTICAS EMPRESARIALES') pracEmp += totalHorasMateria;
+                    else if (subject.tipoMateria === 'PRÁCTICAS COMUNITARIAS') pracCom += totalHorasMateria;
+                    else if (subject.tipoMateria === 'PROYECTO INTEGRADOR') intCur += totalHorasMateria;
+
+                } else {
+                    // CASO INVERSO (MATERIAS NORMALES): Celda descombinada, desglosar horas y calcular créditos dinámicamente
                     worksheet.getCell(hoursRow, startCol).value = "ACD:";
                     worksheet.getCell(hoursRow, startCol + 1).value = targetHours.acd;
                     worksheet.getCell(hoursRow, startCol + 2).value = "APE:";
@@ -2546,29 +2549,23 @@
                     worksheet.getCell(hoursRow, startCol + 4).value = "AA:";
                     worksheet.getCell(hoursRow, startCol + 5).value = targetHours.aa;
                     worksheet.getCell(hoursRow, startCol + 6).value = "Horas Totales:";
+                    
+                    let totalHorasMateria = (targetHours.acd + targetHours.ape + targetHours.aa) * weeks;
                     setCachedResult(worksheet, worksheet.getCell(hoursRow, startCol + 7).address, totalHorasMateria);
 
-                    // Forzar centrado de las celdas recién descombinadas
                     for(let c = startCol; c <= startCol + 7; c++) {
                         worksheet.getCell(hoursRow, c).alignment = { horizontal: 'center', vertical: 'middle' };
                     }
-                }
 
-                // Inyectar créditos
-                credTextCell.value = "CRÉD.";
-                setCachedResult(worksheet, credCell.address, credsMateria);
+                    // Cálculo dinámico de créditos: Suma de los 3 componentes (Fila 11) dividido para divC
+                    let creditosCalculados = (targetHours.acd + targetHours.ape + targetHours.aa) / divC;
+                    
+                    credTextCell.value = "CRÉD.";
+                    setCachedResult(worksheet, credCell.address, creditosCalculados);
 
-                // Acumuladores Semestrales y Globales
-                levelCreds += credsMateria;
-                globalCreds += credsMateria;
-
-                if (subject.tipoMateria === 'PRÁCTICAS LABORALES' || subject.tipoMateria === 'PRÁCTICAS EMPRESARIALES') {
-                    pracEmp += totalHorasMateria;
-                } else if (subject.tipoMateria === 'PRÁCTICAS COMUNITARIAS') {
-                    pracCom += totalHorasMateria;
-                } else if (subject.tipoMateria === 'PROYECTO INTEGRADOR' || subject.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR') {
-                    intCur += totalHorasMateria;
-                } else {
+                    // Sumatorias
+                    levelCreds += creditosCalculados;
+                    globalCreds += creditosCalculados;
                     levelACD += targetHours.acd * weeks;
                     levelAPE += targetHours.ape * weeks;
                     levelAA += targetHours.aa * weeks;
@@ -2576,9 +2573,8 @@
                     globalAPE += targetHours.ape * weeks;
                     globalAA += targetHours.aa * weeks;
                 }
-
             } else { 
-                // LIMPIEZA DE ESPACIOS VACÍOS
+                // Limpieza de espacios vacíos
                 nameCell.value = null; 
                 for(let c = startCol; c <= startCol + 7; c++) {
                     worksheet.getCell(hoursRow, c).value = null;
@@ -2587,39 +2583,7 @@
                 credCell.value = null; 
             }
           }
-
-          // 1.2 PROCESAMIENTO DE RESÚMENES SEMESTRALES
-          // Columna CB=80, CC=81, CD=82, CE=83, CF=84, CG=85
-          
-          // Fila 10: Suma de componentes * Semanas
-          worksheet.getCell(baseRow + 1, 80).value = "ACD:";
-          setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 81).address, levelACD);
-          worksheet.getCell(baseRow + 1, 82).value = "APE:";
-          setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 83).address, levelAPE);
-          worksheet.getCell(baseRow + 1, 84).value = "AA:";
-          setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 85).address, levelAA);
-
-          // Fila 11: Total Horas (Combinadas CE-CG, valor va en CE=83)
-          setCachedResult(worksheet, worksheet.getCell(baseRow + 2, 83).address, levelACD + levelAPE + levelAA);
-
-          // Fila 12: Total Créditos (Combinadas CE-CG, valor va en CE=83)
-          setCachedResult(worksheet, worksheet.getCell(baseRow + 3, 83).address, levelCreds);
         }
-        
-        // 1.3 PROCESAMIENTO DEL RESUMEN GLOBAL
-        // Filas 57 a 64, valores en la columna CG (85)
-        setCachedResult(worksheet, 'CG57', globalACD);
-        setCachedResult(worksheet, 'CG58', globalAPE);
-        setCachedResult(worksheet, 'CG59', globalAA);
-        setCachedResult(worksheet, 'CG60', pracEmp);
-        setCachedResult(worksheet, 'CG61', pracCom);
-        
-        // Integración Curricular (Solo Proyecto Integrador = 5 * divC * weeks)
-        let calcProyectoIntegrador = 5 * divC * weeks;
-        worksheet.getCell('CG62').value = calcProyectoIntegrador;
-        
-        setCachedResult(worksheet, 'CG63', globalACD + globalAPE + globalAA + pracEmp + pracCom + intCur);
-        setCachedResult(worksheet, 'CG64', globalCreds);
 
         // --- 2. PESTAÑA 2: MODIFICACIONES EN ASIGNATURAS ---
         const sheet1 = workbook.getWorksheet('MODIFICACIONES EN ASIGNATURAS'); 
