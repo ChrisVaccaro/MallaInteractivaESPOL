@@ -2501,6 +2501,11 @@
         const careerName = state.baseCareer ? state.baseCareer.toUpperCase() : "";
         titleCell.value = `MALLA CURRICULAR CARRERA ${careerName}`;
 
+        // Variables silenciosas para calcular la caché
+        let globalACD = 0, globalAPE = 0, globalAA = 0;
+        let pracEmp = 0, pracCom = 0, intCur = 0;
+        let globalCreds = 0;
+
         const visibleLevels = state.levels.slice(0, state.config.semesters);
         const divC = state.config.divC;
         const weeks = state.config.weeks;
@@ -2511,6 +2516,8 @@
           const nameRow = baseRow; 
           const hoursRow = baseRow + 2; 
           const credRow = baseRow + 3;  
+
+          let levelACD = 0, levelAPE = 0, levelAA = 0, levelCreds = 0;
 
           for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
             const startCol = 8 + (colIdx * 9); 
@@ -2551,6 +2558,13 @@
                     credTextCell.value = "CRÉD.";
                     credCell.value = credsMateria; 
 
+                    // Acumulación silenciosa para la caché
+                    levelCreds += credsMateria;
+                    globalCreds += credsMateria;
+                    if (subject.tipoMateria === 'PRÁCTICAS LABORALES' || subject.tipoMateria === 'PRÁCTICAS EMPRESARIALES') pracEmp += totalHorasMateria;
+                    else if (subject.tipoMateria === 'PRÁCTICAS COMUNITARIAS') pracCom += totalHorasMateria;
+                    else if (subject.tipoMateria === 'PROYECTO INTEGRADOR') intCur += totalHorasMateria;
+
                 } else {
                     worksheet.getCell(hoursRow, startCol).value = "ACD:";
                     worksheet.getCell(hoursRow, startCol + 1).value = targetHours.acd;
@@ -2573,10 +2587,21 @@
                     const colAPE = worksheet.getColumn(startCol + 3).letter;
                     const colAA = worksheet.getColumn(startCol + 5).letter;
                     
+                    // Inyección de caché para la celda de créditos individual
                     credCell.value = { 
                         formula: `(${colACD}${hoursRow}+${colAPE}${hoursRow}+${colAA}${hoursRow})/${divC}`,
                         result: creditosCalculados 
                     };
+
+                    // Acumulación silenciosa para la caché
+                    levelCreds += creditosCalculados;
+                    globalCreds += creditosCalculados;
+                    levelACD += targetHours.acd * weeks;
+                    levelAPE += targetHours.ape * weeks;
+                    levelAA += targetHours.aa * weeks;
+                    globalACD += targetHours.acd * weeks;
+                    globalAPE += targetHours.ape * weeks;
+                    globalAA += targetHours.aa * weeks;
                 }
 
                 let tipoMat = String(subject.tipoMateria || 'FORMACIÓN PROFESIONAL').trim().toUpperCase();
@@ -2657,9 +2682,28 @@
                 }
             }
           }
+
+          // 1.2 INYECCIÓN DE CACHÉ EN RESÚMENES SEMESTRALES (Vista Protegida)
+          // Usamos setCachedResult para no destruir las fórmulas preexistentes de la plantilla
+          setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 81).address, levelACD);
+          setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 83).address, levelAPE);
+          setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 85).address, levelAA);
+          setCachedResult(worksheet, worksheet.getCell(baseRow + 2, 83).address, levelACD + levelAPE + levelAA);
+          setCachedResult(worksheet, worksheet.getCell(baseRow + 3, 83).address, levelCreds);
         }
 
-        // --- 1.1 COMPRESIÓN DE MALLA (Ocultamiento Seguro) ---
+        // 1.3 INYECCIÓN DE CACHÉ EN RESUMEN GLOBAL (Vista Protegida)
+        // Coordenadas ajustadas a las filas 56-63 en la columna CG
+        setCachedResult(worksheet, 'CG56', globalACD);
+        setCachedResult(worksheet, 'CG57', globalAPE);
+        setCachedResult(worksheet, 'CG58', globalAA);
+        setCachedResult(worksheet, 'CG59', pracEmp);
+        setCachedResult(worksheet, 'CG60', pracCom);
+        setCachedResult(worksheet, 'CG61', intCur);
+        setCachedResult(worksheet, 'CG62', globalACD + globalAPE + globalAA + pracEmp + pracCom + intCur);
+        setCachedResult(worksheet, 'CG63', globalCreds);
+
+        // --- 1.4 COMPRESIÓN DE MALLA ---
         const maxTemplateSemesters = 9; 
         if (state.config.semesters < maxTemplateSemesters) {
             const startRowHide = 9 + (state.config.semesters * 5);
