@@ -2496,12 +2496,18 @@
         const worksheet = workbook.getWorksheet('MALLA CURRICULAR');
         if (!worksheet) throw new Error('La pestaña MALLA CURRICULAR no existe en la plantilla.');
 
+        // Ocultar líneas de cuadrícula de fondo
+        if (worksheet.views && worksheet.views.length > 0) {
+            worksheet.views.forEach(v => v.showGridLines = false);
+        } else {
+            worksheet.views = [{ showGridLines: false }];
+        }
+
         // Título dinámico
         const titleCell = worksheet.getCell('H1');
         const careerName = state.baseCareer ? state.baseCareer.toUpperCase() : "";
         titleCell.value = `MALLA CURRICULAR CARRERA ${careerName}`;
 
-        // Variables silenciosas para calcular la caché
         let globalACD = 0, globalAPE = 0, globalAA = 0;
         let pracEmp = 0, pracCom = 0, intCur = 0;
         let globalCreds = 0;
@@ -2558,7 +2564,6 @@
                     credTextCell.value = "CRÉD.";
                     credCell.value = credsMateria; 
 
-                    // Acumulación silenciosa para la caché
                     levelCreds += credsMateria;
                     globalCreds += credsMateria;
                     if (subject.tipoMateria === 'PRÁCTICAS LABORALES' || subject.tipoMateria === 'PRÁCTICAS EMPRESARIALES') pracEmp += totalHorasMateria;
@@ -2587,13 +2592,11 @@
                     const colAPE = worksheet.getColumn(startCol + 3).letter;
                     const colAA = worksheet.getColumn(startCol + 5).letter;
                     
-                    // Inyección de caché para la celda de créditos individual
                     credCell.value = { 
                         formula: `(${colACD}${hoursRow}+${colAPE}${hoursRow}+${colAA}${hoursRow})/${divC}`,
                         result: creditosCalculados 
                     };
 
-                    // Acumulación silenciosa para la caché
                     levelCreds += creditosCalculados;
                     globalCreds += creditosCalculados;
                     levelACD += targetHours.acd * weeks;
@@ -2607,6 +2610,7 @@
                 let tipoMat = String(subject.tipoMateria || 'FORMACIÓN PROFESIONAL').trim().toUpperCase();
                 let argbBg = 'FFFBEFAE'; 
                 let argbFont = 'FF000000'; 
+                let isDarkTheme = false;
 
                 tipoMat = tipoMat.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
@@ -2624,6 +2628,7 @@
                     case 'PROYECTO INTEGRADOR':
                         argbBg = 'FF003566';
                         argbFont = 'FFFFFFFF';
+                        isDarkTheme = true;
                         break;
                 }
 
@@ -2640,6 +2645,15 @@
                         let isLeft = (c === startCol);
                         let isRight = (c === startCol + 7);
 
+                        // Si es tema oscuro (Integradora), pintamos los bordes internos de blanco
+                        if (isDarkTheme) {
+                            if (currentBorder.top && !isTop) currentBorder.top.color = { argb: 'FFFFFFFF' };
+                            if (currentBorder.bottom && !isBottom) currentBorder.bottom.color = { argb: 'FFFFFFFF' };
+                            if (currentBorder.left && !isLeft) currentBorder.left.color = { argb: 'FFFFFFFF' };
+                            if (currentBorder.right && !isRight) currentBorder.right.color = { argb: 'FFFFFFFF' };
+                        }
+
+                        // Bordes externos siempre en negro medio
                         if (isTop) currentBorder.top = { style: 'medium', color: { argb: 'FF000000' } };
                         if (isBottom) currentBorder.bottom = { style: 'medium', color: { argb: 'FF000000' } };
                         if (isLeft) currentBorder.left = { style: 'medium', color: { argb: 'FF000000' } };
@@ -2684,7 +2698,6 @@
           }
 
           // 1.2 INYECCIÓN DE CACHÉ EN RESÚMENES SEMESTRALES (Vista Protegida)
-          // Usamos setCachedResult para no destruir las fórmulas preexistentes de la plantilla
           setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 81).address, levelACD);
           setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 83).address, levelAPE);
           setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 85).address, levelAA);
@@ -2693,7 +2706,6 @@
         }
 
         // 1.3 INYECCIÓN DE CACHÉ EN RESUMEN GLOBAL (Vista Protegida)
-        // Coordenadas ajustadas a las filas 56-63 en la columna CG
         setCachedResult(worksheet, 'CG56', globalACD);
         setCachedResult(worksheet, 'CG57', globalAPE);
         setCachedResult(worksheet, 'CG58', globalAA);
@@ -2727,6 +2739,13 @@
         // --- 2. PESTAÑA 2: MODIFICACIONES EN ASIGNATURAS ---
         const sheet1 = workbook.getWorksheet('MODIFICACIONES EN ASIGNATURAS'); 
         if (!sheet1) throw new Error('La pestaña MODIFICACIONES EN ASIGNATURAS no existe en la plantilla.');
+
+        // Ocultar líneas de cuadrícula de fondo
+        if (sheet1.views && sheet1.views.length > 0) {
+            sheet1.views.forEach(v => v.showGridLines = false);
+        } else {
+            sheet1.views = [{ showGridLines: false }];
+        }
 
         for (let i = 1; i < modifications.length; i++) {
           let destStartRow = 4 + (i * 4); 
