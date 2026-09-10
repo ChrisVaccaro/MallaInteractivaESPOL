@@ -2465,14 +2465,7 @@
         // --- 1. PESTAÑA 1: MALLA CURRICULAR ---
         const worksheet = workbook.getWorksheet('MALLA CURRICULAR');
         if (!worksheet) throw new Error('La pestaña MALLA CURRICULAR no existe en la plantilla.');
-/*
-        const cell = worksheet.getCell('A1');
 
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FFFF0000' } // Rojo
-        };*/
         // Título dinámico
         const titleCell = worksheet.getCell('H1');
         const careerName = state.baseCareer ? state.baseCareer.toUpperCase() : "";
@@ -2498,7 +2491,7 @@
           for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
             const startCol = 8 + (colIdx * 9); 
             const subject = state.subjects.find(s => s.level === levelId && s.col === colIdx);
-            console.log(subject);
+            
             const nameCell = worksheet.getCell(nameRow, startCol);
             const credTextCell = worksheet.getCell(credRow, startCol + 6);
             const credCell = worksheet.getCell(credRow, startCol + 7);
@@ -2571,35 +2564,40 @@
                     globalAPE += targetHours.ape * weeks;
                     globalAA += targetHours.aa * weeks;
                 }
-                // --- INYECCIÓN DE COLORES (USANDO TIPOS EXACTOS DEL HTML) ---
+
+                // --- INYECCIÓN DE COLORES EVITANDO EL BUG DE ESTILOS COMPARTIDOS ---
+                let tipoMat = String(subject.tipoMateria || 'FORMACIÓN PROFESIONAL').trim().toUpperCase();
                 let argbBg = 'FFFBEFAE'; // FORMACIÓN PROFESIONAL por defecto
                 let argbFont = 'FF000000'; // Letra negra por defecto
 
-                switch (subject.tipoMateria) {
-                    case 'MATEMÁTICAS Y CIENCIAS BÁSICAS':
+                // Normalización de tildes por seguridad extra
+                tipoMat = tipoMat.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+                switch (tipoMat) {
+                    case 'MATEMATICAS Y CIENCIAS BASICAS':
                         argbBg = 'FFFFFFFF'; 
                         break;
-                    case 'EDUCACIÓN GENERAL':
+                    case 'EDUCACION GENERAL':
                         argbBg = 'FFD6DFE6';
                         break;
-                    case 'FORMACIÓN PROFESIONAL':
+                    case 'FORMACION PROFESIONAL':
                         argbBg = 'FFFBEFAE';
                         break;
                     case 'C. DE ARTE Y DEPORTES':
                         argbBg = 'FFF8C1A0';
                         break;
-                    case 'C. DE HUMANÍSTICA':
+                    case 'C. DE HUMANISTICA':
                         argbBg = 'FF93D0CC';
                         break;
                     case 'ITINERARIO':
                         argbBg = 'FF7092BE';
                         break;
-                    case 'PRÁCTICAS COMUNITARIAS':
-                    case 'PRÁCTICAS LABORALES':
-                    case 'PRÁCTICAS EMPRESARIALES':
+                    case 'PRACTICAS COMUNITARIAS':
+                    case 'PRACTICAS LABORALES':
+                    case 'PRACTICAS EMPRESARIALES':
                         argbBg = 'FFFCDC7D';
                         break;
-                    case 'U DE INTEGRACIÓN CURRICULAR':
+                    case 'U DE INTEGRACION CURRICULAR':
                     case 'PROYECTO INTEGRADOR':
                         argbBg = 'FF003566';
                         argbFont = 'FFFFFFFF'; // Letra Blanca
@@ -2611,15 +2609,22 @@
                     for (let c = startCol; c <= startCol + 7; c++) {
                         let styledCell = worksheet.getCell(r, c);
                         
-                        styledCell.fill = {
-                            type: 'pattern',
-                            pattern: 'solid',
-                            fgColor: { argb: argbBg },
-                            bgColor: { argb: argbBg }
+                        // EL TRUCO: Extraemos bordes y alineación de la plantilla, pero creamos un objeto 100% NUEVO
+                        // Esto rompe la conexión con las demás celdas.
+                        let currentBorder = styledCell.border ? JSON.parse(JSON.stringify(styledCell.border)) : {};
+                        let currentAlignment = styledCell.alignment ? JSON.parse(JSON.stringify(styledCell.alignment)) : {};
+                        let currentFont = styledCell.font ? JSON.parse(JSON.stringify(styledCell.font)) : {};
+
+                        styledCell.style = {
+                            border: currentBorder,
+                            alignment: currentAlignment,
+                            font: { ...currentFont, color: { argb: argbFont } },
+                            fill: {
+                                type: 'pattern',
+                                pattern: 'solid',
+                                fgColor: { argb: argbBg }
+                            }
                         };
-                        
-                        let currentFont = styledCell.font || {};
-                        styledCell.font = { ...currentFont, color: { argb: argbFont } };
                     }
                 }
 
