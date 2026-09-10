@@ -939,12 +939,14 @@
             return;
         }
         let freeCol = 0; for (let i = 0; i < NUM_COLUMNS; i++) { if (!usedCols.includes(i)) { freeCol = i; break; } } 
-        const newId = 'CUSTOM_' + Date.now();
-        state.subjects.push({ id: newId, code: integradora.code + "-PI", name: "PROYECTO INTEGRADOR", components: '0/0/15', sum: 15, level: levelId, col: freeCol, tipoMateria: 'PROYECTO INTEGRADOR' });
+        
+        // Estandarización: ID y Código idénticos basados en la Integradora
+        const piCode = integradora.code + "-PI";
+        state.subjects.push({ id: piCode, code: piCode, name: "PROYECTO INTEGRADOR", components: '0/0/15', sum: 15, level: levelId, col: freeCol, tipoMateria: 'PROYECTO INTEGRADOR' });
+        
         persistState(); renderBoard(); setTimeout(drawConnections, 200); updateAnalyticsPanel();
         showToast('Proyecto Integrador auto-completado.', 'success');
     }
-
     function moveSubjectToLevelHelper(subj, targetLevelId) {
         const usedCols = state.subjects.filter(s => s.level === targetLevelId && s.id !== subj.id).map(s => s.col);
         if (usedCols.length >= NUM_COLUMNS) {
@@ -1569,7 +1571,10 @@
     }
 
     // --- FORMULARIO Y VALIDACIONES ---
-    function handleTipoChange() {
+    function handleTipoChange(isInit = false) {
+        // Bandera para saber si el cambio vino del usuario o de abrir el modal
+        const fromInit = isInit === true; 
+        
         const tipo = document.getElementById('edit-tipo-materia').value;
         const compGroup = document.getElementById('group-components');
         const compSelect = document.getElementById('edit-components');
@@ -1627,11 +1632,27 @@
                  revertToDefaultType();
                  return;
             }
+        } else if (tipo === 'C. DE ARTE Y DEPORTES') {
+            let isEditing = isEdit && state.subjects.find(s => s.id === document.getElementById('edit-id').value)?.tipoMateria === 'C. DE ARTE Y DEPORTES';
+            let existing = state.subjects.find(s => s.tipoMateria === 'C. DE ARTE Y DEPORTES');
+            if (existing && !isEditing) {
+                showToast('Solo se permite una Complementaria de Artes, Deportes e Idiomas.', 'error');
+                revertToDefaultType();
+                return;
+            }
+        } else if (tipo === 'C. DE HUMANÍSTICA') {
+            let isEditing = isEdit && state.subjects.find(s => s.id === document.getElementById('edit-id').value)?.tipoMateria === 'C. DE HUMANÍSTICA';
+            let existing = state.subjects.find(s => s.tipoMateria === 'C. DE HUMANÍSTICA');
+            if (existing && !isEditing) {
+                showToast('Solo se permite una Complementaria de Humanística.', 'error');
+                revertToDefaultType();
+                return;
+            }
         }
 
         compSelect.disabled = false;
         levelSelect.disabled = false;
-        nameInput.disabled = false;
+        nameInput.disabled = false; // Nos aseguramos que el campo sea editable
         
         const isNewCb = document.getElementById('edit-is-new');
         if (!isNewCb.checked) {
@@ -1674,14 +1695,24 @@
             }
         }
 
+        // --- INYECCIÓN AUTOMÁTICA DE NOMBRES ---
         if (tipo === 'ITINERARIO') {
             compSelect.value = '3/0/3';
             compSelect.disabled = true;
             codeGroup.style.display = 'none';
+            // Solo auto-completa si es elección manual del usuario o el campo está vacío
+            if (!fromInit || nameInput.value.trim() === '') {
+                nameInput.value = 'ITINERARIO';
+            }
         } else if (tipo === 'C. DE ARTE Y DEPORTES' || tipo === 'C. DE HUMANÍSTICA') {
             compSelect.value = '2/0/1';
             compSelect.disabled = true;
             codeGroup.style.display = 'none';
+            if (!fromInit || nameInput.value.trim() === '') {
+                nameInput.value = tipo === 'C. DE ARTE Y DEPORTES' 
+                    ? 'COMPLEMENTARIAS DE ARTES, DEPORTES E IDIOMAS' 
+                    : 'COMPLEMENTARIAS DE HUMANÍSTICAS';
+            }
         } else if (tipo === 'PRÁCTICAS COMUNITARIAS') {
             compSelect.value = '0/0/6';
             compGroup.style.display = 'none';
@@ -1718,7 +1749,6 @@
         updateSumFromSelect();
         updateLevelOptions();
     }
-
     function handleSplitChange() {
         const splitVal = document.querySelector('input[name="laboral-split"]:checked').value;
         const lvl2Group = document.getElementById('level-select-group-2');
@@ -2793,7 +2823,8 @@
         document.getElementById('edit-components').value = '3/1/5';
         document.getElementById('btn-delete').style.display = 'none';
 
-        handleTipoChange(); // Refresca los campos dinámicos
+        // Pasamos "true" para indicarle a la función que es el inicio del formulario
+        handleTipoChange(true); 
         document.getElementById('modal-overlay').style.display = 'flex';
     }
 
@@ -2811,7 +2842,6 @@
         document.getElementById('edit-is-new').checked = isNew;
         document.getElementById('edit-code').value = isNew ? '' : subj.code;
         
-        // Asignación de componentes
         const compSelect = document.getElementById('edit-components');
         if (["PRÁCTICAS LABORALES", "PRÁCTICAS COMUNITARIAS", "PROYECTO INTEGRADOR", "U DE INTEGRACIÓN CURRICULAR", "ITINERARIO", "C. DE ARTE Y DEPORTES", "C. DE HUMANÍSTICA"].includes(subj.tipoMateria)) {
             let found = Array.from(compSelect.options).some(o => o.value === subj.components);
@@ -2823,7 +2853,7 @@
         document.getElementById('edit-level').value = subj.level;
         document.getElementById('btn-delete').style.display = 'inline-block';
 
-        handleTipoChange(); // Refresca los campos
+        handleTipoChange(true); 
         document.getElementById('modal-overlay').style.display = 'flex';
     }
 
@@ -2846,16 +2876,21 @@
             return;
         }
 
-        if (isNew) {
+        if (isNew && !["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "ITINERARIO", "C. DE ARTE Y DEPORTES", "C. DE HUMANÍSTICA"].includes(tipo)) {
             code = 'NUEVO-' + Math.floor(Math.random() * 10000);
-        } else if (!code && !["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "ITINERARIO", "C. DE ARTE Y DEPORTES", "C. DE HUMANÍSTICA", "PROYECTO INTEGRADOR"].includes(tipo)) {
+        } else if (!isNew && !code && !["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "ITINERARIO", "C. DE ARTE Y DEPORTES", "C. DE HUMANÍSTICA", "PROYECTO INTEGRADOR"].includes(tipo)) {
             showToast('El código es obligatorio si no es materia nueva.', 'error');
             return;
         }
 
-        // Validación de espacio en el semestre
-        if (!id || (id && state.subjects.find(s=>s.id===id).level !== level)) {
+        if (id && state.subjects.find(s=>s.id===id) && state.subjects.find(s=>s.id===id).level !== level) {
             const usedCols = state.subjects.filter(s => s.level === level && s.id !== id).map(s => s.col);
+            if (usedCols.length >= NUM_COLUMNS) {
+                showToast('No hay espacio en el semestre seleccionado.', 'error');
+                return;
+            }
+        } else if (!id) {
+            const usedCols = state.subjects.filter(s => s.level === level).map(s => s.col);
             if (usedCols.length >= NUM_COLUMNS) {
                 showToast('No hay espacio en el semestre seleccionado.', 'error');
                 return;
@@ -2877,32 +2912,53 @@
                 if (dist === '4-1') { p1 = {c: '0/0/12', s: 12, n: 'PRÁCTICAS LABORALES 1'}; p2 = {c: '0/0/3', s: 3, n: 'PRÁCTICAS LABORALES 2'}; }
                 
                 let freeCol1 = 0; while(state.subjects.some(s => s.level === level && s.col === freeCol1)) freeCol1++;
-                state.subjects.push({ id: 'CUSTOM_' + Date.now(), code: 'NUEVO-PL1', name: p1.n, components: p1.c, sum: p1.s, level: level, col: freeCol1, tipoMateria: 'PRÁCTICAS LABORALES' });
+                state.subjects.push({ id: 'PRACEMP1', code: 'PRACEMP1', name: p1.n, components: p1.c, sum: p1.s, level: level, col: freeCol1, tipoMateria: 'PRÁCTICAS LABORALES' });
                 
                 let freeCol2 = 0; while(state.subjects.some(s => s.level === level2 && s.col === freeCol2)) freeCol2++;
-                state.subjects.push({ id: 'CUSTOM_' + (Date.now()+1), code: 'NUEVO-PL2', name: p2.n, components: p2.c, sum: p2.s, level: level2, col: freeCol2, tipoMateria: 'PRÁCTICAS LABORALES' });
+                state.subjects.push({ id: 'PRACEMP2', code: 'PRACEMP2', name: p2.n, components: p2.c, sum: p2.s, level: level2, col: freeCol2, tipoMateria: 'PRÁCTICAS LABORALES' });
             } else {
                 let freeCol = 0; while(state.subjects.some(s => s.level === level && s.col === freeCol)) freeCol++;
-                state.subjects.push({ id: 'CUSTOM_' + Date.now(), code: 'NUEVO-PL', name: 'PRÁCTICAS LABORALES', components: '0/0/15', sum: 15, level: level, col: freeCol, tipoMateria: 'PRÁCTICAS LABORALES' });
+                state.subjects.push({ id: 'PRACEMP1', code: 'PRACEMP1', name: 'PRÁCTICAS LABORALES', components: '0/0/15', sum: 15, level: level, col: freeCol, tipoMateria: 'PRÁCTICAS LABORALES' });
             }
         } else {
             let subj = state.subjects.find(s => s.id === id);
             let isNewSubj = false;
             
             if (!subj) {
-                subj = { id: 'CUSTOM_' + Date.now() };
+                subj = {};
                 isNewSubj = true;
                 let freeCol = 0;
                 while(state.subjects.some(s => s.level === level && s.col === freeCol)) freeCol++;
                 subj.col = freeCol;
+
+                // ASIGNAR ID INICIAL ESTANDARIZADO PARA MATERIAS NUEVAS
+                if (tipo === 'C. DE ARTE Y DEPORTES') subj.id = 'COMP1';
+                else if (tipo === 'C. DE HUMANÍSTICA') subj.id = 'COMP2';
+                else if (tipo === 'PRÁCTICAS COMUNITARIAS') subj.id = 'PRACCOM';
+                else if (tipo === 'ITINERARIO') {
+                    const itinCount = state.subjects.filter(s => s.tipoMateria === 'ITINERARIO').length;
+                    subj.id = 'ITIN' + (itinCount + 1);
+                } else if (tipo === 'U DE INTEGRACIÓN CURRICULAR') {
+                    subj.id = code; 
+                } else {
+                    subj.id = code;
+                }
             }
 
             subj.tipoMateria = tipo;
             subj.name = name || tipo; 
-            subj.code = code;
             subj.components = components;
             subj.sum = sum;
             subj.level = level;
+
+            // ASIGNAR CÓDIGO ESTANDARIZADO (IGUAL AL ID PARA ESTOS TIPOS)
+            if (tipo === 'C. DE ARTE Y DEPORTES') subj.code = 'COMP1';
+            else if (tipo === 'C. DE HUMANÍSTICA') subj.code = 'COMP2';
+            else if (tipo === 'PRÁCTICAS COMUNITARIAS') subj.code = 'PRACCOM';
+            else if (tipo === 'ITINERARIO') subj.code = subj.id; // Conserva ITIN1, ITIN2, etc.
+            else if (tipo === 'PRÁCTICAS LABORALES') subj.code = subj.id; // Conserva PRACEMP1, PRACEMP2
+            else if (tipo === 'PROYECTO INTEGRADOR') subj.code = subj.id;
+            else subj.code = code;
 
             if (isNewSubj) state.subjects.push(subj);
 
