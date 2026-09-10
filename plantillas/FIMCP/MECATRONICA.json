@@ -40,7 +40,7 @@
   "subjects": [
     {
       "id": "COMP1",
-      "code": "ART-DEP",
+      "code": "COMP1",
       "name": "COMPLEMENTARIAS DE ARTES, DEPORTES E IDIOMAS",
       "components": "1/1/1",
       "sum": 3,
@@ -379,8 +379,8 @@
       "tipoMateria": "MATEMÁTICAS Y CIENCIAS BÁSICAS"
     },
     {
-      "id": "PRAC1",
-      "code": "SER-COM",
+      "id": "PRACCOM",
+      "code": "PRACCOM",
       "name": "PRÁCTICAS DE SERVICIO COMUNITARIO",
       "components": "2/2/2",
       "sum": 6,
@@ -390,7 +390,7 @@
     },
     {
       "id": "COMP2",
-      "code": "HUMAN",
+      "code": "COMP2",
       "name": "COMPLEMENTARIAS DE HUMANÍSTICAS",
       "components": "1/1/1",
       "sum": 3,
@@ -500,7 +500,7 @@
     },
     {
       "id": "ITIN1",
-      "code": "ITINERARIO 1",
+      "code": "ITIN1",
       "name": "ITINERARIO",
       "components": "3/0/6",
       "sum": 9,
@@ -520,7 +520,7 @@
     },
     {
       "id": "ITIN2",
-      "code": "ITINERARIO 2",
+      "code": "ITIN2",
       "name": "ITINERARIO",
       "components": "3/0/6",
       "sum": 9,

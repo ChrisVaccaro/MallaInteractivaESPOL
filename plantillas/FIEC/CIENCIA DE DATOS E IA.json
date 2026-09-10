@@ -65,8 +65,8 @@
       "tipoMateria": "MATEMÁTICAS Y CIENCIAS BÁSICAS"
     },
     {
-      "id": "COMP1",
-      "code": "HUMAN",
+      "id": "COMP2",
+      "code": "COMP2",
       "name": "COMPLEMENTARIAS DE HUMANISTICAS",
       "components": "1/1/1",
       "sum": 3,
@@ -116,8 +116,8 @@
       "tipoMateria": "MATEMÁTICAS Y CIENCIAS BÁSICAS"
     },
     {
-      "id": "COMP2",
-      "code": "ART-DEP",
+      "id": "COMP1",
+      "code": "COMP1",
       "name": "COMPLEMENTARIAS DE ARTES, DEPORTES E IDIOMAS",
       "components": "1/1/1",
       "sum": 3,
@@ -395,8 +395,8 @@
       "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
-      "id": "PSC1800",
-      "code": "SER-COM",
+      "id": "PRACCOM",
+      "code": "PRACCOM",
       "name": "PRÁCTICAS DE SERVICIO COMUNITARIO",
       "components": "2/2/2",
       "sum": 6,
@@ -448,7 +448,7 @@
     },
     {
       "id": "ITIN1",
-      "code": "ITINERARIO 1",
+      "code": "ITIN1",
       "name": "ITINERARIO",
       "components": "3/0/6",
       "sum": 9,
@@ -470,7 +470,7 @@
     },
     {
       "id": "ITIN2",
-      "code": "ITINERARIO 2",
+      "code": "ITIN2",
       "name": "ITINERARIO",
       "components": "3/0/6",
       "sum": 9,

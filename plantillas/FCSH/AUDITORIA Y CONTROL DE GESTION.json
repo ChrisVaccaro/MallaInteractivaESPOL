@@ -58,7 +58,7 @@
     },
     {
       "id": "COMP1",
-      "code": "ART-DEP",
+      "code": "COMP1",
       "name": "COMPLEMENTARIAS DE ARTES, DEPORTES E IDIOMAS",
       "components": "1/1/1",
       "sum": 3,
@@ -138,7 +138,7 @@
     },
     {
       "id": "COMP2",
-      "code": "HUMAN",
+      "code": "COMP2",
       "name": "COMPLEMENTARIAS DE HUMANÍSTICAS",
       "components": "1/1/1",
       "sum": 3,
@@ -417,8 +417,8 @@
       "tipoMateria": "FORMACIÓN PROFESIONAL"
     },
     {
-      "id": "PRAC1",
-      "code": "SER-COM",
+      "id": "PRACCOM",
+      "code": "PRACCOM",
       "name": "PRÁCTICAS DE SERVICIO COMUNITARIO",
       "components": "2/2/2",
       "sum": 6,
@@ -488,7 +488,7 @@
     },
     {
       "id": "ITIN1",
-      "code": "ITIN-1001",
+      "code": "ITIN1",
       "name": "ITINERARIO",
       "components": "3/0/6",
       "sum": 9,
@@ -518,7 +518,7 @@
     },
     {
       "id": "ITIN2",
-      "code": "ITIN-1002",
+      "code": "ITIN2",
       "name": "ITINERARIO",
       "components": "3/0/6",
       "sum": 9,
