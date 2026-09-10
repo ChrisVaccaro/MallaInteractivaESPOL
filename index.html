@@ -2466,6 +2466,13 @@
         const worksheet = workbook.getWorksheet('MALLA CURRICULAR');
         if (!worksheet) throw new Error('La pestaña MALLA CURRICULAR no existe en la plantilla.');
 
+        const cell = worksheet.getCell('A1');
+
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFF0000' } // Rojo
+        };
         // Título dinámico
         const titleCell = worksheet.getCell('H1');
         const careerName = state.baseCareer ? state.baseCareer.toUpperCase() : "";
