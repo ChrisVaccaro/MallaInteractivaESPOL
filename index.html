@@ -2516,7 +2516,6 @@
                     let credsMateria = calculateCredits(subject); 
                     let totalHorasMateria = credsMateria * divC * weeks;
                     
-                    // Limpieza previa antes de fusionar
                     for(let c = startCol; c <= startCol + 7; c++) {
                         worksheet.getCell(hoursRow, c).value = null;
                     }
@@ -2566,48 +2565,60 @@
                     globalAA += targetHours.aa * weeks;
                 }
 
-                // --- INYECCIÓN DE COLORES DE FONDO Y FUENTE ---
-                let argbBg = 'FFFFFFFF'; // Blanco por defecto
-                let argbFont = 'FF000000'; // Negro por defecto
+                // --- INYECCIÓN DE COLORES (USANDO TIPOS EXACTOS DEL HTML) ---
+                let argbBg = 'FFFBEFAE'; // FORMACIÓN PROFESIONAL por defecto
+                let argbFont = 'FF000000'; // Letra negra por defecto
 
                 switch (subject.tipoMateria) {
-                    case 'MATEMÁTICAS Y CIENCIAS BÁSICAS': argbBg = 'FFFFFFFF'; break; // (255,255,255)
-                    case 'EDUCACIÓN GENERAL': argbBg = 'FFD6DFE6'; break;              // (214,223,230)
-                    case 'C. DE ARTE Y DEPORTES': argbBg = 'FFF8C1A0'; break;          // (248,193,160)
-                    case 'ITINERARIO': argbBg = 'FF7092BE'; break;                     // (112,146,190)
-                    case 'FORMACIÓN PROFESIONAL': argbBg = 'FFFBEFAE'; break;          // (251,239,174)
-                    case 'C. DE HUMANÍSTICA': argbBg = 'FF93D0CC'; break;              // (147,208,204)
+                    case 'MATEMÁTICAS Y CIENCIAS BÁSICAS':
+                        argbBg = 'FFFFFFFF'; 
+                        break;
+                    case 'EDUCACIÓN GENERAL':
+                        argbBg = 'FFD6DFE6';
+                        break;
+                    case 'FORMACIÓN PROFESIONAL':
+                        argbBg = 'FFFBEFAE';
+                        break;
+                    case 'C. DE ARTE Y DEPORTES':
+                        argbBg = 'FFF8C1A0';
+                        break;
+                    case 'C. DE HUMANÍSTICA':
+                        argbBg = 'FF93D0CC';
+                        break;
+                    case 'ITINERARIO':
+                        argbBg = 'FF7092BE';
+                        break;
                     case 'PRÁCTICAS COMUNITARIAS':
                     case 'PRÁCTICAS LABORALES':
-                    case 'PRÁCTICAS EMPRESARIALES': 
-                        argbBg = 'FFFCDC7D'; break;                                    // (252,220,125)
+                    case 'PRÁCTICAS EMPRESARIALES':
+                        argbBg = 'FFFCDC7D';
+                        break;
                     case 'U DE INTEGRACIÓN CURRICULAR':
                     case 'PROYECTO INTEGRADOR':
-                        argbBg = 'FF003566'; // (0,53,102)
-                        argbFont = 'FFFFFFFF'; // Letra blanca
+                        argbBg = 'FF003566';
+                        argbFont = 'FFFFFFFF'; // Letra Blanca
                         break;
                 }
 
-                // Aplicar a las 3 primeras filas (nameRow, nameRow+1, y hoursRow)
+                // Pintamos celda por celda ÚNICAMENTE en las 3 primeras filas de este subbloque
                 for (let r = nameRow; r <= hoursRow; r++) {
                     for (let c = startCol; c <= startCol + 7; c++) {
                         let styledCell = worksheet.getCell(r, c);
                         
-                        // Fondo
                         styledCell.fill = {
                             type: 'pattern',
                             pattern: 'solid',
-                            fgColor: { argb: argbBg }
+                            fgColor: { argb: argbBg },
+                            bgColor: { argb: argbBg }
                         };
                         
-                        // Letra
                         let currentFont = styledCell.font || {};
                         styledCell.font = { ...currentFont, color: { argb: argbFont } };
                     }
                 }
 
             } else { 
-                // Limpieza ÚNICAMENTE del contenido, respetando por completo los bordes y formatos originales de la plantilla
+                // Limpieza ÚNICAMENTE del contenido, respetando los formatos originales
                 nameCell.value = null; 
                 for(let c = startCol; c <= startCol + 7; c++) {
                     worksheet.getCell(hoursRow, c).value = null;
@@ -2715,7 +2726,6 @@
         showToast('Malla exportada a Excel con éxito.', 'success');
       } catch (error) { console.error("Error al generar el Excel:", error); showToast('Error al generar la malla. Revisa la consola.', 'error'); }
     }
-
     // --- CONTROL DE MODALES (AGREGAR / EDITAR) --------------------------------------------------------------------------------
     function openModalForCreate() {
         document.getElementById('edit-id').value = '';
