@@ -2566,7 +2566,7 @@
                     globalAA += targetHours.aa * weeks;
                 }
 
-                // --- INYECCIÓN DE COLORES (EVITANDO BUG DE ESTILOS COMPARTIDOS) ---
+                // --- INYECCIÓN DE COLORES Y BORDE EXTERNO GRUESO ---
                 let tipoMat = String(subject.tipoMateria || 'FORMACIÓN PROFESIONAL').trim().toUpperCase();
                 let argbBg = 'FFFBEFAE'; // FORMACIÓN PROFESIONAL por defecto
                 let argbFont = 'FF000000'; // Letra negra por defecto
@@ -2612,6 +2612,17 @@
                         let currentAlignment = styledCell.alignment ? JSON.parse(JSON.stringify(styledCell.alignment)) : {};
                         let currentFont = styledCell.font ? JSON.parse(JSON.stringify(styledCell.font)) : {};
 
+                        // Aplicamos borde externo grueso ('medium') a los márgenes del subbloque
+                        let isTop = (r === nameRow);
+                        let isBottom = (r === hoursRow);
+                        let isLeft = (c === startCol);
+                        let isRight = (c === startCol + 7);
+
+                        if (isTop) currentBorder.top = { style: 'medium', color: { argb: 'FF000000' } };
+                        if (isBottom) currentBorder.bottom = { style: 'medium', color: { argb: 'FF000000' } };
+                        if (isLeft) currentBorder.left = { style: 'medium', color: { argb: 'FF000000' } };
+                        if (isRight) currentBorder.right = { style: 'medium', color: { argb: 'FF000000' } };
+
                         styledCell.style = {
                             border: currentBorder,
                             alignment: currentAlignment,
@@ -2627,7 +2638,11 @@
                 }
 
             } else { 
-                // --- LIMPIEZA TOTAL PARA ESPACIOS VACÍOS SIN DAÑAR OTRAS CELDAS ---
+                // --- LIMPIEZA TOTAL PARA ESPACIOS VACÍOS ---
+                
+                // Descombinar las celdas del bloque del nombre
+                try { worksheet.unMergeCells(nameRow, startCol, nameRow + 1, startCol + 7); } catch(e) {}
+                
                 for (let r = nameRow; r <= hoursRow; r++) {
                     for (let c = startCol; c <= startCol + 7; c++) {
                         let emptyCell = worksheet.getCell(r, c);
@@ -2636,7 +2651,7 @@
                         let currentAlignment = emptyCell.alignment ? JSON.parse(JSON.stringify(emptyCell.alignment)) : {};
                         let currentFont = emptyCell.font ? JSON.parse(JSON.stringify(emptyCell.font)) : {};
 
-                        // Al crear un estilo nuevo SIN 'border' ni 'fill', el bloque desaparece limpiamente
+                        // Un estilo nuevo SIN 'border' ni 'fill' hace que la celda "desaparezca"
                         emptyCell.style = {
                             alignment: currentAlignment,
                             font: currentFont
