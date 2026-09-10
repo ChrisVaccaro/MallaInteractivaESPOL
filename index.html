@@ -2516,6 +2516,7 @@
                     let credsMateria = calculateCredits(subject); 
                     let totalHorasMateria = credsMateria * divC * weeks;
                     
+                    // Limpieza previa antes de fusionar
                     for(let c = startCol; c <= startCol + 7; c++) {
                         worksheet.getCell(hoursRow, c).value = null;
                     }
@@ -2565,12 +2566,11 @@
                     globalAA += targetHours.aa * weeks;
                 }
 
-                // --- INYECCIÓN DE COLORES EVITANDO EL BUG DE ESTILOS COMPARTIDOS ---
+                // --- INYECCIÓN DE COLORES (EVITANDO BUG DE ESTILOS COMPARTIDOS) ---
                 let tipoMat = String(subject.tipoMateria || 'FORMACIÓN PROFESIONAL').trim().toUpperCase();
                 let argbBg = 'FFFBEFAE'; // FORMACIÓN PROFESIONAL por defecto
                 let argbFont = 'FF000000'; // Letra negra por defecto
 
-                // Normalización de tildes por seguridad extra
                 tipoMat = tipoMat.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
                 switch (tipoMat) {
@@ -2600,17 +2600,14 @@
                     case 'U DE INTEGRACION CURRICULAR':
                     case 'PROYECTO INTEGRADOR':
                         argbBg = 'FF003566';
-                        argbFont = 'FFFFFFFF'; // Letra Blanca
+                        argbFont = 'FFFFFFFF';
                         break;
                 }
 
-                // Pintamos celda por celda ÚNICAMENTE en las 3 primeras filas de este subbloque
                 for (let r = nameRow; r <= hoursRow; r++) {
                     for (let c = startCol; c <= startCol + 7; c++) {
                         let styledCell = worksheet.getCell(r, c);
                         
-                        // EL TRUCO: Extraemos bordes y alineación de la plantilla, pero creamos un objeto 100% NUEVO
-                        // Esto rompe la conexión con las demás celdas.
                         let currentBorder = styledCell.border ? JSON.parse(JSON.stringify(styledCell.border)) : {};
                         let currentAlignment = styledCell.alignment ? JSON.parse(JSON.stringify(styledCell.alignment)) : {};
                         let currentFont = styledCell.font ? JSON.parse(JSON.stringify(styledCell.font)) : {};
@@ -2622,20 +2619,35 @@
                             fill: {
                                 type: 'pattern',
                                 pattern: 'solid',
-                                fgColor: { argb: argbBg }
+                                fgColor: { argb: argbBg },
+                                bgColor: { argb: argbBg }
                             }
                         };
                     }
                 }
 
             } else { 
-                // Limpieza ÚNICAMENTE del contenido, respetando los formatos originales
-                nameCell.value = null; 
-                for(let c = startCol; c <= startCol + 7; c++) {
-                    worksheet.getCell(hoursRow, c).value = null;
+                // --- LIMPIEZA TOTAL PARA ESPACIOS VACÍOS SIN DAÑAR OTRAS CELDAS ---
+                for (let r = nameRow; r <= hoursRow; r++) {
+                    for (let c = startCol; c <= startCol + 7; c++) {
+                        let emptyCell = worksheet.getCell(r, c);
+                        emptyCell.value = null;
+                        
+                        let currentAlignment = emptyCell.alignment ? JSON.parse(JSON.stringify(emptyCell.alignment)) : {};
+                        let currentFont = emptyCell.font ? JSON.parse(JSON.stringify(emptyCell.font)) : {};
+
+                        // Al crear un estilo nuevo SIN 'border' ni 'fill', el bloque desaparece limpiamente
+                        emptyCell.style = {
+                            alignment: currentAlignment,
+                            font: currentFont
+                        };
+                    }
                 }
-                credTextCell.value = null;
-                credCell.value = null; 
+                
+                // La fila 12 de créditos la dejamos intacta, solo vaciamos sus valores
+                for(let c = startCol; c <= startCol + 7; c++) {
+                    worksheet.getCell(credRow, c).value = null;
+                }
             }
           }
 
@@ -2737,6 +2749,7 @@
         showToast('Malla exportada a Excel con éxito.', 'success');
       } catch (error) { console.error("Error al generar el Excel:", error); showToast('Error al generar la malla. Revisa la consola.', 'error'); }
     }
+    
     // --- CONTROL DE MODALES (AGREGAR / EDITAR) --------------------------------------------------------------------------------
     function openModalForCreate() {
         document.getElementById('edit-id').value = '';
