@@ -2501,10 +2501,6 @@
         const careerName = state.baseCareer ? state.baseCareer.toUpperCase() : "";
         titleCell.value = `MALLA CURRICULAR CARRERA ${careerName}`;
 
-        let globalACD = 0, globalAPE = 0, globalAA = 0;
-        let pracEmp = 0, pracCom = 0, intCur = 0;
-        let globalCreds = 0;
-
         const visibleLevels = state.levels.slice(0, state.config.semesters);
         const divC = state.config.divC;
         const weeks = state.config.weeks;
@@ -2515,8 +2511,6 @@
           const nameRow = baseRow; 
           const hoursRow = baseRow + 2; 
           const credRow = baseRow + 3;  
-          
-          let levelACD = 0, levelAPE = 0, levelAA = 0, levelCreds = 0;
 
           for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
             const startCol = 8 + (colIdx * 9); 
@@ -2557,12 +2551,6 @@
                     credTextCell.value = "CRÉD.";
                     credCell.value = credsMateria; 
 
-                    levelCreds += credsMateria;
-                    globalCreds += credsMateria;
-                    if (subject.tipoMateria === 'PRÁCTICAS LABORALES' || subject.tipoMateria === 'PRÁCTICAS EMPRESARIALES') pracEmp += totalHorasMateria;
-                    else if (subject.tipoMateria === 'PRÁCTICAS COMUNITARIAS') pracCom += totalHorasMateria;
-                    else if (subject.tipoMateria === 'PROYECTO INTEGRADOR') intCur += totalHorasMateria;
-
                 } else {
                     worksheet.getCell(hoursRow, startCol).value = "ACD:";
                     worksheet.getCell(hoursRow, startCol + 1).value = targetHours.acd;
@@ -2589,15 +2577,6 @@
                         formula: `(${colACD}${hoursRow}+${colAPE}${hoursRow}+${colAA}${hoursRow})/${divC}`,
                         result: creditosCalculados 
                     };
-
-                    levelCreds += creditosCalculados;
-                    globalCreds += creditosCalculados;
-                    levelACD += targetHours.acd * weeks;
-                    levelAPE += targetHours.ape * weeks;
-                    levelAA += targetHours.aa * weeks;
-                    globalACD += targetHours.acd * weeks;
-                    globalAPE += targetHours.ape * weeks;
-                    globalAA += targetHours.aa * weeks;
                 }
 
                 let tipoMat = String(subject.tipoMateria || 'FORMACIÓN PROFESIONAL').trim().toUpperCase();
@@ -2678,30 +2657,9 @@
                 }
             }
           }
-
-          // 1.2 PROCESAMIENTO DE RESÚMENES SEMESTRALES
-          worksheet.getCell(baseRow + 1, 80).value = "ACD:";
-          setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 81).address, levelACD);
-          worksheet.getCell(baseRow + 1, 82).value = "APE:";
-          setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 83).address, levelAPE);
-          worksheet.getCell(baseRow + 1, 84).value = "AA:";
-          setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 85).address, levelAA);
-          setCachedResult(worksheet, worksheet.getCell(baseRow + 2, 83).address, levelACD + levelAPE + levelAA);
-          setCachedResult(worksheet, worksheet.getCell(baseRow + 3, 83).address, levelCreds);
         }
-        
-        // 1.3 PROCESAMIENTO DEL RESUMEN GLOBAL
-        setCachedResult(worksheet, 'CG57', globalACD);
-        setCachedResult(worksheet, 'CG58', globalAPE);
-        setCachedResult(worksheet, 'CG59', globalAA);
-        setCachedResult(worksheet, 'CG60', pracEmp);
-        setCachedResult(worksheet, 'CG61', pracCom);
-        let calcProyectoIntegrador = 5 * divC * weeks;
-        worksheet.getCell('CG62').value = calcProyectoIntegrador;
-        setCachedResult(worksheet, 'CG63', globalACD + globalAPE + globalAA + pracEmp + pracCom + intCur);
-        setCachedResult(worksheet, 'CG64', globalCreds);
 
-        // --- 1.4 COMPRESIÓN DE MALLA ---
+        // --- 1.1 COMPRESIÓN DE MALLA (Ocultamiento Seguro) ---
         const maxTemplateSemesters = 9; 
         if (state.config.semesters < maxTemplateSemesters) {
             const startRowHide = 9 + (state.config.semesters * 5);
@@ -2726,7 +2684,6 @@
         const sheet1 = workbook.getWorksheet('MODIFICACIONES EN ASIGNATURAS'); 
         if (!sheet1) throw new Error('La pestaña MODIFICACIONES EN ASIGNATURAS no existe en la plantilla.');
 
-        // OJO: Multiplicador ajustado a 4 filas para evitar la fila en blanco de separación
         for (let i = 1; i < modifications.length; i++) {
           let destStartRow = 4 + (i * 4); 
           for (let offset = 0; offset < 4; offset++) {
@@ -2737,7 +2694,6 @@
               const srcCell = srcRow.getCell(col); 
               const destCell = destRow.getCell(col);
               
-              // CLONACIÓN DE ESTILOS: Copia fondo, bordes, fuente y alineación exactos
               if (srcCell.style) {
                   destCell.style = JSON.parse(JSON.stringify(srcCell.style));
               }
@@ -2769,7 +2725,7 @@
             setCachedResult(sheet1, `L${startRow+1}`, 0); setCachedResult(sheet1, `M${startRow+1}`, 0);
         } else {
             modifications.forEach((mod, index) => {
-              let startRow = 4 + (index * 4); // Ajustado a 4
+              let startRow = 4 + (index * 4);
               let targetSubj = mod.web || mod.base;
               sheet1.getCell(`A${startRow}`).value = null; sheet1.getCell(`B${startRow}`).value = null;
               sheet1.getCell(`C${startRow}`).value = null; sheet1.getCell(`N${startRow+1}`).value = null;
