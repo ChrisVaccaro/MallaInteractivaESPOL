@@ -2527,7 +2527,7 @@
                     mergedHoursCell.alignment = { horizontal: 'center', vertical: 'middle' };
                     
                     credTextCell.value = "CRÉD.";
-                    credCell.value = credsMateria;
+                    credCell.value = credsMateria; // Valores directos no sufren de caché de fórmula
 
                     levelCreds += credsMateria;
                     globalCreds += credsMateria;
@@ -2550,12 +2550,19 @@
                     }
 
                     credTextCell.value = "CRÉD.";
+                    
+                    let creditosCalculados = (targetHours.acd + targetHours.ape + targetHours.aa) / divC;
+                    
                     const colACD = worksheet.getColumn(startCol + 1).letter;
                     const colAPE = worksheet.getColumn(startCol + 3).letter;
                     const colAA = worksheet.getColumn(startCol + 5).letter;
-                    credCell.value = { formula: `(${colACD}${hoursRow}+${colAPE}${hoursRow}+${colAA}${hoursRow})/${divC}` };
+                    
+                    // --- CORRECCIÓN DE CACHÉ PARA VISTA PROTEGIDA ---
+                    credCell.value = { 
+                        formula: `(${colACD}${hoursRow}+${colAPE}${hoursRow}+${colAA}${hoursRow})/${divC}`,
+                        result: creditosCalculados // Fuerza a Excel a mostrar este número sin recalcular
+                    };
 
-                    let creditosCalculados = (targetHours.acd + targetHours.ape + targetHours.aa) / divC;
                     levelCreds += creditosCalculados;
                     globalCreds += creditosCalculados;
                     levelACD += targetHours.acd * weeks;
@@ -2612,7 +2619,6 @@
                         let currentAlignment = styledCell.alignment ? JSON.parse(JSON.stringify(styledCell.alignment)) : {};
                         let currentFont = styledCell.font ? JSON.parse(JSON.stringify(styledCell.font)) : {};
 
-                        // Aplicamos borde externo grueso ('medium') a los márgenes del subbloque
                         let isTop = (r === nameRow);
                         let isBottom = (r === hoursRow);
                         let isLeft = (c === startCol);
@@ -2639,8 +2645,6 @@
 
             } else { 
                 // --- LIMPIEZA TOTAL PARA ESPACIOS VACÍOS ---
-                
-                // Descombinar las celdas del bloque del nombre
                 try { worksheet.unMergeCells(nameRow, startCol, nameRow + 1, startCol + 7); } catch(e) {}
                 
                 for (let r = nameRow; r <= hoursRow; r++) {
@@ -2651,7 +2655,6 @@
                         let currentAlignment = emptyCell.alignment ? JSON.parse(JSON.stringify(emptyCell.alignment)) : {};
                         let currentFont = emptyCell.font ? JSON.parse(JSON.stringify(emptyCell.font)) : {};
 
-                        // Un estilo nuevo SIN 'border' ni 'fill' hace que la celda "desaparezca"
                         emptyCell.style = {
                             alignment: currentAlignment,
                             font: currentFont
@@ -2659,7 +2662,6 @@
                     }
                 }
                 
-                // La fila 12 de créditos la dejamos intacta, solo vaciamos sus valores
                 for(let c = startCol; c <= startCol + 7; c++) {
                     worksheet.getCell(credRow, c).value = null;
                 }
@@ -2687,6 +2689,30 @@
         worksheet.getCell('CG62').value = calcProyectoIntegrador;
         setCachedResult(worksheet, 'CG63', globalACD + globalAPE + globalAA + pracEmp + pracCom + intCur);
         setCachedResult(worksheet, 'CG64', globalCreds);
+
+        // --- 1.4 COMPRESIÓN DE MALLA (Ocultamiento Seguro) ---
+        // A. Ocultamiento de filas si es carrera de menos semestres
+        const maxTemplateSemesters = 9; 
+        if (state.config.semesters < maxTemplateSemesters) {
+            const startRowHide = 9 + (state.config.semesters * 5);
+            const numRowsToHide = (maxTemplateSemesters - state.config.semesters) * 5;
+            for (let r = startRowHide; r < startRowHide + numRowsToHide; r++) {
+                worksheet.getRow(r).hidden = true;
+            }
+        }
+
+        // B. Ocultamiento de columnas completamente vacías
+        const visibleLevelIds = visibleLevels.map(l => l.id);
+        for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
+            const isEmptyColumn = !state.subjects.some(s => s.col === colIdx && visibleLevelIds.includes(s.level));
+            if (isEmptyColumn) {
+                const startExcelCol = 8 + (colIdx * 9);
+                // Ocultamos las 8 celdas de la tarjeta + 1 celda de margen (9 en total)
+                for (let c = startExcelCol; c < startExcelCol + 9; c++) {
+                    worksheet.getColumn(c).hidden = true;
+                }
+            }
+        }
 
         // --- 2. PESTAÑA 2: MODIFICACIONES EN ASIGNATURAS ---
         const sheet1 = workbook.getWorksheet('MODIFICACIONES EN ASIGNATURAS'); 
