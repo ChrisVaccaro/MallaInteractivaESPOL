@@ -2496,7 +2496,6 @@
             const credTextCell = worksheet.getCell(credRow, startCol + 6);
             const credCell = worksheet.getCell(credRow, startCol + 7);
 
-            // Descombinar preventivamente la fila de horas
             try {
                 let cell = worksheet.getCell(hoursRow, startCol);
                 if (cell.isMerged) worksheet.unMergeCells(cell.master.address);
@@ -2516,7 +2515,6 @@
                     let credsMateria = calculateCredits(subject); 
                     let totalHorasMateria = credsMateria * divC * weeks;
                     
-                    // Limpieza previa antes de fusionar
                     for(let c = startCol; c <= startCol + 7; c++) {
                         worksheet.getCell(hoursRow, c).value = null;
                     }
@@ -2527,7 +2525,7 @@
                     mergedHoursCell.alignment = { horizontal: 'center', vertical: 'middle' };
                     
                     credTextCell.value = "CRÉD.";
-                    credCell.value = credsMateria; // Valores directos no sufren de caché de fórmula
+                    credCell.value = credsMateria; 
 
                     levelCreds += credsMateria;
                     globalCreds += credsMateria;
@@ -2557,10 +2555,9 @@
                     const colAPE = worksheet.getColumn(startCol + 3).letter;
                     const colAA = worksheet.getColumn(startCol + 5).letter;
                     
-                    // --- CORRECCIÓN DE CACHÉ PARA VISTA PROTEGIDA ---
                     credCell.value = { 
                         formula: `(${colACD}${hoursRow}+${colAPE}${hoursRow}+${colAA}${hoursRow})/${divC}`,
-                        result: creditosCalculados // Fuerza a Excel a mostrar este número sin recalcular
+                        result: creditosCalculados 
                     };
 
                     levelCreds += creditosCalculados;
@@ -2573,37 +2570,22 @@
                     globalAA += targetHours.aa * weeks;
                 }
 
-                // --- INYECCIÓN DE COLORES Y BORDE EXTERNO GRUESO ---
                 let tipoMat = String(subject.tipoMateria || 'FORMACIÓN PROFESIONAL').trim().toUpperCase();
-                let argbBg = 'FFFBEFAE'; // FORMACIÓN PROFESIONAL por defecto
-                let argbFont = 'FF000000'; // Letra negra por defecto
+                let argbBg = 'FFFBEFAE'; 
+                let argbFont = 'FF000000'; 
 
                 tipoMat = tipoMat.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
                 switch (tipoMat) {
-                    case 'MATEMATICAS Y CIENCIAS BASICAS':
-                        argbBg = 'FFFFFFFF'; 
-                        break;
-                    case 'EDUCACION GENERAL':
-                        argbBg = 'FFD6DFE6';
-                        break;
-                    case 'FORMACION PROFESIONAL':
-                        argbBg = 'FFFBEFAE';
-                        break;
-                    case 'C. DE ARTE Y DEPORTES':
-                        argbBg = 'FFF8C1A0';
-                        break;
-                    case 'C. DE HUMANISTICA':
-                        argbBg = 'FF93D0CC';
-                        break;
-                    case 'ITINERARIO':
-                        argbBg = 'FF7092BE';
-                        break;
+                    case 'MATEMATICAS Y CIENCIAS BASICAS': argbBg = 'FFFFFFFF'; break;
+                    case 'EDUCACION GENERAL': argbBg = 'FFD6DFE6'; break;
+                    case 'FORMACION PROFESIONAL': argbBg = 'FFFBEFAE'; break;
+                    case 'C. DE ARTE Y DEPORTES': argbBg = 'FFF8C1A0'; break;
+                    case 'C. DE HUMANISTICA': argbBg = 'FF93D0CC'; break;
+                    case 'ITINERARIO': argbBg = 'FF7092BE'; break;
                     case 'PRACTICAS COMUNITARIAS':
                     case 'PRACTICAS LABORALES':
-                    case 'PRACTICAS EMPRESARIALES':
-                        argbBg = 'FFFCDC7D';
-                        break;
+                    case 'PRACTICAS EMPRESARIALES': argbBg = 'FFFCDC7D'; break;
                     case 'U DE INTEGRACION CURRICULAR':
                     case 'PROYECTO INTEGRADOR':
                         argbBg = 'FF003566';
@@ -2644,7 +2626,6 @@
                 }
 
             } else { 
-                // --- LIMPIEZA TOTAL PARA ESPACIOS VACÍOS ---
                 try { worksheet.unMergeCells(nameRow, startCol, nameRow + 1, startCol + 7); } catch(e) {}
                 
                 for (let r = nameRow; r <= hoursRow; r++) {
@@ -2690,8 +2671,7 @@
         setCachedResult(worksheet, 'CG63', globalACD + globalAPE + globalAA + pracEmp + pracCom + intCur);
         setCachedResult(worksheet, 'CG64', globalCreds);
 
-        // --- 1.4 COMPRESIÓN DE MALLA (Ocultamiento Seguro) ---
-        // A. Ocultamiento de filas si es carrera de menos semestres
+        // --- 1.4 COMPRESIÓN DE MALLA ---
         const maxTemplateSemesters = 9; 
         if (state.config.semesters < maxTemplateSemesters) {
             const startRowHide = 9 + (state.config.semesters * 5);
@@ -2701,13 +2681,11 @@
             }
         }
 
-        // B. Ocultamiento de columnas completamente vacías
         const visibleLevelIds = visibleLevels.map(l => l.id);
         for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
             const isEmptyColumn = !state.subjects.some(s => s.col === colIdx && visibleLevelIds.includes(s.level));
             if (isEmptyColumn) {
                 const startExcelCol = 8 + (colIdx * 9);
-                // Ocultamos las 8 celdas de la tarjeta + 1 celda de margen (9 en total)
                 for (let c = startExcelCol; c < startExcelCol + 9; c++) {
                     worksheet.getColumn(c).hidden = true;
                 }
@@ -2718,13 +2696,25 @@
         const sheet1 = workbook.getWorksheet('MODIFICACIONES EN ASIGNATURAS'); 
         if (!sheet1) throw new Error('La pestaña MODIFICACIONES EN ASIGNATURAS no existe en la plantilla.');
 
+        // OJO: Multiplicador ajustado a 4 filas para evitar la fila en blanco de separación
         for (let i = 1; i < modifications.length; i++) {
-          let destStartRow = 4 + (i * 5);
-          for (let offset = 0; offset < 5; offset++) {
-            const srcRow = sheet1.getRow(4 + offset); const destRow = sheet1.getRow(destStartRow + offset); destRow.height = srcRow.height;
+          let destStartRow = 4 + (i * 4); 
+          for (let offset = 0; offset < 4; offset++) {
+            const srcRow = sheet1.getRow(4 + offset); 
+            const destRow = sheet1.getRow(destStartRow + offset); 
+            destRow.height = srcRow.height;
             for (let col = 1; col <= 14; col++) {
-              const srcCell = srcRow.getCell(col); const destCell = destRow.getCell(col);
-              if (srcCell.type !== 1 && srcCell.type !== 6 && srcCell.value !== null) { destCell.value = srcCell.value; }
+              const srcCell = srcRow.getCell(col); 
+              const destCell = destRow.getCell(col);
+              
+              // CLONACIÓN DE ESTILOS: Copia fondo, bordes, fuente y alineación exactos
+              if (srcCell.style) {
+                  destCell.style = JSON.parse(JSON.stringify(srcCell.style));
+              }
+
+              if (srcCell.type !== 1 && srcCell.type !== 6 && srcCell.value !== null) { 
+                  destCell.value = srcCell.value; 
+              }
             }
           }
           sheet1.mergeCells(`A${destStartRow}:A${destStartRow+3}`); sheet1.mergeCells(`B${destStartRow}:B${destStartRow+3}`);
@@ -2749,7 +2739,8 @@
             setCachedResult(sheet1, `L${startRow+1}`, 0); setCachedResult(sheet1, `M${startRow+1}`, 0);
         } else {
             modifications.forEach((mod, index) => {
-              let startRow = 4 + (index * 5); let targetSubj = mod.web || mod.base;
+              let startRow = 4 + (index * 4); // Ajustado a 4
+              let targetSubj = mod.web || mod.base;
               sheet1.getCell(`A${startRow}`).value = null; sheet1.getCell(`B${startRow}`).value = null;
               sheet1.getCell(`C${startRow}`).value = null; sheet1.getCell(`N${startRow+1}`).value = null;
               for(let i=0; i<4; i++) sheet1.getCell(`E${startRow+i}`).value = null;
