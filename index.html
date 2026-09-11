@@ -260,7 +260,6 @@
 </head>
 <body>
 
-  <!-- SVG DEFS -->
   <svg style="width:0; height:0; position:absolute;" aria-hidden="true">
     <defs>
       <marker id="arrowhead" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" /></marker>
@@ -273,13 +272,10 @@
   <div id="conn-delete-tooltip">🗑️ Doble clic para eliminar</div>
   <div id="toast-container"></div>
 
-  <!-- BOTÓN FLOTANTE LATERAL -->
   <div class="floating-btn" id="floating-btn" onclick="toggleAnalyticsPanel()" title="Abrir Auditoría Curricular">
-    📊
-    <div id="floating-warning-badge">!</div>
+    📊<div id="floating-warning-badge">!</div>
   </div>
 
-  <!-- PANEL ANALÍTICO LATERAL -->
   <div id="analytics-panel" class="analytics-panel">
     <button class="close-panel" onclick="toggleAnalyticsPanel()">✖</button>
     
@@ -297,7 +293,6 @@
        <p class="panel-note" style="margin-top: 12px;">Estos tres últimos totales incluyen únicamente asignaturas regulares asignadas a semestres activos. Excluyen Prácticas de Servicio Comunitario, Prácticas Laborales y el Proyecto Integrador.</p>
     </div>
 
-    <!-- Configuración -->
     <div class="panel-section">
        <h3>Configuración</h3>
        <label class="config-label">Duración de la carrera 
@@ -306,11 +301,12 @@
                <option value="8">8 Semestres</option>
            </select>
        </label>
+       <label class="config-label">Créditos mínimos <input type="number" id="conf-min" value="14" onchange="updateConfig()"></label>
+       <label class="config-label">Créditos máximos <input type="number" id="conf-max" value="16" onchange="updateConfig()"></label>
        <label class="config-label">Divisor de créditos <input type="number" id="conf-div" value="3" readonly style="background-color: #e2e8f0; cursor: not-allowed; color: #64748b;" onchange="updateConfig()"></label>
        <label class="config-label">Semanas / semestre <input type="number" id="conf-weeks" value="16" readonly style="background-color: #e2e8f0; cursor: not-allowed; color: #64748b;" onchange="updateConfig()"></label>
     </div>
 
-    <!-- Tipos de Relaciones -->
     <div class="panel-section">
        <h3>Requisitos</h3>
        <div class="type-row" style="justify-content: flex-start; gap: 15px;">
@@ -323,20 +319,17 @@
        </div>
     </div>
 
-    <!-- Horas por tipo -->
     <div class="panel-section">
        <h3>Horas por tipo de asignatura</h3>
        <div id="type-stats-list"></div>
     </div>
 
-    <!-- Créditos por semestre -->
     <div class="panel-section" style="margin-bottom: 50px;">
        <h3>Créditos por semestre</h3>
        <div id="semester-stats-list"></div>
     </div>
   </div>
 
-  <!-- ENCABEZADO FIJO -->
   <div class="sticky-header">
     <h1>Malla Curricular Interactiva - ESPOL</h1>
     <div class="subtitle" id="subtitle-container">
@@ -401,7 +394,6 @@
     </div>
   </div>
 
-  <!-- MODALES DE CONTROL -->
   <div class="modal-overlay" id="restore-modal-overlay">
     <div class="modal" onclick="event.stopPropagation()">
       <h2>Restaurar Sesión</h2>
@@ -569,7 +561,6 @@
         </select>
       </div>
 
-      <!-- Opciones Dinámicas de Prácticas Laborales -->
       <div class="form-group" id="group-laborales-split" style="display:none; background: #fffbeb; padding: 12px; border-radius: 6px; border: 1px solid #fcd34d;">
           <label style="color: #b45309; margin-bottom: 8px;">Distribución de Prácticas Laborales:</label>
           <div style="display:flex; flex-direction: column; gap: 8px; font-size: 0.85em; font-weight: 500;">
@@ -742,8 +733,8 @@
     function syncConfigUI() {
         if(!state.config) return;
         document.getElementById('conf-semesters').value = state.config.semesters;
-        document.getElementById('conf-min').value = state.config.minC;
-        document.getElementById('conf-max').value = state.config.maxC;
+        if(document.getElementById('conf-min')) document.getElementById('conf-min').value = state.config.minC;
+        if(document.getElementById('conf-max')) document.getElementById('conf-max').value = state.config.maxC;
         document.getElementById('conf-div').value = state.config.divC;
         document.getElementById('conf-weeks').value = state.config.weeks;
     }
@@ -752,8 +743,8 @@
         if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config));
         
         state.config.semesters = parseInt(document.getElementById('conf-semesters').value) || 9;
-        state.config.minC = parseFloat(document.getElementById('conf-min').value) || 14;
-        state.config.maxC = parseFloat(document.getElementById('conf-max').value) || 16;
+        if(document.getElementById('conf-min')) state.config.minC = parseFloat(document.getElementById('conf-min').value) || 14;
+        if(document.getElementById('conf-max')) state.config.maxC = parseFloat(document.getElementById('conf-max').value) || 16;
         
         persistState(); renderBoard(); drawConnections(); updateAnalyticsPanel();
     }
@@ -1501,8 +1492,10 @@
 
     function finishInit() {
       if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config));
-      document.getElementById('conf-semesters').value = state.config.semesters; document.getElementById('conf-min').value = state.config.minC;
-      document.getElementById('conf-max').value = state.config.maxC; document.getElementById('conf-div').value = state.config.divC; document.getElementById('conf-weeks').value = state.config.weeks;
+      document.getElementById('conf-semesters').value = state.config.semesters; 
+      if(document.getElementById('conf-min')) document.getElementById('conf-min').value = state.config.minC;
+      if(document.getElementById('conf-max')) document.getElementById('conf-max').value = state.config.maxC;
+      document.getElementById('conf-div').value = state.config.divC; document.getElementById('conf-weeks').value = state.config.weeks;
       updateSubtitleUI(); syncConfigUI(); 
       if (state.baseCareer) { loadBaseCareerCodes(state.baseCareer); } else { renderBoard(); setTimeout(() => { drawConnections(); updateAnalyticsPanel(); }, 200); }
       window.addEventListener('resize', drawConnections); updateUndoRedoButtons();
@@ -2045,6 +2038,33 @@
         const buffer = await workbook.xlsx.writeBuffer(); const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }); 
         saveAs(blob, "Malla Formato CES.xlsx"); showToast('Malla exportada a Excel con éxito.', 'success');
       } catch (error) { console.error("Error al generar el Excel:", error); showToast('Error al generar la malla. Revisa la consola.', 'error'); }
+    }
+
+    function deleteSubject() {
+      const id = document.getElementById('edit-id').value; if (!id) return;
+      saveStateToHistory(); 
+      const subj = state.subjects.find(s => s.id === id);
+      
+      if (subj.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR') {
+          const pi = state.subjects.find(s => s.tipoMateria === 'PROYECTO INTEGRADOR' && s.level === subj.level);
+          if (pi) {
+               state.subjects = state.subjects.filter(s => s.id !== pi.id);
+               state.connections = state.connections.filter(c => c.from !== pi.id && c.to !== pi.id);
+          }
+      }
+
+      if (subj.tipoMateria === 'PRÁCTICAS LABORALES') {
+          const laborales = state.subjects.filter(s => s.tipoMateria === 'PRÁCTICAS LABORALES');
+          laborales.forEach(lab => {
+              state.subjects = state.subjects.filter(s => s.id !== lab.id);
+              state.connections = state.connections.filter(c => c.from !== lab.id && c.to !== lab.id);
+          });
+      } else {
+          state.subjects = state.subjects.filter(s => s.id !== id); 
+          state.connections = state.connections.filter(c => c.from !== id && c.to !== id); 
+      }
+
+      persistState(); pinnedSubjectId = null; closeEditModal(); renderBoard(); drawConnections(); updateAnalyticsPanel(); showToast('Materia(s) eliminada(s).', 'info');
     }
 
     window.onload = init;
