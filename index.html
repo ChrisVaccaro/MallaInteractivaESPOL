@@ -7,6 +7,9 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <!-- LIBRERÍA PARA EL TOUR GUIADO -->
+  <script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css"/>
 
   <style>
     :root {
@@ -519,6 +522,7 @@
       <div class="toolbar-divider"></div>
 
       <div class="toolbar-group">
+        <button class="btn-help" onclick="startTour()" style="color: #8b5cf6; border-color: #c4b5fd;">🚀 Tour</button>
         <button class="btn-help" onclick="openHelpModal()">❓ Ayuda</button>
       </div>
     </div>
@@ -2042,6 +2046,11 @@
       
       window.addEventListener('resize', drawConnections); 
       updateUndoRedoButtons();
+
+      // AUTO-ARRANQUE DEL TOUR (Si no lo ha visto antes)
+      if (!localStorage.getItem('malla_espol_tour_seen')) {
+          setTimeout(() => startTour(), 1000);
+      }
     }
 
     function renderBoard() {
@@ -3377,7 +3386,28 @@
 
       persistState(); pinnedSubjectId = null; closeEditModal(); renderBoard(); drawConnections(); updateAnalyticsPanel(); showToast('Materia(s) eliminada(s).', 'info');
     }
-
+    function startTour() {
+      const driver = window.driver.js.driver;
+      const driverObj = driver({
+        showProgress: true,
+        doneBtnText: 'Finalizar',
+        nextBtnText: 'Siguiente',
+        prevBtnText: 'Anterior',
+        onDestroyStarted: () => {
+          // Guarda en la memoria que el usuario ya vio/cerró el tour
+          localStorage.setItem('malla_espol_tour_seen', 'true');
+          driverObj.destroy();
+        },
+        steps: [
+          { popover: { title: '👋 ¡Bienvenido!', description: 'Vamos a dar un recorrido rápido para que conozcas las herramientas principales de esta aplicación.' } },
+          { element: '.btn-add', popover: { title: '1. Agregar Materias', description: 'Desde aquí puedes crear nuevas materias y asignarles sus horas, créditos y tipo.', side: 'bottom', align: 'start' } },
+          { element: '#board', popover: { title: '2. El Tablero', description: 'Aquí se dibujará tu malla. Puedes arrastrar las materias para cambiarlas de nivel, y hacer clic sobre ellas para seleccionarlas o editarlas.', side: 'top', align: 'center' } },
+          { element: '.floating-btn', popover: { title: '3. Auditoría Curricular', description: '¡Importante! Este panel oculto te mostrará métricas de horas, créditos totales y validaciones de rango semestral en tiempo real.', side: 'right', align: 'center' } },
+          { element: '.btn-help', popover: { title: '4. Tour y Ayuda', description: 'El recorrido termina aquí. Si quieres volver a repetir este tutorial en algún momento, solo presiona el botón "Tour".', side: 'bottom', align: 'start' } }
+        ]
+      });
+      driverObj.drive();
+    }
     window.onload = init;
   </script>
 </body>
