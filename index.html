@@ -506,10 +506,10 @@
       <div class="toolbar-divider"></div>
 
       <div class="toolbar-group">
-        <button onclick="checkAndExportJSON()">Guardar malla</button>
-        <button onclick="checkAndProcessExcel()" style="color: #059669; border-color: #10b981;">Exportar Excel</button>
+        <button id="btn-save-json" onclick="checkAndExportJSON()">Guardar malla</button>
+        <button id="btn-export-excel" onclick="checkAndProcessExcel()" style="color: #059669; border-color: #10b981;">Exportar Excel</button>
         
-        <div class="dropdown">
+        <div id="btn-load-json" class="dropdown">
           <button onclick="toggleJSONDropdown(event)" class="dropbtn">📂 Cargar Malla 🔽</button>
           <div id="dropdown-json" class="dropdown-content">
             <div style="padding: 10px; font-size: 0.8em; color: #64748b; text-align: center;">Cargando menú...</div>
@@ -517,7 +517,7 @@
         </div>
         
         <input type="file" id="import-file-input" accept=".json" style="display: none;" onchange="importJSONFromFile(event)">
-        <button class="btn-danger" onclick="resetLayout()">Borrar Malla</button>
+        <button id="btn-clear-board" class="btn-danger" onclick="resetLayout()">Borrar Malla</button>
       </div>
       <div class="toolbar-divider"></div>
 
@@ -3394,7 +3394,6 @@
         nextBtnText: 'Siguiente',
         prevBtnText: 'Anterior',
         onDestroyStarted: () => {
-          // Guarda en la memoria que el usuario ya vio/cerró el tour
           localStorage.setItem('malla_espol_tour_seen', 'true');
           driverObj.destroy();
         },
@@ -3403,7 +3402,11 @@
           { element: '.btn-add', popover: { title: '1. Agregar Materias', description: 'Desde aquí puedes crear nuevas materias y asignarles sus horas, créditos y tipo.', side: 'bottom', align: 'start' } },
           { element: '#board', popover: { title: '2. El Tablero', description: 'Aquí se dibujará tu malla. Puedes arrastrar las materias para cambiarlas de nivel, y hacer clic sobre ellas para seleccionarlas o editarlas.', side: 'top', align: 'center' } },
           { element: '.floating-btn', popover: { title: '3. Auditoría Curricular', description: '¡Importante! Este panel oculto te mostrará métricas de horas, créditos totales y validaciones de rango semestral en tiempo real.', side: 'right', align: 'center' } },
-          { element: '.btn-help', popover: { title: '4. Tour y Ayuda', description: 'El recorrido termina aquí. Si quieres volver a repetir este tutorial en algún momento, solo presiona el botón "Tour".', side: 'bottom', align: 'start' } }
+          { element: '#btn-save-json', popover: { title: '4. Guardar Malla', description: 'Guarda tu progreso actual en un archivo de respaldo descargable (.json) en tu computadora.', side: 'bottom', align: 'center' } },
+          { element: '#btn-load-json', popover: { title: '5. Cargar Malla', description: 'Abre un menú para cargar tus archivos de respaldo anteriores o cargar una malla base del catálogo.', side: 'bottom', align: 'center' } },
+          { element: '#btn-export-excel', popover: { title: '6. Exportar Excel', description: 'Genera y descarga la matriz automática en formato Excel con todas las pestañas para el informe DAR.', side: 'bottom', align: 'center' } },
+          { element: '#btn-clear-board', popover: { title: '7. Borrar Malla', description: 'Limpia todo el tablero para empezar una malla completamente desde cero.', side: 'bottom', align: 'center' } },
+          { element: '.btn-help', popover: { title: '8. Tour y Ayuda', description: 'El recorrido termina aquí. Si quieres volver a repetir este tutorial, presiona el botón "Tour". ¡Estás listo para comenzar!', side: 'bottom', align: 'start' } }
         ]
       });
       driverObj.drive();
