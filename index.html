@@ -3063,10 +3063,12 @@
               }
             });
         }
+        // Array de códigos OTH definido para ambas pestañas DAR
+        const othCodes = ["IDIG2012", "INDG1033", "IDIG1006", "IDIG1007", "IDIG1008", "IDIG1009", "IDIG1010", "CCPG1043", "ADMG1005", "ADSG1026", "A&D&I", "HUM", "IT&I", "IT&II", "IT&III", "PRACT&COM", "PRACT&EMP"];
+
         // --- 3. PESTAÑA 3: AJUSTE CURRICULAR DAR ---
         const sheetDar = workbook.getWorksheet('AJUSTE CURRICULAR DAR'); 
         if (sheetDar) {
-            // Ocultar líneas de cuadrícula de fondo
             if (sheetDar.views && sheetDar.views.length > 0) {
                 sheetDar.views.forEach(v => v.showGridLines = false);
             } else {
@@ -3075,13 +3077,11 @@
 
             let allDarSubjects = [];
             
-            // 1. Agregar todas las materias de la malla propuesta
             webSubjects.forEach(webSubj => {
                 let baseSubj = baseSubjects.find(s => s.code === webSubj.code);
                 allDarSubjects.push({ web: webSubj, base: baseSubj });
             });
 
-            // 2. Agregar materias eliminadas (existen en la base, pero no en la propuesta)
             baseSubjects.forEach(baseSubj => {
                 let isDeleted = !webSubjects.some(s => s.code === baseSubj.code);
                 if (isDeleted) {
@@ -3090,13 +3090,11 @@
             });
 
             let currentRow3 = 13;
-            
-            // Variables para sumas de la fila 83
             let sumBaseACD = 0, sumBaseAPE = 0, sumBaseAA = 0, sumBaseCreds = 0;
             let sumWebACD = 0, sumWebAPE = 0, sumWebAA = 0, sumWebCreds = 0;
 
             allDarSubjects.forEach(item => {
-                if (currentRow3 > 82) return; // Límite de seguridad de la plantilla
+                if (currentRow3 > 82) return; 
 
                 let web = item.web;
                 let base = item.base;
@@ -3105,7 +3103,6 @@
                 let codCurso = "";
                 let cursoName = "";
 
-                // Evaluación estricta de Descripción Interna
                 if (!base && web) {
                     descripcion = "Nueva materia";
                     codCurso = (String(web.code).toUpperCase().startsWith('NUEVO-')) ? "" : web.code;
@@ -3131,25 +3128,34 @@
 
                 let row = sheetDar.getRow(currentRow3);
 
-                // Columna A: Descripción Interna
+                // Columna A
                 let cellA = row.getCell(1);
                 cellA.value = descripcion;
                 let alignA = cellA.alignment || {};
                 cellA.alignment = { ...alignA, wrapText: true, vertical: 'middle' };
 
-                // Columna B: Cód. Curso
+                // Columna B
                 row.getCell(2).value = codCurso;
 
-                // Columna C: Curso
+                // Columna C
                 let cellC = row.getCell(3);
                 cellC.value = cursoName;
                 let alignC = cellC.alignment || {};
                 cellC.alignment = { ...alignC, wrapText: true, vertical: 'middle' };
 
-                // Columna D: Clasificación (En blanco)
-                row.getCell(4).value = null;
+                // Columna D: Clasificación (MCB, OTH, ET)
+                let targetForClass = web || base;
+                let clasificacionTab3 = "ET";
+                let codCheckTab3 = String(targetForClass.code).toUpperCase();
+                
+                if (targetForClass.tipoMateria === 'MATEMÁTICAS Y CIENCIAS BÁSICAS') {
+                    clasificacionTab3 = "MCB";
+                } else if (othCodes.includes(codCheckTab3)) {
+                    clasificacionTab3 = "OTH";
+                }
+                row.getCell(4).value = clasificacionTab3;
 
-                // --- MALLA ACTUAL (E - I) y CACHÉ SEMESTRAL (R - V) ---
+                // MALLA ACTUAL (E - I) y CACHÉ SEMESTRAL (R - V)
                 if (base) {
                     let hBase = parseHoursComponents(base.components);
                     row.getCell(5).value = formatLevel(base.level);
@@ -3159,13 +3165,9 @@
                     let credsBase = calculateCredits(base);
                     setCachedResult(sheetDar, row.getCell(9).address, credsBase);
 
-                    // Acumuladores Fila 83
                     sumBaseACD += hBase.acd; sumBaseAPE += hBase.ape; sumBaseAA += hBase.aa; sumBaseCreds += credsBase;
 
-                    // Cálculos Semestrales para columnas R-V (18 a 22)
-                    let semAcdBase = hBase.acd * weeks;
-                    let semApeBase = hBase.ape * weeks;
-                    let semAaBase = hBase.aa * weeks;
+                    let semAcdBase = hBase.acd * weeks; let semApeBase = hBase.ape * weeks; let semAaBase = hBase.aa * weeks;
                     let semTotalBase = semAcdBase + semApeBase + semAaBase;
                     
                     setCachedResult(sheetDar, row.getCell(18).address, semAcdBase);
@@ -3179,7 +3181,7 @@
                     for(let c=18; c<=22; c++) setCachedResult(sheetDar, row.getCell(c).address, 0);
                 }
 
-                // --- MALLA PROPUESTA (J - N) y CACHÉ SEMESTRAL (W - AA) ---
+                // MALLA PROPUESTA (J - N) y CACHÉ SEMESTRAL (W - AA)
                 if (web) {
                     let hWeb = parseHoursComponents(web.components);
                     row.getCell(10).value = formatLevel(web.level);
@@ -3189,13 +3191,9 @@
                     let credsWeb = calculateCredits(web);
                     setCachedResult(sheetDar, row.getCell(14).address, credsWeb);
 
-                    // Acumuladores Fila 83
                     sumWebACD += hWeb.acd; sumWebAPE += hWeb.ape; sumWebAA += hWeb.aa; sumWebCreds += credsWeb;
 
-                    // Cálculos Semestrales para columnas W-AA (23 a 27)
-                    let semAcdWeb = hWeb.acd * weeks;
-                    let semApeWeb = hWeb.ape * weeks;
-                    let semAaWeb = hWeb.aa * weeks;
+                    let semAcdWeb = hWeb.acd * weeks; let semApeWeb = hWeb.ape * weeks; let semAaWeb = hWeb.aa * weeks;
                     let semTotalWeb = semAcdWeb + semApeWeb + semAaWeb;
 
                     setCachedResult(sheetDar, row.getCell(23).address, semAcdWeb);
@@ -3212,7 +3210,6 @@
                 currentRow3++;
             });
 
-            // 3. Inyectar Totales Cacheados en Fila 83
             let row83 = sheetDar.getRow(83);
             setCachedResult(sheetDar, row83.getCell(6).address, sumBaseACD);
             setCachedResult(sheetDar, row83.getCell(7).address, sumBaseAPE);
@@ -3224,19 +3221,14 @@
             setCachedResult(sheetDar, row83.getCell(13).address, sumWebAA);
             setCachedResult(sheetDar, row83.getCell(14).address, sumWebCreds);
 
-            // 4. Limpieza y ocultamiento de filas sobrantes
             for (let r = currentRow3; r <= 82; r++) {
                 let row = sheetDar.getRow(r);
                 row.hidden = true;
-                
                 row.getCell(1).value = null; row.getCell(2).value = null; row.getCell(3).value = null; row.getCell(4).value = null;
-                
                 row.getCell(5).value = null; row.getCell(6).value = null; row.getCell(7).value = null; row.getCell(8).value = null;
                 setCachedResult(sheetDar, row.getCell(9).address, 0);
-                
                 row.getCell(10).value = null; row.getCell(11).value = null; row.getCell(12).value = null; row.getCell(13).value = null;
                 setCachedResult(sheetDar, row.getCell(14).address, 0);
-                
                 for(let c=18; c<=27; c++) setCachedResult(sheetDar, row.getCell(c).address, 0);
             }
         }
@@ -3244,27 +3236,21 @@
         // --- 4. PESTAÑA 4: Malla 2027 | Ingenierías ---
         const sheetMallaIng = workbook.getWorksheet('Malla 2027 | Ingenierías');
         if (sheetMallaIng) {
-            // Ocultar líneas de cuadrícula de fondo
             if (sheetMallaIng.views && sheetMallaIng.views.length > 0) {
                 sheetMallaIng.views.forEach(v => v.showGridLines = false);
             } else {
                 sheetMallaIng.views = [{ showGridLines: false }];
             }
 
-            // 1. Títulos dinámicos
             sheetMallaIng.getCell('A5').value = `MALLA "${careerName}"`;
             sheetMallaIng.getCell('A6').value = `MALLA CON ${state.config.semesters} PERIODOS ACADÉMICOS`;
 
-            const othCodes = ["IDIG2012", "INDG1033", "IDIG1006", "IDIG1007", "IDIG1008", "CCPG1043", "ADMG1005", "ADSG1026", "A&D&I", "HUM", "IT&I", "IT&II", "IT&III", "PRACT&COM", "PRACT&EMP"];
-
-            // 2. Llenado del bloque de materias (Fila 10 a 36, Máximo 7 columnas por nivel)
             for (let lvlIdx = 0; lvlIdx < visibleLevels.length; lvlIdx++) {
                 const levelId = visibleLevels[lvlIdx].id;
-                const baseRow = 10 + (lvlIdx * 3); // Cada nivel ocupa 3 filas (10, 13, 16...)
+                const baseRow = 10 + (lvlIdx * 3); 
 
-                // Iteramos solo hasta la columna 6 de la app (7 materias máximo)
                 for (let colIdx = 0; colIdx < 7; colIdx++) {
-                    const startCol = 2 + (colIdx * 9); // Columna B es 2, y avanzamos de 9 en 9
+                    const startCol = 2 + (colIdx * 9); 
                     const subject = state.subjects.find(s => s.level === levelId && s.col === colIdx);
 
                     if (subject) {
@@ -3272,7 +3258,6 @@
                         let codeToCheck = String(subject.code).toUpperCase();
                         let cleanName = parseNameReq(subject.name).cleanName;
                         
-                        // Lógica de Clasificación
                         let clasificacion = "ET";
                         if (subject.tipoMateria === 'MATEMÁTICAS Y CIENCIAS BÁSICAS') {
                             clasificacion = "MCB";
@@ -3280,25 +3265,18 @@
                             clasificacion = "OTH";
                         }
 
-                        // Lógica de Códigos ocultos para materias nuevas/especiales
-                        let displayCode = codeToCheck;
-                        const hideCodeTypes = ["ITINERARIO", "C. DE ARTE Y DEPORTES", "C. DE HUMANÍSTICA", "PRÁCTICAS LABORALES", "PRÁCTICAS COMUNITARIAS", "PROYECTO INTEGRADOR"];
-                        if (hideCodeTypes.includes(subject.tipoMateria) || displayCode.startsWith('NUEVO-')) { 
-                            displayCode = ''; 
-                        }
+                        // Todas imprimen código excepto si es NUEVO-
+                        let displayCode = codeToCheck.startsWith('NUEVO-') ? '' : codeToCheck;
 
-                        // Fila 1 del subbloque: ACD, APE, AA y Clasificación
                         sheetMallaIng.getCell(baseRow, startCol).value = hWeb.acd;
                         sheetMallaIng.getCell(baseRow, startCol + 1).value = hWeb.ape;
                         sheetMallaIng.getCell(baseRow, startCol + 2).value = hWeb.aa;
                         sheetMallaIng.getCell(baseRow, startCol + 7).value = clasificacion;
 
-                        // Fila 2 del subbloque: Código y Nombre
                         sheetMallaIng.getCell(baseRow + 1, startCol).value = displayCode;
                         sheetMallaIng.getCell(baseRow + 1, startCol + 1).value = cleanName;
 
                     } else {
-                        // Limpiar celdas vacías por si la plantilla tenía basura
                         sheetMallaIng.getCell(baseRow, startCol).value = null;
                         sheetMallaIng.getCell(baseRow, startCol + 1).value = null;
                         sheetMallaIng.getCell(baseRow, startCol + 2).value = null;
@@ -3309,11 +3287,9 @@
                 }
             }
 
-            // 3. Ocultar filas 34, 35 y 36 si la carrera tiene 8 semestres
             if (state.config.semesters === 8) {
                 for (let r = 34; r <= 36; r++) {
                     sheetMallaIng.getRow(r).hidden = true;
-                    // Limpiar datos por precaución
                     for (let c = 2; c <= 64; c++) {
                         sheetMallaIng.getCell(r, c).value = null;
                     }
@@ -3324,7 +3300,7 @@
         const buffer = await workbook.xlsx.writeBuffer(); 
         const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }); 
         
-        saveAs(blob, "Malla Formato CES.xlsx");
+        saveAs(blob, "Malla Curricular propuesta.xlsx");
         
         showToast('Malla exportada a Excel con éxito.', 'success');
       } catch (error) { console.error("Error al generar el Excel:", error); showToast('Error al generar la malla. Revisa la consola.', 'error'); }
