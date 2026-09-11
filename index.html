@@ -3090,6 +3090,10 @@
             });
 
             let currentRow3 = 13;
+            
+            // Variables para sumas de la fila 83
+            let sumBaseACD = 0, sumBaseAPE = 0, sumBaseAA = 0, sumBaseCreds = 0;
+            let sumWebACD = 0, sumWebAPE = 0, sumWebAA = 0, sumWebCreds = 0;
 
             allDarSubjects.forEach(item => {
                 if (currentRow3 > 82) return; // Límite de seguridad de la plantilla
@@ -3101,7 +3105,7 @@
                 let codCurso = "";
                 let cursoName = "";
 
-                // Evaluación estricta de Descripción Interna (Solo Nivel y Horas)
+                // Evaluación estricta de Descripción Interna
                 if (!base && web) {
                     descripcion = "Nueva materia";
                     codCurso = (String(web.code).toUpperCase().startsWith('NUEVO-')) ? "" : web.code;
@@ -3127,7 +3131,7 @@
 
                 let row = sheetDar.getRow(currentRow3);
 
-                // Columna A: Descripción Interna (Con Ajuste de texto)
+                // Columna A: Descripción Interna
                 let cellA = row.getCell(1);
                 cellA.value = descripcion;
                 let alignA = cellA.alignment || {};
@@ -3136,7 +3140,7 @@
                 // Columna B: Cód. Curso
                 row.getCell(2).value = codCurso;
 
-                // Columna C: Curso (Sin el &, con Ajuste de texto)
+                // Columna C: Curso
                 let cellC = row.getCell(3);
                 cellC.value = cursoName;
                 let alignC = cellC.alignment || {};
@@ -3145,45 +3149,95 @@
                 // Columna D: Clasificación (En blanco)
                 row.getCell(4).value = null;
 
-                // MALLA ACTUAL (E - I) -> Horas semanales
+                // --- MALLA ACTUAL (E - I) y CACHÉ SEMESTRAL (R - V) ---
                 if (base) {
                     let hBase = parseHoursComponents(base.components);
                     row.getCell(5).value = formatLevel(base.level);
-                    row.getCell(6).value = hBase.acd; // Sin multiplicar
-                    row.getCell(7).value = hBase.ape; // Sin multiplicar
-                    row.getCell(8).value = hBase.aa;  // Sin multiplicar
+                    row.getCell(6).value = hBase.acd;
+                    row.getCell(7).value = hBase.ape;
+                    row.getCell(8).value = hBase.aa;
                     let credsBase = calculateCredits(base);
                     setCachedResult(sheetDar, row.getCell(9).address, credsBase);
+
+                    // Acumuladores Fila 83
+                    sumBaseACD += hBase.acd; sumBaseAPE += hBase.ape; sumBaseAA += hBase.aa; sumBaseCreds += credsBase;
+
+                    // Cálculos Semestrales para columnas R-V (18 a 22)
+                    let semAcdBase = hBase.acd * weeks;
+                    let semApeBase = hBase.ape * weeks;
+                    let semAaBase = hBase.aa * weeks;
+                    let semTotalBase = semAcdBase + semApeBase + semAaBase;
+                    
+                    setCachedResult(sheetDar, row.getCell(18).address, semAcdBase);
+                    setCachedResult(sheetDar, row.getCell(19).address, semApeBase);
+                    setCachedResult(sheetDar, row.getCell(20).address, semAaBase);
+                    setCachedResult(sheetDar, row.getCell(21).address, semTotalBase);
+                    setCachedResult(sheetDar, row.getCell(22).address, credsBase);
                 } else {
                     row.getCell(5).value = null; row.getCell(6).value = null; row.getCell(7).value = null; row.getCell(8).value = null;
                     setCachedResult(sheetDar, row.getCell(9).address, 0);
+                    for(let c=18; c<=22; c++) setCachedResult(sheetDar, row.getCell(c).address, 0);
                 }
 
-                // MALLA PROPUESTA (J - N) -> Horas semanales
+                // --- MALLA PROPUESTA (J - N) y CACHÉ SEMESTRAL (W - AA) ---
                 if (web) {
                     let hWeb = parseHoursComponents(web.components);
                     row.getCell(10).value = formatLevel(web.level);
-                    row.getCell(11).value = hWeb.acd; // Sin multiplicar
-                    row.getCell(12).value = hWeb.ape; // Sin multiplicar
-                    row.getCell(13).value = hWeb.aa;  // Sin multiplicar
+                    row.getCell(11).value = hWeb.acd;
+                    row.getCell(12).value = hWeb.ape;
+                    row.getCell(13).value = hWeb.aa;
                     let credsWeb = calculateCredits(web);
                     setCachedResult(sheetDar, row.getCell(14).address, credsWeb);
+
+                    // Acumuladores Fila 83
+                    sumWebACD += hWeb.acd; sumWebAPE += hWeb.ape; sumWebAA += hWeb.aa; sumWebCreds += credsWeb;
+
+                    // Cálculos Semestrales para columnas W-AA (23 a 27)
+                    let semAcdWeb = hWeb.acd * weeks;
+                    let semApeWeb = hWeb.ape * weeks;
+                    let semAaWeb = hWeb.aa * weeks;
+                    let semTotalWeb = semAcdWeb + semApeWeb + semAaWeb;
+
+                    setCachedResult(sheetDar, row.getCell(23).address, semAcdWeb);
+                    setCachedResult(sheetDar, row.getCell(24).address, semApeWeb);
+                    setCachedResult(sheetDar, row.getCell(25).address, semAaWeb);
+                    setCachedResult(sheetDar, row.getCell(26).address, semTotalWeb);
+                    setCachedResult(sheetDar, row.getCell(27).address, credsWeb);
                 } else {
                     row.getCell(10).value = null; row.getCell(11).value = null; row.getCell(12).value = null; row.getCell(13).value = null;
                     setCachedResult(sheetDar, row.getCell(14).address, 0);
+                    for(let c=23; c<=27; c++) setCachedResult(sheetDar, row.getCell(c).address, 0);
                 }
+
                 currentRow3++;
             });
 
-            // Ocultar filas sobrantes y limpiar datos viejos para que no afecten los sumatorios de la plantilla
+            // 3. Inyectar Totales Cacheados en Fila 83
+            let row83 = sheetDar.getRow(83);
+            setCachedResult(sheetDar, row83.getCell(6).address, sumBaseACD);
+            setCachedResult(sheetDar, row83.getCell(7).address, sumBaseAPE);
+            setCachedResult(sheetDar, row83.getCell(8).address, sumBaseAA);
+            setCachedResult(sheetDar, row83.getCell(9).address, sumBaseCreds);
+
+            setCachedResult(sheetDar, row83.getCell(11).address, sumWebACD);
+            setCachedResult(sheetDar, row83.getCell(12).address, sumWebAPE);
+            setCachedResult(sheetDar, row83.getCell(13).address, sumWebAA);
+            setCachedResult(sheetDar, row83.getCell(14).address, sumWebCreds);
+
+            // 4. Limpieza y ocultamiento de filas sobrantes
             for (let r = currentRow3; r <= 82; r++) {
                 let row = sheetDar.getRow(r);
                 row.hidden = true;
+                
                 row.getCell(1).value = null; row.getCell(2).value = null; row.getCell(3).value = null; row.getCell(4).value = null;
+                
                 row.getCell(5).value = null; row.getCell(6).value = null; row.getCell(7).value = null; row.getCell(8).value = null;
                 setCachedResult(sheetDar, row.getCell(9).address, 0);
+                
                 row.getCell(10).value = null; row.getCell(11).value = null; row.getCell(12).value = null; row.getCell(13).value = null;
                 setCachedResult(sheetDar, row.getCell(14).address, 0);
+                
+                for(let c=18; c<=27; c++) setCachedResult(sheetDar, row.getCell(c).address, 0);
             }
         }
         
