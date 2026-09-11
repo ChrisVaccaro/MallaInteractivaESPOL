@@ -3240,6 +3240,86 @@
                 for(let c=18; c<=27; c++) setCachedResult(sheetDar, row.getCell(c).address, 0);
             }
         }
+
+        // --- 4. PESTAÑA 4: Malla 2027 | Ingenierías ---
+        const sheetMallaIng = workbook.getWorksheet('Malla 2027 | Ingenierías');
+        if (sheetMallaIng) {
+            // Ocultar líneas de cuadrícula de fondo
+            if (sheetMallaIng.views && sheetMallaIng.views.length > 0) {
+                sheetMallaIng.views.forEach(v => v.showGridLines = false);
+            } else {
+                sheetMallaIng.views = [{ showGridLines: false }];
+            }
+
+            // 1. Títulos dinámicos
+            sheetMallaIng.getCell('A5').value = `MALLA "${careerName}"`;
+            sheetMallaIng.getCell('A6').value = `MALLA CON ${state.config.semesters} PERIODOS ACADÉMICOS`;
+
+            const othCodes = ["IDIG2012", "INDG1033", "IDIG1006", "IDIG1007", "IDIG1008", "CCPG1043", "ADMG1005", "ADSG1026", "A&D&I", "HUM", "IT&I", "IT&II", "IT&III", "PRACT&COM", "PRACT&EMP"];
+
+            // 2. Llenado del bloque de materias (Fila 10 a 36, Máximo 7 columnas por nivel)
+            for (let lvlIdx = 0; lvlIdx < visibleLevels.length; lvlIdx++) {
+                const levelId = visibleLevels[lvlIdx].id;
+                const baseRow = 10 + (lvlIdx * 3); // Cada nivel ocupa 3 filas (10, 13, 16...)
+
+                // Iteramos solo hasta la columna 6 de la app (7 materias máximo)
+                for (let colIdx = 0; colIdx < 7; colIdx++) {
+                    const startCol = 2 + (colIdx * 9); // Columna B es 2, y avanzamos de 9 en 9
+                    const subject = state.subjects.find(s => s.level === levelId && s.col === colIdx);
+
+                    if (subject) {
+                        let hWeb = parseHoursComponents(subject.components);
+                        let codeToCheck = String(subject.code).toUpperCase();
+                        let cleanName = parseNameReq(subject.name).cleanName;
+                        
+                        // Lógica de Clasificación
+                        let clasificacion = "ET";
+                        if (subject.tipoMateria === 'MATEMÁTICAS Y CIENCIAS BÁSICAS') {
+                            clasificacion = "MCB";
+                        } else if (othCodes.includes(codeToCheck)) {
+                            clasificacion = "OTH";
+                        }
+
+                        // Lógica de Códigos ocultos para materias nuevas/especiales
+                        let displayCode = codeToCheck;
+                        const hideCodeTypes = ["ITINERARIO", "C. DE ARTE Y DEPORTES", "C. DE HUMANÍSTICA", "PRÁCTICAS LABORALES", "PRÁCTICAS COMUNITARIAS", "PROYECTO INTEGRADOR"];
+                        if (hideCodeTypes.includes(subject.tipoMateria) || displayCode.startsWith('NUEVO-')) { 
+                            displayCode = ''; 
+                        }
+
+                        // Fila 1 del subbloque: ACD, APE, AA y Clasificación
+                        sheetMallaIng.getCell(baseRow, startCol).value = hWeb.acd;
+                        sheetMallaIng.getCell(baseRow, startCol + 1).value = hWeb.ape;
+                        sheetMallaIng.getCell(baseRow, startCol + 2).value = hWeb.aa;
+                        sheetMallaIng.getCell(baseRow, startCol + 7).value = clasificacion;
+
+                        // Fila 2 del subbloque: Código y Nombre
+                        sheetMallaIng.getCell(baseRow + 1, startCol).value = displayCode;
+                        sheetMallaIng.getCell(baseRow + 1, startCol + 1).value = cleanName;
+
+                    } else {
+                        // Limpiar celdas vacías por si la plantilla tenía basura
+                        sheetMallaIng.getCell(baseRow, startCol).value = null;
+                        sheetMallaIng.getCell(baseRow, startCol + 1).value = null;
+                        sheetMallaIng.getCell(baseRow, startCol + 2).value = null;
+                        sheetMallaIng.getCell(baseRow, startCol + 7).value = null;
+                        sheetMallaIng.getCell(baseRow + 1, startCol).value = null;
+                        sheetMallaIng.getCell(baseRow + 1, startCol + 1).value = null;
+                    }
+                }
+            }
+
+            // 3. Ocultar filas 34, 35 y 36 si la carrera tiene 8 semestres
+            if (state.config.semesters === 8) {
+                for (let r = 34; r <= 36; r++) {
+                    sheetMallaIng.getRow(r).hidden = true;
+                    // Limpiar datos por precaución
+                    for (let c = 2; c <= 64; c++) {
+                        sheetMallaIng.getCell(r, c).value = null;
+                    }
+                }
+            }
+        }
         
         const buffer = await workbook.xlsx.writeBuffer(); 
         const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }); 
