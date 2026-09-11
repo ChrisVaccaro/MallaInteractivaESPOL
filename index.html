@@ -33,7 +33,6 @@
       overflow: hidden;
     }
 
-    /* --- ENCABEZADO FIJO --- */
     .sticky-header {
       flex-shrink: 0;
       z-index: 150;
@@ -43,7 +42,6 @@
       border-bottom: 1px solid #e2e8f0;
     }
 
-    /* --- CONTENEDOR INTERNO SCROLLABLE --- */
     .app-body {
       flex-grow: 1;
       overflow-y: auto;
@@ -102,62 +100,20 @@
     .toast.error { border-left: 5px solid #ef4444; }
     .toast.info { border-left: 5px solid #3b82f6; }
 
-    /* --- BOTÓN FLOTANTE LATERAL --- */
     .floating-btn {
-        position: fixed;
-        top: 180px;
-        left: 0;
-        background-color: #1e293b;
-        color: white;
-        padding: 15px 12px;
-        border-radius: 0 8px 8px 0;
-        cursor: pointer;
-        z-index: 1000;
-        opacity: 0.3;
-        transition: all 0.3s ease;
-        box-shadow: 3px 0 10px rgba(0,0,0,0.2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 22px;
-        border: 1px solid #334155;
-        border-left: none;
+        position: fixed; top: 180px; left: 0; background-color: #1e293b; color: white; padding: 15px 12px; border-radius: 0 8px 8px 0; cursor: pointer; z-index: 1000; opacity: 0.3; transition: all 0.3s ease; box-shadow: 3px 0 10px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; font-size: 22px; border: 1px solid #334155; border-left: none;
     }
-    .floating-btn:hover {
-        opacity: 1;
-        padding-right: 18px; 
-        background-color: #0f172a;
-    }
+    .floating-btn:hover { opacity: 1; padding-right: 18px; background-color: #0f172a; }
 
     #floating-warning-badge {
-        display: none;
-        position: absolute;
-        top: -4px;
-        right: -4px;
-        background-color: #ef4444;
-        color: white;
-        border-radius: 50%;
-        width: 16px;
-        height: 16px;
-        font-size: 11px;
-        font-weight: bold;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        display: none; position: absolute; top: -4px; right: -4px; background-color: #ef4444; color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 11px; font-weight: bold; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     }
 
-    /* --- PANEL ANALÍTICO (OFFCANVAS) --- */
     .analytics-panel {
-        position: fixed; top: 0; left: -450px; width: 420px; height: 100vh;
-        background: #ffffff; z-index: 2000; box-shadow: 4px 0 25px rgba(0,0,0,0.15);
-        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; 
-        padding: 25px; box-sizing: border-box; border-right: 1px solid var(--border-color);
+        position: fixed; top: 0; left: -450px; width: 420px; height: 100vh; background: #ffffff; z-index: 2000; box-shadow: 4px 0 25px rgba(0,0,0,0.15); transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; padding: 25px; box-sizing: border-box; border-right: 1px solid var(--border-color);
     }
     .analytics-panel.open { left: 0; }
-    .close-panel {
-        position: absolute; top: 15px; right: 20px; background: none; border: none;
-        font-size: 22px; cursor: pointer; color: #94a3b8; transition: color 0.2s; padding: 5px;
-    }
+    .close-panel { position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 22px; cursor: pointer; color: #94a3b8; transition: color 0.2s; padding: 5px; }
     .close-panel:hover { color: #0f172a; background: none; }
     .panel-header { font-size: 1.3em; color: var(--primary-color); margin-top: 0; margin-bottom: 25px; font-weight: 800; display: flex; align-items: center; gap: 8px;}
     .panel-section { margin-bottom: 25px; }
@@ -193,53 +149,27 @@
     .btn-autocomplete { font-size: 0.7em; padding: 4px 8px; margin-left: 8px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s;}
     .btn-autocomplete:hover { background: #2563eb; }
 
-    /* Líneas de leyenda para panel de relaciones */
     .legend-line { width: 40px; height: 3px; display: inline-block; border-radius: 2px; }
     .legend-prereq { background-color: #64748b; }
     .legend-coreq { background-color: transparent; border-top: 3px dashed var(--coreq-color); width: 40px; height: 0px; display: inline-block; }
 
-    /* Contenedores de la malla */
     .board-container { width: 100%; overflow-x: auto; overflow-y: visible; padding-top: 5px; padding-bottom: 25px; cursor: grab; }
     .board-container:active { cursor: grabbing; }
-    .board-wrapper { 
-        position: relative; 
-        min-width: 1950px; 
-        transition: zoom 0.2s ease-out;
-    }
+    .board-wrapper { position: relative; min-width: 1950px; transition: zoom 0.2s ease-out; }
 
     svg#connections-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5 !important; }
     svg#ghost-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50 !important; }
     
     .board { display: flex; flex-direction: column; gap: 32px; position: relative; padding-top: 45px; padding-bottom: 20px;}
 
-    /* --- DISEÑO DEL NIVEL --- */
-    .level-row { 
-      display: flex; flex-direction: row; background: #ffffff; border-radius: 8px; 
-      border: 1px solid var(--border-color); min-height: 135px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
-      position: relative; 
-    }
+    .level-row { display: flex; flex-direction: row; background: #ffffff; border-radius: 8px; border: 1px solid var(--border-color); min-height: 135px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; }
     
     .level-header { 
-      width: 220px; min-width: 220px; background-color: #f8fafc; 
-      border-right: 1px solid var(--border-color); border-radius: 8px 0 0 8px; 
-      display: flex; flex-direction: column; justify-content: center; align-items: center; 
-      padding: 15px; text-align: center; box-sizing: border-box;
-      position: sticky; left: 0; z-index: 30; 
-      box-shadow: 6px 0 10px rgba(0,0,0,0.04); 
+      width: 220px; min-width: 220px; background-color: #f8fafc; border-right: 1px solid var(--border-color); border-radius: 8px 0 0 8px; 
+      display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 15px; text-align: center; box-sizing: border-box;
+      position: sticky; left: 0; z-index: 30; box-shadow: 6px 0 10px rgba(0,0,0,0.04); 
     }
-
-    /* --- ESCUDO INVISIBLE --- */
-    .level-header::after {
-      content: '';
-      position: absolute;
-      top: 100%; 
-      left: 0;
-      width: 100%;
-      height: 34px; 
-      background-color: var(--bg-color); 
-      box-shadow: 6px 0 10px rgba(0,0,0,0.04); 
-      z-index: 30;
-    }
+    .level-header::after { content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 34px; background-color: var(--bg-color); box-shadow: 6px 0 10px rgba(0,0,0,0.04); z-index: 30; }
 
     .level-title { font-weight: 800; color: var(--primary-color); font-size: 1.05em; text-transform: uppercase; margin-bottom: 8px; }
     .level-badge { background-color: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 0.85em; margin-bottom: 8px; }
@@ -248,41 +178,20 @@
     .level-divider { width: 80%; height: 1px; background-color: #cbd5e1; margin-bottom: 8px; }
     .level-hours-total { font-size: 0.8em; color: #64748b; font-weight: 600; }
     
-    .level-content-grid { 
-      flex: 1; display: grid; 
-      grid-template-columns: repeat(8, 200px); 
-      gap: 14px; padding: 16px; background-color: #fafafa; align-items: center; border-radius: 0 8px 8px 0;
-    }
+    .level-content-grid { flex: 1; display: grid; grid-template-columns: repeat(8, 200px); gap: 14px; padding: 16px; background-color: #fafafa; align-items: center; border-radius: 0 8px 8px 0; }
 
-    .grid-cell { 
-        border: 1px dashed #cbd5e1; border-radius: 6px; min-height: 100px; 
-        display: flex; justify-content: center; align-items: center; 
-        background-color: rgba(255, 255, 255, 0.5); 
-        transition: background-color 0.2s, border-color 0.2s; 
-        position: relative;
-    }
+    .grid-cell { border: 1px dashed #cbd5e1; border-radius: 6px; min-height: 100px; display: flex; justify-content: center; align-items: center; background-color: rgba(255, 255, 255, 0.5); transition: background-color 0.2s, border-color 0.2s; position: relative; }
     
     .grid-cell.drag-over { background-color: #e0f2fe; border-color: var(--accent-color); }
     .grid-cell.drag-over-connect { background-color: #ecfdf5; border-color: #10b981; }
 
     .grid-cell.insert-indicator { background-color: rgba(37, 99, 235, 0.05); border-color: var(--accent-color); }
-    .grid-cell.insert-indicator::before {
-        content: ''; position: absolute; left: -9px; top: -5px; bottom: -5px; width: 4px; 
-        background-color: var(--accent-color); border-radius: 4px; z-index: 50; box-shadow: 0 0 8px rgba(37, 99, 235, 0.6);
-    }
+    .grid-cell.insert-indicator::before { content: ''; position: absolute; left: -9px; top: -5px; bottom: -5px; width: 4px; background-color: var(--accent-color); border-radius: 4px; z-index: 50; box-shadow: 0 0 8px rgba(37, 99, 235, 0.6); }
 
     .grid-cell.insert-indicator-right { background-color: rgba(37, 99, 235, 0.05); border-color: var(--accent-color); }
-    .grid-cell.insert-indicator-right::after {
-        content: ''; position: absolute; right: -9px; top: -5px; bottom: -5px; width: 4px; 
-        background-color: var(--accent-color); border-radius: 4px; z-index: 50; box-shadow: 0 0 8px rgba(37, 99, 235, 0.6);
-    }
+    .grid-cell.insert-indicator-right::after { content: ''; position: absolute; right: -9px; top: -5px; bottom: -5px; width: 4px; background-color: var(--accent-color); border-radius: 4px; z-index: 50; box-shadow: 0 0 8px rgba(37, 99, 235, 0.6); }
 
-    /* --- TARJETAS --- */
-    .subject-card { 
-        width: 100%; height: 100px; background-color: #ffffff !important; 
-        border: 2px solid #000000; 
-        border-radius: 8px; padding: 8px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; cursor: grab; position: relative !important; z-index: 10 !important; transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
-    }
+    .subject-card { width: 100%; height: 100px; background-color: #ffffff !important; border: 2px solid #000000; border-radius: 8px; padding: 8px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; cursor: grab; position: relative !important; z-index: 10 !important; transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .subject-card:active { cursor: grabbing; }
     .subject-card:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.15); transform: translateY(-2px); z-index: 15 !important; }
     
@@ -292,14 +201,11 @@
     .subject-title { font-size: 0.72em; font-weight: 700; text-align: center; text-transform: uppercase; line-height: 1.15; margin: 2px 0; color: #0f172a; }
     .subject-footer { display: flex; justify-content: space-between; font-size: 0.65em; color: #64748b; }
     
-    /* --- ESTILOS DE CATEGORÍAS DE MATERIAS --- */
     .type-matematicas-y-ciencias-basicas { background-color: rgb(255, 255, 255) !important; }
     .type-educacion-general { background-color: rgb(214, 223, 230) !important; }
     .type-c-de-arte-y-deportes { background-color: rgb(248, 193, 160) !important; }
     .type-u-de-integracion-curricular { background-color: rgb(0, 53, 102) !important; }
-    .type-u-de-integracion-curricular .subject-header, 
-    .type-u-de-integracion-curricular .subject-title, 
-    .type-u-de-integracion-curricular .subject-footer { color: #ffffff !important; }
+    .type-u-de-integracion-curricular .subject-header, .type-u-de-integracion-curricular .subject-title, .type-u-de-integracion-curricular .subject-footer { color: #ffffff !important; }
     .type-proyecto-integrador { background-color: rgb(0, 53, 102) !important; }
     .type-proyecto-integrador * { color: #ffffff !important; }
     .type-itinerario { background-color: rgb(112, 146, 190) !important; }
@@ -319,58 +225,24 @@
     .subject-card.highlight-next { border: 3.5px solid var(--highlight-next) !important; background-color: #ecfdf5 !important; color: #0f172a !important; box-shadow: 0 0 10px rgba(16, 185, 129, 0.4) !important; border-radius: 8px !important; }
     .subject-card.highlight-next * { color: #0f172a !important; }
 
-    .connector-btn { 
-        position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); 
-        width: 24px; height: 24px; background-color: #10b981; color: white; 
-        border-radius: 50%; display: none; justify-content: center; align-items: center; 
-        font-size: 16px; font-weight: bold; cursor: crosshair; 
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 20; border: 2px solid white; 
-    }
+    .connector-btn { position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); width: 24px; height: 24px; background-color: #10b981; color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; font-size: 16px; font-weight: bold; cursor: crosshair; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 20; border: 2px solid white; }
     .subject-card:hover .connector-btn { display: flex; }
 
-    /* TOOLTIP Y BOTÓN DE AUTOCORRECCIÓN */
-    .custom-tooltip { 
-        position: absolute; 
-        bottom: calc(100% + 5px); 
-        left: 50%; 
-        transform: translateX(-50%); 
-        background: #1e293b; 
-        color: #fff; 
-        padding: 8px 12px; 
-        border-radius: 6px; 
-        font-size: 11px; 
-        font-weight: 500; 
-        text-align: center; 
-        width: 180px; 
-        z-index: 100; 
-        opacity: 0; 
-        visibility: hidden; 
-        transition: opacity 0.15s ease-out; 
-        box-shadow: 0 4px 6px rgba(0,0,0,0.15); 
-    }
-    .custom-tooltip::before {
-        content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 10px; background: transparent; 
-    }
-    .custom-tooltip::after { 
-        content: ''; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #1e293b transparent transparent transparent; 
-    }
+    .custom-tooltip { position: absolute; bottom: calc(100% + 5px); left: 50%; transform: translateX(-50%); background: #1e293b; color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 11px; font-weight: 500; text-align: center; width: 180px; z-index: 100; opacity: 0; visibility: hidden; transition: opacity 0.15s ease-out; box-shadow: 0 4px 6px rgba(0,0,0,0.15); }
+    .custom-tooltip::before { content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 10px; background: transparent; }
+    .custom-tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #1e293b transparent transparent transparent; }
     .subject-card:hover .custom-tooltip { opacity: 1; visibility: visible; }
 
-    .btn-fix {
-        display: block; margin-top: 8px; padding: 6px; width: 100%; background-color: #3b82f6; color: white;
-        border: none; border-radius: 4px; font-size: 10.5px; font-weight: bold; cursor: pointer; transition: background-color 0.2s;
-    }
+    .btn-fix { display: block; margin-top: 8px; padding: 6px; width: 100%; background-color: #3b82f6; color: white; border: none; border-radius: 4px; font-size: 10.5px; font-weight: bold; cursor: pointer; transition: background-color 0.2s; }
     .btn-fix:hover { background-color: #2563eb; }
 
     .edit-btn { position: absolute; top: -6px; right: -6px; background: #3b82f6; color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.3); z-index: 20; }
     .subject-card:hover .edit-btn { display: flex; }
 
-    /* Estilos de líneas de conexión */
     path.connection { fill: none; stroke: #64748b; stroke-width: 2.5; opacity: 0.7; transition: stroke 0.2s, stroke-width 0.2s, opacity: 0.2s; }
     path.connection.corequisite { stroke: var(--coreq-color); stroke-width: 2.5; stroke-dasharray: 5, 4; opacity: 0.85; }
     path.connection.highlight-req { stroke: var(--highlight-req) !important; stroke-width: 4 !important; opacity: 1 !important; }
     path.connection.highlight-next { stroke: var(--highlight-next) !important; stroke-width: 4 !important; opacity: 1 !important; }
-    
     path.connection.drawn { pointer-events: stroke; cursor: pointer; }
     path.connection.drawn:hover { stroke: #ef4444 !important; stroke-width: 4px !important; opacity: 1 !important; }
 
@@ -607,7 +479,6 @@
     </div>
   </div>
 
-  <!-- MODAL DE ADVERTENCIA AL CARGAR NUEVA MALLA -->
   <div class="modal-overlay" id="load-warning-modal-overlay" onclick="closeLoadWarningModal()">
     <div class="modal" onclick="event.stopPropagation()">
       <h2 style="color: #f59e0b; margin-top: 0;">⚠️ Malla en Progreso</h2>
@@ -623,7 +494,6 @@
     </div>
   </div>
 
-  <!-- MODAL PARA BORRAR MALLA -->
   <div class="modal-overlay" id="reset-modal-overlay" onclick="closeResetModal()">
     <div class="modal" onclick="event.stopPropagation()">
       <h2 style="color: #dc2626; margin-top: 0;">🗑️ Borrar Malla</h2>
@@ -716,12 +586,10 @@
           </div>
       </div>
 
-      <!-- Mensaje Dinámico de Integración -->
       <div class="form-group" id="group-integracion-msg" style="display:none; font-size: 0.8em; color: #0369a1; background: #e0f2fe; padding: 10px; border-radius: 6px; border: 1px solid #bae6fd;">
           💡 Se creará la materia principal (3/0/6) y automáticamente se agregará la tarjeta de "Proyecto Integrador" (240h) en este mismo nivel si no existe.
       </div>
 
-      <!-- Mensaje Dinámico de Comunitaria -->
       <div class="form-group" id="group-comunitaria-msg" style="display:none; font-size: 0.8em; color: #15803d; background: #dcfce7; padding: 10px; border-radius: 6px; border: 1px solid #bbf7d0;">
           🌱 Se creará una tarjeta de 96h de Prácticas de Servicio Comunitario (2 Créditos).
       </div>
@@ -780,13 +648,7 @@
     const NUM_COLUMNS = 8;
     const initialData = {
       "baseCareer": null,
-      "config": {
-          "semesters": 9,
-          "minC": 14,
-          "maxC": 16,
-          "divC": 3,
-          "weeks": 16
-      },
+      "config": { "semesters": 9, "minC": 14, "maxC": 16, "divC": 3, "weeks": 16 },
       "levels": [
         { "id": "L100-1", "name": "NIVEL 100 - I" }, { "id": "L100-2", "name": "NIVEL 100 - II" },
         { "id": "L200-1", "name": "NIVEL 200 - I" }, { "id": "L200-2", "name": "NIVEL 200 - II" },
@@ -813,11 +675,6 @@
     const niceSemesterNames = ['SEMESTRE I', 'SEMESTRE II', 'SEMESTRE III', 'SEMESTRE IV', 'SEMESTRE V', 'SEMESTRE VI', 'SEMESTRE VII', 'SEMESTRE VIII', 'SEMESTRE IX'];
     const allowedCombinations = ["1/1/1", "2/0/1", "4/0/2", "2/0/4", "2/1/3", "2/2/2", "3/0/3", "3/0/6", "0/0/6", "3/1/5", "3/2/4", "4/0/5", "4/1/4", "0/0/9", "4/0/8", "4/1/7", "5/0/7", "0/0/15", "0/0/3", "0/0/12"];
 
-    function isValidCombination(compStr) {
-      if (!compStr) return false;
-      return allowedCombinations.includes(String(compStr).replace(/\s/g, ''));
-    }
-
     let state = JSON.parse(JSON.stringify(initialData));
     let pinnedSubjectId = null; 
     let lineType = 'orthogonal'; 
@@ -841,13 +698,20 @@
     window.dragAction = null; 
     window.draggedId = null; 
 
+    let isPanning = false;
+    let startX = 0, startY = 0, scrollLeftPos = 0, scrollTopPos = 0;
+    let currentMouseX = 0, currentMouseY = 0;
+    let edgeScrollInterval = null;
+
+    function isValidCombination(compStr) {
+      if (!compStr) return false;
+      return allowedCombinations.includes(String(compStr).replace(/\s/g, ''));
+    }
+
     function getRelativePos(el, container) {
-        let x = 0;
-        let y = 0;
+        let x = 0; let y = 0;
         while (el && el !== container && el.nodeName !== 'BODY') {
-            x += el.offsetLeft;
-            y += el.offsetTop;
-            el = el.offsetParent;
+            x += el.offsetLeft; y += el.offsetTop; el = el.offsetParent;
         }
         return { x, y };
     }
@@ -890,25 +754,17 @@
         state.config.semesters = parseInt(document.getElementById('conf-semesters').value) || 9;
         state.config.minC = parseFloat(document.getElementById('conf-min').value) || 14;
         state.config.maxC = parseFloat(document.getElementById('conf-max').value) || 16;
-        state.config.divC = parseFloat(document.getElementById('conf-div').value) || 3; 
-        state.config.weeks = parseFloat(document.getElementById('conf-weeks').value) || 16;
         
-        persistState();
-        renderBoard();
-        drawConnections();
-        updateAnalyticsPanel();
+        persistState(); renderBoard(); drawConnections(); updateAnalyticsPanel();
     }
 
     window.toggleCodeInput = function() {
         const isNew = document.getElementById('edit-is-new').checked;
         const codeInput = document.getElementById('edit-code');
         if (isNew) {
-            codeInput.disabled = true;
-            codeInput.value = '';
-            codeInput.placeholder = 'Autogenerado al guardar';
+            codeInput.disabled = true; codeInput.value = ''; codeInput.placeholder = 'Autogenerado al guardar';
         } else {
-            codeInput.disabled = false;
-            codeInput.placeholder = 'Ej: MATG1046';
+            codeInput.disabled = false; codeInput.placeholder = 'Ej: MATG1046';
         }
         updateLevelOptions();
     };
@@ -920,14 +776,10 @@
         const levelSelect = document.getElementById('edit-level');
         const level2Select = document.getElementById('edit-level-2');
         
-        const cfg = state.config || initialData.config;
-        const totalLvl = cfg.semesters;
-
         [levelSelect, level2Select].forEach(selectEl => {
             if(!selectEl) return;
             Array.from(selectEl.options).forEach((opt, idx) => {
                 let disabled = false;
-
                 if (codeInput === 'IDIG2012') {
                     if (idx !== 1 && idx !== 2) disabled = true;
                 } else if (nameInput.startsWith('FUNDAMENTOS DE PROGRAMACIÓN') || nameInput.startsWith('FUNDAMENTOS DE PROGRAMACION')) {
@@ -941,15 +793,11 @@
                 } else if (tipo === 'PRÁCTICAS COMUNITARIAS') {
                     if (idx < 5) disabled = true;
                 }
-
                 opt.disabled = disabled;
             });
-
             if (selectEl.options[selectEl.selectedIndex] && selectEl.options[selectEl.selectedIndex].disabled) {
                 for(let i=0; i<selectEl.options.length; i++) {
-                    if(!selectEl.options[i].disabled) {
-                        selectEl.selectedIndex = i; break;
-                    }
+                    if(!selectEl.options[i].disabled) { selectEl.selectedIndex = i; break; }
                 }
             }
         });
@@ -971,7 +819,7 @@
         
         persistState(); renderBoard(); setTimeout(drawConnections, 200); updateAnalyticsPanel();
         showToast('Proyecto Integrador auto-completado.', 'success');
-    }
+    };
 
     function moveSubjectToLevelHelper(subj, targetLevelId) {
         const usedCols = state.subjects.filter(s => s.level === targetLevelId && s.id !== subj.id).map(s => s.col);
@@ -983,44 +831,31 @@
         for (let i=0; i<NUM_COLUMNS; i++) {
             if (!usedCols.includes(i)) { freeCol = i; break; }
         }
-        subj.level = targetLevelId;
-        subj.col = freeCol;
+        subj.level = targetLevelId; subj.col = freeCol;
         return true;
     }
 
     window.fixSubject = function(e, id, fixType) {
-        e.stopPropagation();
-        saveStateToHistory();
-        const subj = state.subjects.find(s => s.id === id);
-        if(!subj) return;
+        e.stopPropagation(); saveStateToHistory(); const subj = state.subjects.find(s => s.id === id); if(!subj) return;
         
         if (fixType === 'sostenibilidad') {
-            subj.name = 'SOSTENIBILIDAD &20';
-            subj.components = '3/0/3';
-            subj.sum = 6;
-            subj.tipoMateria = 'EDUCACIÓN GENERAL';
+            subj.name = 'SOSTENIBILIDAD &20'; subj.components = '3/0/3'; subj.sum = 6; subj.tipoMateria = 'EDUCACIÓN GENERAL';
         } else if (fixType === 'move_sostenibilidad' || fixType === 'move_emprendimiento') {
             moveSubjectToLevelHelper(subj, 'L300-1');
         } else if (fixType === 'emprendimiento') {
-            subj.components = '4/0/5';
-            subj.sum = 9;
+            subj.components = '4/0/5'; subj.sum = 9;
         } else if (fixType === 'ingles') {
-            subj.components = '1/1/1';
-            subj.sum = 3;
+            subj.components = '1/1/1'; subj.sum = 3;
         } else if (fixType === 'itinerario') {
-            subj.components = '3/0/3';
-            subj.sum = 6;
+            subj.components = '3/0/3'; subj.sum = 6;
         } else if (fixType === 'complementaria') {
-            subj.components = '2/0/1';
-            subj.sum = 3;
+            subj.components = '2/0/1'; subj.sum = 3;
         } else if (fixType === 'comunicacion_comp') {
-            subj.components = '4/0/2';
-            subj.sum = 6;
+            subj.components = '4/0/2'; subj.sum = 6;
         } else if (fixType === 'move_comunicacion') {
             moveSubjectToLevelHelper(subj, 'L100-2');
         } else if (fixType === 'fundamentos_comp') {
-            subj.components = '4/0/5';
-            subj.sum = 9;
+            subj.components = '4/0/5'; subj.sum = 9;
         } else if (fixType === 'move_fundamentos' || fixType === 'move_analisis') {
             moveSubjectToLevelHelper(subj, 'L100-1');
         } else if (fixType === 'fix_analisis_req') {
@@ -1028,45 +863,29 @@
         } else if (fixType === 'move_comunitarias') {
             moveSubjectToLevelHelper(subj, 'L300-2');
         } else if (fixType === 'add_pi') {
-            const cfg = state.config || initialData.config;
-            const lastLvl = state.levels[cfg.semesters - 1].id;
-            window.autoCompletePI(lastLvl);
-            return; 
+            const cfg = state.config || initialData.config; const lastLvl = state.levels[cfg.semesters - 1].id; window.autoCompletePI(lastLvl); return; 
         } else if (fixType === 'fix_practicas_format') {
-            if (subj.tipoMateria === 'PRÁCTICAS COMUNITARIAS') {
-                subj.components = '0/0/6'; subj.sum = 6;
-            } else {
-                if(subj.sum == 6) subj.components = '0/0/6';
-                else if(subj.sum == 9) subj.components = '0/0/9';
-                else if(subj.sum == 3) subj.components = '0/0/3';
-                else if(subj.sum == 12) subj.components = '0/0/12';
+            if (subj.tipoMateria === 'PRÁCTICAS COMUNITARIAS') { subj.components = '0/0/6'; subj.sum = 6; } 
+            else {
+                if(subj.sum == 6) subj.components = '0/0/6'; else if(subj.sum == 9) subj.components = '0/0/9';
+                else if(subj.sum == 3) subj.components = '0/0/3'; else if(subj.sum == 12) subj.components = '0/0/12';
                 else { subj.components = '0/0/15'; subj.sum = 15; }
             }
         }
         
-        persistState(); 
-        renderBoard(); 
-        updateAnalyticsPanel();
-        setTimeout(drawConnections, 200); 
-        showToast('Materia corregida exitosamente.', 'success');
+        persistState(); renderBoard(); updateAnalyticsPanel(); setTimeout(drawConnections, 200); showToast('Materia corregida exitosamente.', 'success');
     };
 
     function updateAnalyticsPanel() {
        if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config));
        const cfg = state.config;
-       
-       let totalSubjects = 0;
-       let totalCredits = 0;
-       let acd = 0, ape = 0, aa = 0;
-       
+       let totalSubjects = 0; let totalCredits = 0; let acd = 0, ape = 0, aa = 0;
        const excludedTypes = ["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PROYECTO INTEGRADOR", "PRÁCTICAS EMPRESARIALES"];
        const typeMap = {};
        
        Object.keys(typeDisplayNames).forEach(key => {
             const dispName = typeDisplayNames[key];
-            if (!typeMap[dispName]) {
-                typeMap[dispName] = { h: 0, c: 0, class: getTypeClass(key) };
-            }
+            if (!typeMap[dispName]) { typeMap[dispName] = { h: 0, c: 0, class: getTypeClass(key) }; }
        });
        
        if(!state.levels || !Array.isArray(state.levels)) state.levels = JSON.parse(JSON.stringify(initialData.levels));
@@ -1075,26 +894,18 @@
        if(state.subjects && Array.isArray(state.subjects)) {
            state.subjects.forEach(s => {
               if(!visibleLevelIds.includes(s.level)) return;
-              
               totalSubjects++;
               const creds = calculateCredits(s);
               totalCredits += creds;
-              
               const hours = parseHoursComponents(s.components);
               if(!excludedTypes.includes(s.tipoMateria)) {
-                 acd += hours.acd * cfg.weeks;
-                 ape += hours.ape * cfg.weeks;
-                 aa += hours.aa * cfg.weeks;
+                 acd += hours.acd * cfg.weeks; ape += hours.ape * cfg.weeks; aa += hours.aa * cfg.weeks;
               }
-              
               let tipoOriginal = s.tipoMateria || "FORMACIÓN PROFESIONAL";
               let tipoNombreLargo = typeDisplayNames[tipoOriginal] || tipoOriginal;
-              
               if(!typeMap[tipoNombreLargo]) typeMap[tipoNombreLargo] = { h: 0, c: 0, class: getTypeClass(tipoOriginal) };
-              
               typeMap[tipoNombreLargo].c += creds;
-              let subHours = s.sum * cfg.weeks;
-              typeMap[tipoNombreLargo].h += subHours;
+              typeMap[tipoNombreLargo].h += (s.sum * cfg.weeks);
            });
        }
        
@@ -1105,8 +916,7 @@
        const baseCr = cfg.semesters === 9 ? 135 : 120;
        const horasProg = baseCr * cfg.divC * cfg.weeks;
        
-       let hasWarnings = false;
-       let warningIcon = '';
+       let hasWarnings = false; let warningIcon = '';
 
        if (Math.round(horasSemestres) !== Math.round(horasProg)) {
            warningIcon = `<span style="color:#dc2626; margin-left: 6px; cursor: help; font-size: 0.85em;" title="El total de horas en semestres no coincide con las horas teóricas del programa">⚠️</span>`;
@@ -1121,16 +931,13 @@
        
        const typeContainer = document.getElementById('type-stats-list');
        typeContainer.innerHTML = '';
-
        const requiredTypes = ["Prácticas de Servicio Comunitario", "Prácticas Laborales", "Unidad de Integración Curricular"];
 
        for(const [t, data] of Object.entries(typeMap)) {
            let warnHtml = '';
            if (data.c === 0 && requiredTypes.includes(t)) {
-               hasWarnings = true;
-               warnHtml = `<br><span class="type-warn">⚠️ Faltante</span>`;
+               hasWarnings = true; warnHtml = `<br><span class="type-warn">⚠️ Faltante</span>`;
            }
-           
            typeContainer.innerHTML += `
               <div class="type-row" ${warnHtml ? 'style="background:#fef2f2; border-radius:6px; padding: 10px;"' : ''}>
                  <div style="display:flex; align-items:center;">
@@ -1150,33 +957,20 @@
        
        state.levels.slice(0, cfg.semesters).forEach((lvl, idx) => {
            let subjs = [];
-           if(state.subjects && Array.isArray(state.subjects)) {
-               subjs = state.subjects.filter(s => s.level === lvl.id);
-           }
+           if(state.subjects && Array.isArray(state.subjects)) { subjs = state.subjects.filter(s => s.level === lvl.id); }
            const lvlCreds = subjs.reduce((acc, s) => acc + calculateCredits(s), 0);
-           
            let iconHtml = '';
            if(idx === cfg.semesters - 1) {
                const hasMateriaInt = subjs.some(s => s.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR');
                const hasProjInt = subjs.some(s => s.tipoMateria === 'PROYECTO INTEGRADOR');
-
-               if (hasMateriaInt && hasProjInt) {
-                   iconHtml = `<div class="status-icon status-star" title="Último Nivel (Libre de restricciones)">⭐</div>`;
-               } else if (!hasMateriaInt && !hasProjInt) {
-                   hasWarnings = true;
-                   iconHtml = `<div class="status-icon status-warn" title="Falta Materia Integradora y Proyecto">⚠️</div>`;
-               } else if (hasMateriaInt && !hasProjInt) {
-                   hasWarnings = true;
-                   iconHtml = `<div class="status-icon status-warn" title="Falta Proyecto Integrador">⚠️</div> <button class="btn-autocomplete" onclick="autoCompletePI('${lvl.id}')">Autocompletar</button>`;
-               } else if (!hasMateriaInt && hasProjInt) {
-                   hasWarnings = true;
-                   iconHtml = `<div class="status-icon status-warn" title="Falta Unidad de Integración Curricular">⚠️</div>`;
-               }
+               if (hasMateriaInt && hasProjInt) { iconHtml = `<div class="status-icon status-star" title="Último Nivel (Libre de restricciones)">⭐</div>`; } 
+               else if (!hasMateriaInt && !hasProjInt) { hasWarnings = true; iconHtml = `<div class="status-icon status-warn" title="Falta Materia Integradora y Proyecto">⚠️</div>`; } 
+               else if (hasMateriaInt && !hasProjInt) { hasWarnings = true; iconHtml = `<div class="status-icon status-warn" title="Falta Proyecto Integrador">⚠️</div> <button class="btn-autocomplete" onclick="autoCompletePI('${lvl.id}')">Autocompletar</button>`; } 
+               else if (!hasMateriaInt && hasProjInt) { hasWarnings = true; iconHtml = `<div class="status-icon status-warn" title="Falta Unidad de Integración Curricular">⚠️</div>`; }
            } else if (lvlCreds >= cfg.minC && lvlCreds <= cfg.maxC) {
                iconHtml = `<div class="status-icon status-ok" title="Dentro de rango">✅</div>`;
            } else {
-               hasWarnings = true;
-               iconHtml = `<div class="status-icon status-warn" title="Fuera de rango (Mínimo ${cfg.minC}, Máximo ${cfg.maxC})">⚠️</div>`;
+               hasWarnings = true; iconHtml = `<div class="status-icon status-warn" title="Fuera de rango (Mínimo ${cfg.minC}, Máximo ${cfg.maxC})">⚠️</div>`;
            }
            
            semContainer.innerHTML += `
@@ -1191,116 +985,66 @@
        });
 
        const badge = document.getElementById('floating-warning-badge');
-       if (badge) {
-           badge.style.display = hasWarnings ? 'flex' : 'none';
-       }
+       if (badge) { badge.style.display = hasWarnings ? 'flex' : 'none'; }
     }
 
-    let isPanning = false;
-    let startX;
-    let startY;
-    let scrollLeftPos;
-    let scrollTopPos;
     const boardContainer = document.getElementById('board-container');
     const appBody = document.querySelector('.app-body');
     
     boardContainer.addEventListener('mousedown', (e) => {
         if (e.target.closest('.subject-card') || e.target.closest('button') || e.target.closest('.toolbar') || e.target.tagName.toLowerCase() === 'path' || e.target.closest('.analytics-panel') || e.target.closest('.modal') || e.target.closest('.custom-tooltip')) return;
-        isPanning = true; 
-        startX = e.clientX; 
-        startY = e.clientY;
-        scrollLeftPos = boardContainer.scrollLeft; 
-        scrollTopPos = appBody.scrollTop;
+        isPanning = true; startX = e.clientX; startY = e.clientY; scrollLeftPos = boardContainer.scrollLeft; scrollTopPos = appBody.scrollTop;
     });
     
     boardContainer.addEventListener('mouseleave', () => { isPanning = false; });
     boardContainer.addEventListener('mouseup', () => { isPanning = false; });
     
-    let currentMouseX = 0;
-    let currentMouseY = 0;
-
     document.addEventListener('mousemove', (e) => {
-        currentMouseX = e.clientX;
-        currentMouseY = e.clientY;
-
+        currentMouseX = e.clientX; currentMouseY = e.clientY;
         if (isPanning) {
             e.preventDefault();
-            const walkX = (e.clientX - startX) * 1.5; 
-            const walkY = (e.clientY - startY) * 1.5; 
-            boardContainer.scrollLeft = scrollLeftPos - walkX;
-            appBody.scrollTop = scrollTopPos - walkY;
+            const walkX = (e.clientX - startX) * 1.5; const walkY = (e.clientY - startY) * 1.5; 
+            boardContainer.scrollLeft = scrollLeftPos - walkX; appBody.scrollTop = scrollTopPos - walkY;
         }
-
-        if (ghostState !== 'IDLE') { 
-            updateGhostLine(e.clientX, e.clientY); 
-            startEdgeScroll(); 
-        }
+        if (ghostState !== 'IDLE') { updateGhostLine(e.clientX, e.clientY); startEdgeScroll(); }
     });
 
-    document.addEventListener('dragover', (e) => {
-        currentMouseX = e.clientX;
-        currentMouseY = e.clientY;
-        if (window.dragAction === 'move') {
-            startEdgeScroll();
-        }
-    });
-
-    let edgeScrollInterval = null;
+    document.addEventListener('dragover', (e) => { currentMouseX = e.clientX; currentMouseY = e.clientY; if (window.dragAction === 'move') { startEdgeScroll(); } });
     
     function startEdgeScroll() {
         if (edgeScrollInterval) return;
         edgeScrollInterval = setInterval(() => {
-            const speed = 15;
-            let scrolled = false;
-
+            const speed = 15; let scrolled = false;
             const containerRect = boardContainer.getBoundingClientRect();
-            const leftThreshold = containerRect.left + 300; 
-            const rightThreshold = containerRect.right - 80;
+            const leftThreshold = containerRect.left + 300; const rightThreshold = containerRect.right - 80;
 
-            if (currentMouseX < leftThreshold && boardContainer.scrollLeft > 0) {
-                boardContainer.scrollLeft -= speed;
-                scrolled = true;
-            } else if (currentMouseX > rightThreshold) {
-                boardContainer.scrollLeft += speed;
-                scrolled = true;
-            }
+            if (currentMouseX < leftThreshold && boardContainer.scrollLeft > 0) { boardContainer.scrollLeft -= speed; scrolled = true; } 
+            else if (currentMouseX > rightThreshold) { boardContainer.scrollLeft += speed; scrolled = true; }
 
             const headerElement = document.querySelector('.sticky-header');
             const topThreshold = headerElement ? headerElement.offsetHeight + 50 : 100;
             const bottomThreshold = window.innerHeight - 80;
 
-            if (currentMouseY < topThreshold && appBody.scrollTop > 0) {
-                appBody.scrollTop -= speed;
-                scrolled = true;
-            } else if (currentMouseY > bottomThreshold) {
-                appBody.scrollTop += speed;
-                scrolled = true;
-            }
+            if (currentMouseY < topThreshold && appBody.scrollTop > 0) { appBody.scrollTop -= speed; scrolled = true; } 
+            else if (currentMouseY > bottomThreshold) { appBody.scrollTop += speed; scrolled = true; }
 
-            if (scrolled && ghostState !== 'IDLE') {
-                updateGhostLine(currentMouseX, currentMouseY);
-            } else if (!scrolled) {
-                stopEdgeScroll();
-            }
+            if (scrolled && ghostState !== 'IDLE') { updateGhostLine(currentMouseX, currentMouseY); } 
+            else if (!scrolled) { stopEdgeScroll(); }
         }, 20);
     }
     
-    function stopEdgeScroll() {
-        if (edgeScrollInterval) { clearInterval(edgeScrollInterval); edgeScrollInterval = null; }
-    }
+    function stopEdgeScroll() { if (edgeScrollInterval) { clearInterval(edgeScrollInterval); edgeScrollInterval = null; } }
 
     function formatLevel(lvl) { return lvl ? String(lvl).replace('L', '') : ''; }
 
     function parseNameReq(name) {
       if (!name) return { cleanName: '', reqNum: null };
-      const parts = String(name).split('&');
-      return { cleanName: parts[0].trim(), reqNum: parts.length > 1 ? parts[1].trim() : null };
+      const parts = String(name).split('&'); return { cleanName: parts[0].trim(), reqNum: parts.length > 1 ? parts[1].trim() : null };
     }
 
     function parseHoursComponents(componentsStr) {
       if (!componentsStr) return { acd: 0, ape: 0, aa: 0 };
-      const str = String(componentsStr);
-      const parts = str.split('/').map(p => parseFloat(p) || 0);
+      const str = String(componentsStr); const parts = str.split('/').map(p => parseFloat(p) || 0);
       return { acd: parts[0] || 0, ape: parts[1] || 0, aa: parts[2] || 0 };
     }
 
@@ -1323,39 +1067,27 @@
 
     function setCachedResult(sheet, cellRef, numericResult) {
       let cell = sheet.getCell(cellRef);
-      if (cell.value && (cell.value.formula || cell.value.sharedFormula)) {
-        cell.value = { ...cell.value, result: numericResult };
-      } else if (cell.value && typeof cell.value === 'object') {
-        cell.value.result = numericResult;
-      } else {
-        cell.value = numericResult;
-      }
+      if (cell.value && (cell.value.formula || cell.value.sharedFormula)) { cell.value = { ...cell.value, result: numericResult }; } 
+      else if (cell.value && typeof cell.value === 'object') { cell.value.result = numericResult; } 
+      else { cell.value = numericResult; }
     }
 
     function showToast(message, type = 'info') {
-      const container = document.getElementById('toast-container');
-      const toast = document.createElement('div');
-      toast.className = `toast ${type}`;
-      let icon = type === 'success' ? '✅' : type === 'error' ? '⚠️' : 'ℹ️';
-      toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
-      container.appendChild(toast);
-      setTimeout(() => toast.classList.add('show'), 10);
+      const container = document.getElementById('toast-container'); const toast = document.createElement('div'); toast.className = `toast ${type}`;
+      let icon = type === 'success' ? '✅' : type === 'error' ? '⚠️' : 'ℹ️'; toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+      container.appendChild(toast); setTimeout(() => toast.classList.add('show'), 10);
       setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3500);
     }
 
     function persistState() {
-      const fullSave = { stateData: state, linePreference: lineType };
-      localStorage.setItem('malla_espol_autosave', JSON.stringify(fullSave));
+      const fullSave = { stateData: state, linePreference: lineType }; localStorage.setItem('malla_espol_autosave', JSON.stringify(fullSave));
     }
 
     async function loadCatalogo() {
       const container = document.getElementById('dropdown-json');
       try {
-        const response = await fetch('./catalogo.json');
-        if (!response.ok) throw new Error('Catálogo no encontrado');
-        catalogoGlobal = await response.json();
-        renderMenuFacultades();
-        renderSubtitleDropdownContent();
+        const response = await fetch('./catalogo.json'); if (!response.ok) throw new Error('Catálogo no encontrado');
+        catalogoGlobal = await response.json(); renderMenuFacultades(); renderSubtitleDropdownContent();
       } catch (err) {
         const errorHtml = `<div style="padding: 10px; font-size: 0.8em; color: #ef4444; text-align: center;">No se pudo cargar el catálogo.</div>`;
         if (container) container.innerHTML = `<a href="#" style="color: var(--accent-color); font-weight: bold;" onclick="triggerImportJSON();">📁 Cargar archivo local...</a>` + errorHtml;
@@ -1364,43 +1096,28 @@
 
     async function loadBaseCareerCodes(careerName) {
         baseSubjectCodes = [];
-        if (!catalogoGlobal || !careerName) { 
-            renderBoard(); 
-            setTimeout(() => { drawConnections(); updateAnalyticsPanel(); }, 200);
-            return; 
-        }
+        if (!catalogoGlobal || !careerName) { renderBoard(); setTimeout(() => { drawConnections(); updateAnalyticsPanel(); }, 200); return; }
         
-        let baseRuta = null;
-        catalogoGlobal.facultades.forEach(f => f.carreras.forEach(c => { 
-            if(c.nombre === careerName) baseRuta = c.ruta; 
-        }));
+        let baseRuta = null; catalogoGlobal.facultades.forEach(f => f.carreras.forEach(c => { if(c.nombre === careerName) baseRuta = c.ruta; }));
         
         if (baseRuta) {
             try {
                 const resp = await fetch(baseRuta);
-                if (resp.ok) {
-                    const baseData = await resp.json();
-                    baseSubjectCodes = (baseData.subjects || []).map(s => s.code.toUpperCase());
-                }
+                if (resp.ok) { const baseData = await resp.json(); baseSubjectCodes = (baseData.subjects || []).map(s => s.code.toUpperCase()); }
             } catch(e) { console.error("Error cargando malla base para la etiqueta:", e); }
         }
-        
-        renderBoard();
-        setTimeout(() => { drawConnections(); updateAnalyticsPanel(); }, 200);
+        renderBoard(); setTimeout(() => { drawConnections(); updateAnalyticsPanel(); }, 200);
     }
 
     function renderMenuFacultades() {
-      const container = document.getElementById('dropdown-json');
-      if (!catalogoGlobal) return;
+      const container = document.getElementById('dropdown-json'); if (!catalogoGlobal) return;
       let html = `<a href="#" style="color: var(--accent-color); font-weight: bold;" onclick="triggerImportJSON();">📁 Cargar archivo local...</a><div class="dropdown-divider"></div><div class="dropdown-header">Facultades</div>`;
       catalogoGlobal.facultades.forEach((facultad, index) => { html += `<a href="#" onclick="renderMenuCarreras(${index}, event)">${facultad.nombre} <span>➡️</span></a>`; });
       container.innerHTML = html;
     }
 
     function renderMenuCarreras(indexFacultad, event) {
-      if (event) { event.preventDefault(); event.stopPropagation(); } 
-      const container = document.getElementById('dropdown-json');
-      const facultad = catalogoGlobal.facultades[indexFacultad];
+      if (event) { event.preventDefault(); event.stopPropagation(); } const container = document.getElementById('dropdown-json'); const facultad = catalogoGlobal.facultades[indexFacultad];
       let html = `<a href="#" class="btn-back-option" onclick="volverMenuFacultades(event)">⬅️ Volver a Facultades</a><div class="dropdown-header" style="margin-top: 5px;">Carreras - ${facultad.nombre}</div>`;
       facultad.carreras.forEach(carrera => { html += `<a href="#" onclick="fetchAndLoadJSON('${carrera.ruta}', '${carrera.nombre}')">📄 ${carrera.nombre}</a>`; });
       container.innerHTML = html;
@@ -1409,17 +1126,14 @@
     function volverMenuFacultades(event) { if (event) { event.preventDefault(); event.stopPropagation(); } renderMenuFacultades(); }
 
     function renderSubtitleDropdownContent() {
-      const container = document.getElementById('dropdown-subtitle');
-      if (!catalogoGlobal) return;
+      const container = document.getElementById('dropdown-subtitle'); if (!catalogoGlobal) return;
       let html = `<div class="dropdown-header">Facultades</div>`;
       catalogoGlobal.facultades.forEach((facultad, index) => { html += `<a href="#" onclick="renderSubtitleCarreras(${index}, event)">${facultad.nombre} <span>➡️</span></a>`; });
       container.innerHTML = html;
     }
 
     function renderSubtitleCarreras(indexFacultad, event) {
-      if (event) { event.preventDefault(); event.stopPropagation(); }
-      const container = document.getElementById('dropdown-subtitle');
-      const facultad = catalogoGlobal.facultades[indexFacultad];
+      if (event) { event.preventDefault(); event.stopPropagation(); } const container = document.getElementById('dropdown-subtitle'); const facultad = catalogoGlobal.facultades[indexFacultad];
       let html = `<a href="#" class="btn-back-option" onclick="volverSubtitleFacultades(event)">⬅️ Volver a Facultades</a><div class="dropdown-header" style="margin-top: 5px;">Carreras - ${facultad.nombre}</div>`;
       facultad.carreras.forEach(carrera => { html += `<a href="#" onclick="changeBaseCareerFromSubmenu('${carrera.nombre}', event)">📄 ${carrera.nombre}</a>`; });
       container.innerHTML = html;
@@ -1433,16 +1147,12 @@
     }
 
     function changeBaseCareerFromSubmenu(careerName, event) {
-      if (event) { event.preventDefault(); event.stopPropagation(); }
-      state.baseCareer = careerName; persistState(); updateSubtitleUI(); closeAllDropdowns(); loadBaseCareerCodes(careerName);
-      showToast(`Malla base actualizada a: ${careerName}`, 'success');
+      if (event) { event.preventDefault(); event.stopPropagation(); } state.baseCareer = careerName; persistState(); updateSubtitleUI(); closeAllDropdowns(); loadBaseCareerCodes(careerName); showToast(`Malla base actualizada a: ${careerName}`, 'success');
     }
 
     function updateSubtitleUI() {
-      const container = document.getElementById('subtitle-container');
-      const nameSpan = document.getElementById('subtitle-career-name');
-      if (state.baseCareer) { nameSpan.innerHTML = `${state.baseCareer} ▾`; container.classList.add('visible'); } 
-      else { container.classList.remove('visible'); }
+      const container = document.getElementById('subtitle-container'); const nameSpan = document.getElementById('subtitle-career-name');
+      if (state.baseCareer) { nameSpan.innerHTML = `${state.baseCareer} ▾`; container.classList.add('visible'); } else { container.classList.remove('visible'); }
     }
 
     function toggleJSONDropdown(e) { e.preventDefault(); e.stopPropagation(); closeAllDropdowns(); const dropdown = document.getElementById("dropdown-json"); dropdown.classList.toggle("show"); if (dropdown.classList.contains("show")) renderMenuFacultades(); }
@@ -1453,8 +1163,7 @@
 
     function toggleLineType() {
       if (lineType === 'orthogonal') { lineType = 'curved'; } else { lineType = 'orthogonal'; }
-      persistState(); drawConnections(); 
-      showToast(`Líneas cambiadas a modo ${lineType === 'orthogonal' ? 'recto' : 'curvo'}.`, 'info');
+      persistState(); drawConnections(); showToast(`Líneas cambiadas a modo ${lineType === 'orthogonal' ? 'recto' : 'curvo'}.`, 'info');
     }
 
     function saveStateToHistory() { historyStack.push(JSON.stringify(state)); redoStack = []; updateUndoRedoButtons(); }
@@ -1485,30 +1194,20 @@
     });
 
     document.body.addEventListener('click', (e) => {
-        if (!e.target.closest('.dropbtn') && !e.target.closest('.dropdown-content') && !e.target.closest('.subtitle-dropdown')) { 
-            closeAllDropdowns(); 
-        }
-        
+        if (!e.target.closest('.dropbtn') && !e.target.closest('.dropdown-content') && !e.target.closest('.subtitle-dropdown')) { closeAllDropdowns(); }
         if (!e.target.closest('.subject-card') && !e.target.closest('.toolbar') && !e.target.closest('.modal') && !e.target.closest('.analytics-panel')) {
           pinnedSubjectId = null; clearHighlights(); document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('pinned'));
         }
-
         const panel = document.getElementById('analytics-panel');
         if (panel.classList.contains('open')) {
-            if (!e.target.closest('.analytics-panel') && !e.target.closest('.floating-btn')) {
-                toggleAnalyticsPanel();
-            }
+            if (!e.target.closest('.analytics-panel') && !e.target.closest('.floating-btn')) { toggleAnalyticsPanel(); }
         }
     });
 
     document.addEventListener('mousedown', (e) => {
         if (ghostState === 'CLICKED') {
-            e.preventDefault();
-            let targetCard = e.target.closest('.subject-card');
-            if (targetCard) {
-                let targetId = targetCard.id.replace('card-', '');
-                createConnection(ghostSourceId, targetId);
-            }
+            e.preventDefault(); let targetCard = e.target.closest('.subject-card');
+            if (targetCard) { let targetId = targetCard.id.replace('card-', ''); createConnection(ghostSourceId, targetId); }
             cancelGhostConnection();
         }
     }, { capture: true });
@@ -1519,18 +1218,13 @@
             const dist = Math.hypot(e.clientX - ghostStartX, e.clientY - ghostStartY);
             if (dist < 5) { ghostState = 'CLICKED'; return; }
             let targetCard = e.target.closest('.subject-card');
-            if (targetCard) {
-                let targetId = targetCard.id.replace('card-', '');
-                createConnection(ghostSourceId, targetId);
-            }
+            if (targetCard) { let targetId = targetCard.id.replace('card-', ''); createConnection(ghostSourceId, targetId); }
             cancelGhostConnection();
         }
     });
 
     document.addEventListener('dragend', () => { 
-        window.dragAction = null; 
-        window.draggedId = null;
-        stopEdgeScroll();
+        window.dragAction = null; window.draggedId = null; stopEdgeScroll();
         document.querySelectorAll('.grid-cell').forEach(c => { c.classList.remove('drag-over', 'drag-over-connect', 'insert-indicator', 'insert-indicator-right'); }); 
     });
 
@@ -1549,19 +1243,12 @@
 
     function updateGhostLine(mouseX, mouseY) {
         if (!ghostPath || !ghostSourceId) return;
-        const z = currentZoom || 1;
-        const wrapperEl = document.getElementById('board-wrapper'); 
-        const sourceCard = document.getElementById(`card-${ghostSourceId}`); 
-        if(!sourceCard) return;
+        const z = currentZoom || 1; const wrapperEl = document.getElementById('board-wrapper'); 
+        const sourceCard = document.getElementById(`card-${ghostSourceId}`); if(!sourceCard) return;
 
-        const fromPos = getRelativePos(sourceCard, wrapperEl);
-        const wrapperRect = wrapperEl.getBoundingClientRect(); 
-        
-        let x1 = fromPos.x + (sourceCard.offsetWidth / 2); 
-        let y1 = fromPos.y + sourceCard.offsetHeight; 
-        let x2 = (mouseX - wrapperRect.left) / z; 
-        let y2 = (mouseY - wrapperRect.top) / z;
-        
+        const fromPos = getRelativePos(sourceCard, wrapperEl); const wrapperRect = wrapperEl.getBoundingClientRect(); 
+        let x1 = fromPos.x + (sourceCard.offsetWidth / 2); let y1 = fromPos.y + sourceCard.offsetHeight; 
+        let x2 = (mouseX - wrapperRect.left) / z; let y2 = (mouseY - wrapperRect.top) / z;
         ghostPath.setAttribute('d', `M ${x1} ${y1} L ${x2} ${y2}`);
     }
 
@@ -1576,167 +1263,80 @@
         document.getElementById('delete-conn-modal-overlay').style.display = 'flex';
     }
 
-    function closeDeleteConnModal() {
-        pendingDeleteConn = null; document.getElementById('delete-conn-modal-overlay').style.display = 'none';
-    }
+    function closeDeleteConnModal() { pendingDeleteConn = null; document.getElementById('delete-conn-modal-overlay').style.display = 'none'; }
 
     function confirmDeleteConn() {
         if (!pendingDeleteConn) return;
-        
-        const subj2 = state.subjects.find(s => s.id === pendingDeleteConn.toId);
-        if (subj2) {
-            const upperNameTo = String(subj2.name).toUpperCase();
-            if (upperNameTo.startsWith('ANÁLISIS Y RESOLUCIÓN DE PROBLEMAS') || upperNameTo.startsWith('ANALISIS Y RESOLUCION DE PROBLEMAS')) {
-                 // Permitimos eliminar
-            }
-        }
-        
         saveStateToHistory();
         state.connections = state.connections.filter(c => !(c.from === pendingDeleteConn.fromId && c.to === pendingDeleteConn.toId) && !(c.from === pendingDeleteConn.toId && c.to === pendingDeleteConn.fromId));
         persistState(); drawConnections(); closeDeleteConnModal(); updateAnalyticsPanel(); showToast('Conexión eliminada.', 'info');
     }
 
-    // --- CONTROL DE MODALES (AGREGAR / EDITAR) ---
     function openModalForCreate() {
-        document.getElementById('edit-id').value = '';
-        document.getElementById('modal-title').innerText = 'Agregar Nueva Materia';
-        document.getElementById('edit-tipo-materia').value = 'FORMACIÓN PROFESIONAL';
-        document.getElementById('edit-name').value = '';
-        document.getElementById('edit-is-new').checked = false;
-        document.getElementById('edit-code').value = '';
-        document.getElementById('edit-components').value = '3/1/5';
-        document.getElementById('btn-delete').style.display = 'none';
-
-        handleTipoChange(true); 
-        document.getElementById('modal-overlay').style.display = 'flex';
+        document.getElementById('edit-id').value = ''; document.getElementById('modal-title').innerText = 'Agregar Nueva Materia';
+        document.getElementById('edit-tipo-materia').value = 'FORMACIÓN PROFESIONAL'; document.getElementById('edit-name').value = '';
+        document.getElementById('edit-is-new').checked = false; document.getElementById('edit-code').value = '';
+        document.getElementById('edit-components').value = '3/1/5'; document.getElementById('btn-delete').style.display = 'none';
+        handleTipoChange(true); document.getElementById('modal-overlay').style.display = 'flex';
     }
 
     function openModalForEdit(e, id) {
-        if (e) e.stopPropagation();
-        const subj = state.subjects.find(s => s.id === id);
-        if (!subj) return;
-
-        document.getElementById('edit-id').value = subj.id;
-        document.getElementById('modal-title').innerText = 'Editar Materia';
-        document.getElementById('edit-tipo-materia').value = subj.tipoMateria || 'FORMACIÓN PROFESIONAL';
-        document.getElementById('edit-name').value = subj.name;
+        if (e) e.stopPropagation(); const subj = state.subjects.find(s => s.id === id); if (!subj) return;
+        document.getElementById('edit-id').value = subj.id; document.getElementById('modal-title').innerText = 'Editar Materia';
+        document.getElementById('edit-tipo-materia').value = subj.tipoMateria || 'FORMACIÓN PROFESIONAL'; document.getElementById('edit-name').value = subj.name;
         
         const isNew = String(subj.code).toUpperCase().startsWith('NUEVO-');
-        document.getElementById('edit-is-new').checked = isNew;
-        document.getElementById('edit-code').value = isNew ? '' : subj.code;
+        document.getElementById('edit-is-new').checked = isNew; document.getElementById('edit-code').value = isNew ? '' : subj.code;
         
         const compSelect = document.getElementById('edit-components');
         if (["PRÁCTICAS LABORALES", "PRÁCTICAS COMUNITARIAS", "PROYECTO INTEGRADOR", "U DE INTEGRACIÓN CURRICULAR", "ITINERARIO", "C. DE ARTE Y DEPORTES", "C. DE HUMANÍSTICA"].includes(subj.tipoMateria)) {
-            let found = Array.from(compSelect.options).some(o => o.value === subj.components);
-            if(found) compSelect.value = subj.components;
-        } else {
-            compSelect.value = subj.components;
-        }
+            let found = Array.from(compSelect.options).some(o => o.value === subj.components); if(found) compSelect.value = subj.components;
+        } else { compSelect.value = subj.components; }
 
-        document.getElementById('edit-level').value = subj.level;
-        document.getElementById('btn-delete').style.display = 'inline-block';
-
-        handleTipoChange(true); 
-        document.getElementById('modal-overlay').style.display = 'flex';
+        document.getElementById('edit-level').value = subj.level; document.getElementById('btn-delete').style.display = 'inline-block';
+        handleTipoChange(true); document.getElementById('modal-overlay').style.display = 'flex';
     }
 
-    function closeEditModal() {
-        document.getElementById('modal-overlay').style.display = 'none';
-    }
+    function closeEditModal() { document.getElementById('modal-overlay').style.display = 'none'; }
 
     function handleTipoChange(isInit = false) {
-        const fromInit = isInit === true; 
-        const tipo = document.getElementById('edit-tipo-materia').value;
-        const compGroup = document.getElementById('group-components');
-        const compSelect = document.getElementById('edit-components');
-        const splitGroup = document.getElementById('group-laborales-split');
-        const lvl2Group = document.getElementById('level-select-group-2');
-        const msgInt = document.getElementById('group-integracion-msg');
-        const msgCom = document.getElementById('group-comunitaria-msg');
-        const sumGroup = document.getElementById('group-sum');
-        const levelSelect = document.getElementById('edit-level');
-        const nameInput = document.getElementById('edit-name');
-        const codeInput = document.getElementById('edit-code');
-        const codeGroup = document.getElementById('group-code');
-        const isEdit = !!document.getElementById('edit-id').value;
-        const cfg = state.config || initialData.config;
-        const lastLevelId = state.levels[cfg.semesters - 1].id;
+        const fromInit = isInit === true; const tipo = document.getElementById('edit-tipo-materia').value;
+        const compGroup = document.getElementById('group-components'); const compSelect = document.getElementById('edit-components');
+        const splitGroup = document.getElementById('group-laborales-split'); const lvl2Group = document.getElementById('level-select-group-2');
+        const msgInt = document.getElementById('group-integracion-msg'); const msgCom = document.getElementById('group-comunitaria-msg');
+        const sumGroup = document.getElementById('group-sum'); const levelSelect = document.getElementById('edit-level');
+        const nameInput = document.getElementById('edit-name'); const codeInput = document.getElementById('edit-code');
+        const codeGroup = document.getElementById('group-code'); const isEdit = !!document.getElementById('edit-id').value;
+        const cfg = state.config || initialData.config; const lastLevelId = state.levels[cfg.semesters - 1].id;
 
-        const revertToDefaultType = () => {
-            setTimeout(() => {
-                document.getElementById('edit-tipo-materia').value = 'FORMACIÓN PROFESIONAL';
-                handleTipoChange();
-            }, 10);
-        };
+        const revertToDefaultType = () => { setTimeout(() => { document.getElementById('edit-tipo-materia').value = 'FORMACIÓN PROFESIONAL'; handleTipoChange(); }, 10); };
 
         if (tipo === 'U DE INTEGRACIÓN CURRICULAR') {
-            let existing = null;
-            if (state.subjects && Array.isArray(state.subjects)) {
-                existing = state.subjects.find(s => s.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR');
-            }
-            if (existing && (!isEdit || existing.id !== document.getElementById('edit-id').value)) {
-                showToast('Solo puede existir una Unidad de Integración Curricular por malla.', 'error');
-                revertToDefaultType();
-                return;
-            }
+            let existing = null; if (state.subjects && Array.isArray(state.subjects)) { existing = state.subjects.find(s => s.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR'); }
+            if (existing && (!isEdit || existing.id !== document.getElementById('edit-id').value)) { showToast('Solo puede existir una Unidad de Integración Curricular por malla.', 'error'); revertToDefaultType(); return; }
         } else if (tipo === 'PRÁCTICAS LABORALES') {
-            let isEditingLaboral = false;
-            let existingLab = null;
-            if (state.subjects && Array.isArray(state.subjects)) {
-                isEditingLaboral = isEdit && state.subjects.find(s => s.id === document.getElementById('edit-id').value)?.tipoMateria === 'PRÁCTICAS LABORALES';
-                existingLab = state.subjects.find(s => s.tipoMateria === 'PRÁCTICAS LABORALES');
-            }
-            if (existingLab && !isEditingLaboral) {
-                showToast('Ya existen Prácticas Laborales en la malla.', 'error');
-                revertToDefaultType();
-                return;
-            }
+            let isEditingLaboral = false; let existingLab = null;
+            if (state.subjects && Array.isArray(state.subjects)) { isEditingLaboral = isEdit && state.subjects.find(s => s.id === document.getElementById('edit-id').value)?.tipoMateria === 'PRÁCTICAS LABORALES'; existingLab = state.subjects.find(s => s.tipoMateria === 'PRÁCTICAS LABORALES'); }
+            if (existingLab && !isEditingLaboral) { showToast('Ya existen Prácticas Laborales en la malla.', 'error'); revertToDefaultType(); return; }
         } else if (tipo === 'PRÁCTICAS COMUNITARIAS') {
-            let isEditingComunitaria = false;
-            let existingCom = null;
-            if (state.subjects && Array.isArray(state.subjects)) {
-                isEditingComunitaria = isEdit && state.subjects.find(s => s.id === document.getElementById('edit-id').value)?.tipoMateria === 'PRÁCTICAS COMUNITARIAS';
-                existingCom = state.subjects.find(s => s.tipoMateria === 'PRÁCTICAS COMUNITARIAS');
-            }
-            if (existingCom && !isEditingComunitaria) {
-                 showToast('Ya existen Prácticas de Servicio Comunitario en la malla.', 'error');
-                 revertToDefaultType();
-                 return;
-            }
+            let isEditingComunitaria = false; let existingCom = null;
+            if (state.subjects && Array.isArray(state.subjects)) { isEditingComunitaria = isEdit && state.subjects.find(s => s.id === document.getElementById('edit-id').value)?.tipoMateria === 'PRÁCTICAS COMUNITARIAS'; existingCom = state.subjects.find(s => s.tipoMateria === 'PRÁCTICAS COMUNITARIAS'); }
+            if (existingCom && !isEditingComunitaria) { showToast('Ya existen Prácticas de Servicio Comunitario en la malla.', 'error'); revertToDefaultType(); return; }
         } else if (tipo === 'C. DE ARTE Y DEPORTES') {
             let isEditing = isEdit && state.subjects.find(s => s.id === document.getElementById('edit-id').value)?.tipoMateria === 'C. DE ARTE Y DEPORTES';
             let existing = state.subjects.find(s => s.tipoMateria === 'C. DE ARTE Y DEPORTES');
-            if (existing && !isEditing) {
-                showToast('Solo se permite una Complementaria de Artes, Deportes e Idiomas.', 'error');
-                revertToDefaultType();
-                return;
-            }
+            if (existing && !isEditing) { showToast('Solo se permite una Complementaria de Artes, Deportes e Idiomas.', 'error'); revertToDefaultType(); return; }
         } else if (tipo === 'C. DE HUMANÍSTICA') {
             let isEditing = isEdit && state.subjects.find(s => s.id === document.getElementById('edit-id').value)?.tipoMateria === 'C. DE HUMANÍSTICA';
             let existing = state.subjects.find(s => s.tipoMateria === 'C. DE HUMANÍSTICA');
-            if (existing && !isEditing) {
-                showToast('Solo se permite una Complementaria de Humanística.', 'error');
-                revertToDefaultType();
-                return;
-            }
+            if (existing && !isEditing) { showToast('Solo se permite una Complementaria de Humanística.', 'error'); revertToDefaultType(); return; }
         }
 
-        compSelect.disabled = false;
-        levelSelect.disabled = false;
-        nameInput.disabled = false; 
+        compSelect.disabled = false; levelSelect.disabled = false; nameInput.disabled = false; 
+        const isNewCb = document.getElementById('edit-is-new'); if (!isNewCb.checked) { codeInput.disabled = false; }
         
-        const isNewCb = document.getElementById('edit-is-new');
-        if (!isNewCb.checked) {
-            codeInput.disabled = false;
-        }
-        
-        codeGroup.style.display = 'block';
-        splitGroup.style.display = 'none';
-        lvl2Group.style.display = 'none';
-        msgInt.style.display = 'none';
-        msgCom.style.display = 'none';
-        compGroup.style.display = 'block';
-        sumGroup.style.display = 'block';
+        codeGroup.style.display = 'block'; splitGroup.style.display = 'none'; lvl2Group.style.display = 'none';
+        msgInt.style.display = 'none'; msgCom.style.display = 'none'; compGroup.style.display = 'block'; sumGroup.style.display = 'block';
         document.getElementById('btn-save').style.display = 'inline-block';
         
         Array.from(document.getElementById('edit-level').options).forEach(opt => opt.disabled = false);
@@ -1746,128 +1346,68 @@
         const isStandard = ["MATEMÁTICAS Y CIENCIAS BÁSICAS", "EDUCACIÓN GENERAL", "FORMACIÓN PROFESIONAL"].includes(tipo);
 
         Array.from(compSelect.options).forEach(opt => {
-            if (restrictedComps.includes(opt.value)) {
-                opt.style.display = isStandard ? 'none' : 'block';
-                opt.disabled = isStandard;
-            } else {
-                opt.style.display = 'block';
-                opt.disabled = false;
-            }
+            if (restrictedComps.includes(opt.value)) { opt.style.display = isStandard ? 'none' : 'block'; opt.disabled = isStandard; } 
+            else { opt.style.display = 'block'; opt.disabled = false; }
         });
 
-        if (isStandard && restrictedComps.includes(compSelect.value)) {
-            compSelect.value = '3/1/5';
-        }
+        if (isStandard && restrictedComps.includes(compSelect.value)) { compSelect.value = '3/1/5'; }
 
         if (!isEdit && tipo !== 'PRÁCTICAS COMUNITARIAS' && tipo !== 'PRÁCTICAS LABORALES') {
-            if (nameInput.value === 'PRÁCTICAS DE SERVICIO COMUNITARIO' || nameInput.value === 'PRÁCTICAS LABORALES') {
-                nameInput.value = '';
-                codeInput.value = '';
-            }
+            if (nameInput.value === 'PRÁCTICAS DE SERVICIO COMUNITARIO' || nameInput.value === 'PRÁCTICAS LABORALES') { nameInput.value = ''; codeInput.value = ''; }
         }
 
         if (tipo === 'ITINERARIO') {
-            compSelect.value = '3/0/3';
-            compSelect.disabled = true;
-            codeGroup.style.display = 'none';
-            if (!fromInit || nameInput.value.trim() === '') {
-                nameInput.value = 'ITINERARIO';
-            }
+            compSelect.value = '3/0/3'; compSelect.disabled = true; codeGroup.style.display = 'none';
+            if (!fromInit || nameInput.value.trim() === '') { nameInput.value = 'ITINERARIO'; }
         } else if (tipo === 'C. DE ARTE Y DEPORTES' || tipo === 'C. DE HUMANÍSTICA') {
-            compSelect.value = '2/0/1';
-            compSelect.disabled = true;
-            codeGroup.style.display = 'none';
-            if (!fromInit || nameInput.value.trim() === '') {
-                nameInput.value = tipo === 'C. DE ARTE Y DEPORTES' 
-                    ? 'COMPLEMENTARIAS DE ARTES, DEPORTES E IDIOMAS' 
-                    : 'COMPLEMENTARIAS DE HUMANÍSTICAS';
-            }
+            compSelect.value = '2/0/1'; compSelect.disabled = true; codeGroup.style.display = 'none';
+            if (!fromInit || nameInput.value.trim() === '') { nameInput.value = tipo === 'C. DE ARTE Y DEPORTES' ? 'COMPLEMENTARIAS DE ARTES, DEPORTES E IDIOMAS' : 'COMPLEMENTARIAS DE HUMANÍSTICAS'; }
         } else if (tipo === 'PRÁCTICAS COMUNITARIAS') {
-            compSelect.value = '0/0/6';
-            compGroup.style.display = 'none';
-            sumGroup.style.display = 'none';
-            msgCom.style.display = 'block';
-            nameInput.value = 'PRÁCTICAS DE SERVICIO COMUNITARIO';
-            nameInput.disabled = true;
-            codeGroup.style.display = 'none';
+            compSelect.value = '0/0/6'; compGroup.style.display = 'none'; sumGroup.style.display = 'none'; msgCom.style.display = 'block';
+            nameInput.value = 'PRÁCTICAS DE SERVICIO COMUNITARIO'; nameInput.disabled = true; codeGroup.style.display = 'none';
         } else if (tipo === 'PRÁCTICAS LABORALES') {
             if (isEdit) {
-                let subj = null;
-                if (state.subjects && Array.isArray(state.subjects)) {
-                    subj = state.subjects.find(s => s.id === document.getElementById('edit-id').value);
-                }
+                let subj = null; if (state.subjects && Array.isArray(state.subjects)) { subj = state.subjects.find(s => s.id === document.getElementById('edit-id').value); }
                 nameInput.value = 'PRÁCTICAS LABORALES'; 
-            } else {
-                nameInput.value = 'PRÁCTICAS LABORALES'; 
-                splitGroup.style.display = 'block';
-                handleSplitChange(); 
-            }
-            compSelect.value = '0/0/15'; 
-            compGroup.style.display = 'none';
-            sumGroup.style.display = 'none';
-            nameInput.disabled = true;
-            codeGroup.style.display = 'none';
+            } else { nameInput.value = 'PRÁCTICAS LABORALES'; splitGroup.style.display = 'block'; handleSplitChange(); }
+            compSelect.value = '0/0/15'; compGroup.style.display = 'none'; sumGroup.style.display = 'none'; nameInput.disabled = true; codeGroup.style.display = 'none';
         } else if (tipo === 'U DE INTEGRACIÓN CURRICULAR') {
-            compSelect.value = '3/0/6';
-            compSelect.disabled = true;
-            levelSelect.value = lastLevelId;
-            levelSelect.disabled = true;
-            msgInt.style.display = 'block';
+            compSelect.value = '3/0/6'; compSelect.disabled = true; levelSelect.value = lastLevelId; levelSelect.disabled = true; msgInt.style.display = 'block';
         }
 
-        updateSumFromSelect();
-        updateLevelOptions();
+        updateSumFromSelect(); updateLevelOptions();
     }
 
     function handleSplitChange() {
         const splitVal = document.querySelector('input[name="laboral-split"]:checked').value;
-        const lvl2Group = document.getElementById('level-select-group-2');
-        const splitOpts = document.getElementById('laboral-split-options');
+        const lvl2Group = document.getElementById('level-select-group-2'); const splitOpts = document.getElementById('laboral-split-options');
         if (splitVal === 'split') {
-            lvl2Group.style.display = 'block';
-            splitOpts.style.display = 'block';
-            document.getElementById('lbl-level-1').innerText = "Semestre para la primera parte:";
+            lvl2Group.style.display = 'block'; splitOpts.style.display = 'block'; document.getElementById('lbl-level-1').innerText = "Semestre para la primera parte:";
         } else {
-            lvl2Group.style.display = 'none';
-            splitOpts.style.display = 'none';
-            document.getElementById('lbl-level-1').innerText = "Nivel / Semestre:";
+            lvl2Group.style.display = 'none'; splitOpts.style.display = 'none'; document.getElementById('lbl-level-1').innerText = "Nivel / Semestre:";
         }
     }
 
     function saveSubjectFromModal() {
-        const id = document.getElementById('edit-id').value;
-        const tipo = document.getElementById('edit-tipo-materia').value;
-        const name = document.getElementById('edit-name').value.trim().toUpperCase();
-        const isNew = document.getElementById('edit-is-new').checked;
-        let code = document.getElementById('edit-code').value.trim().toUpperCase();
-        const components = document.getElementById('edit-components').value;
-        const sum = parseInt(document.getElementById('edit-sum').value) || 0;
-        const level = document.getElementById('edit-level').value;
+        const id = document.getElementById('edit-id').value; const tipo = document.getElementById('edit-tipo-materia').value;
+        const name = document.getElementById('edit-name').value.trim().toUpperCase(); const isNew = document.getElementById('edit-is-new').checked;
+        let code = document.getElementById('edit-code').value.trim().toUpperCase(); const components = document.getElementById('edit-components').value;
+        const sum = parseInt(document.getElementById('edit-sum').value) || 0; const level = document.getElementById('edit-level').value;
 
-        if (!name && !["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES"].includes(tipo)) {
-            showToast('El nombre de la materia es obligatorio.', 'error');
-            return;
-        }
+        if (!name && !["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES"].includes(tipo)) { showToast('El nombre de la materia es obligatorio.', 'error'); return; }
 
         if (isNew && !["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "ITINERARIO", "C. DE ARTE Y DEPORTES", "C. DE HUMANÍSTICA"].includes(tipo)) {
             code = 'NUEVO-' + Math.floor(Math.random() * 10000);
         } else if (!isNew && !code && !["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "ITINERARIO", "C. DE ARTE Y DEPORTES", "C. DE HUMANÍSTICA", "PROYECTO INTEGRADOR"].includes(tipo)) {
-            showToast('El código es obligatorio si no es materia nueva.', 'error');
-            return;
+            showToast('El código es obligatorio si no es materia nueva.', 'error'); return;
         }
 
         if (id && state.subjects.find(s=>s.id===id) && state.subjects.find(s=>s.id===id).level !== level) {
             const usedCols = state.subjects.filter(s => s.level === level && s.id !== id).map(s => s.col);
-            if (usedCols.length >= NUM_COLUMNS) {
-                showToast('No hay espacio en el semestre seleccionado.', 'error');
-                return;
-            }
+            if (usedCols.length >= NUM_COLUMNS) { showToast('No hay espacio en el semestre seleccionado.', 'error'); return; }
         } else if (!id) {
             const usedCols = state.subjects.filter(s => s.level === level).map(s => s.col);
-            if (usedCols.length >= NUM_COLUMNS) {
-                showToast('No hay espacio en el semestre seleccionado.', 'error');
-                return;
-            }
+            if (usedCols.length >= NUM_COLUMNS) { showToast('No hay espacio en el semestre seleccionado.', 'error'); return; }
         }
 
         saveStateToHistory();
@@ -1875,11 +1415,8 @@
         if (tipo === 'PRÁCTICAS LABORALES' && !id) {
             const splitVal = document.querySelector('input[name="laboral-split"]:checked').value;
             if (splitVal === 'split') {
-                const dist = document.getElementById('laboral-split-dist').value;
-                const level2 = document.getElementById('edit-level-2').value;
-                
-                let p1 = {c: '0/0/6', s: 6, n: 'PRÁCTICAS LABORALES 1'};
-                let p2 = {c: '0/0/9', s: 9, n: 'PRÁCTICAS LABORALES 2'};
+                const dist = document.getElementById('laboral-split-dist').value; const level2 = document.getElementById('edit-level-2').value;
+                let p1 = {c: '0/0/6', s: 6, n: 'PRÁCTICAS LABORALES 1'}; let p2 = {c: '0/0/9', s: 9, n: 'PRÁCTICAS LABORALES 2'};
                 if (dist === '3-2') { p1 = {c: '0/0/9', s: 9, n: 'PRÁCTICAS LABORALES 1'}; p2 = {c: '0/0/6', s: 6, n: 'PRÁCTICAS LABORALES 2'}; }
                 if (dist === '1-4') { p1 = {c: '0/0/3', s: 3, n: 'PRÁCTICAS LABORALES 1'}; p2 = {c: '0/0/12', s: 12, n: 'PRÁCTICAS LABORALES 2'}; }
                 if (dist === '4-1') { p1 = {c: '0/0/12', s: 12, n: 'PRÁCTICAS LABORALES 1'}; p2 = {c: '0/0/3', s: 3, n: 'PRÁCTICAS LABORALES 2'}; }
@@ -1894,35 +1431,20 @@
                 state.subjects.push({ id: 'PRACT&EMP', code: 'PRACT&EMP', name: 'PRÁCTICAS LABORALES', components: '0/0/15', sum: 15, level: level, col: freeCol, tipoMateria: 'PRÁCTICAS LABORALES' });
             }
         } else {
-            let subj = state.subjects.find(s => s.id === id);
-            let isNewSubj = false;
-            
+            let subj = state.subjects.find(s => s.id === id); let isNewSubj = false;
             if (!subj) {
-                subj = {};
-                isNewSubj = true;
-                let freeCol = 0;
-                while(state.subjects.some(s => s.level === level && s.col === freeCol)) freeCol++;
-                subj.col = freeCol;
-
+                subj = {}; isNewSubj = true; let freeCol = 0; while(state.subjects.some(s => s.level === level && s.col === freeCol)) freeCol++; subj.col = freeCol;
                 if (tipo === 'C. DE ARTE Y DEPORTES') subj.id = 'A&D&I';
                 else if (tipo === 'C. DE HUMANÍSTICA') subj.id = 'HUM';
                 else if (tipo === 'PRÁCTICAS COMUNITARIAS') subj.id = 'PRACT&COM';
                 else if (tipo === 'ITINERARIO') {
                     const itinCount = state.subjects.filter(s => s.tipoMateria === 'ITINERARIO').length;
-                    const romanos = ['I', 'II', 'III', 'IV'];
-                    subj.id = 'IT&' + (romanos[itinCount] || (itinCount + 1));
-                } else if (tipo === 'U DE INTEGRACIÓN CURRICULAR') {
-                    subj.id = code; 
-                } else {
-                    subj.id = code;
-                }
+                    const romanos = ['I', 'II', 'III', 'IV']; subj.id = 'IT&' + (romanos[itinCount] || (itinCount + 1));
+                } else if (tipo === 'U DE INTEGRACIÓN CURRICULAR') { subj.id = code; } 
+                else { subj.id = code; }
             }
 
-            subj.tipoMateria = tipo;
-            subj.name = name || tipo; 
-            subj.components = components;
-            subj.sum = sum;
-            subj.level = level;
+            subj.tipoMateria = tipo; subj.name = name || tipo; subj.components = components; subj.sum = sum; subj.level = level;
 
             if (tipo === 'C. DE ARTE Y DEPORTES') subj.code = 'A&D&I';
             else if (tipo === 'C. DE HUMANÍSTICA') subj.code = 'HUM';
@@ -1933,31 +1455,20 @@
             else subj.code = code;
 
             if (isNewSubj) state.subjects.push(subj);
-
-            if (tipo === 'U DE INTEGRACIÓN CURRICULAR' && isNewSubj) {
-                 setTimeout(() => window.autoCompletePI(level), 100);
-            }
+            if (tipo === 'U DE INTEGRACIÓN CURRICULAR' && isNewSubj) { setTimeout(() => window.autoCompletePI(level), 100); }
         }
 
-        persistState();
-        closeEditModal();
-        renderBoard();
-        drawConnections();
-        updateAnalyticsPanel();
-        showToast('Materia guardada correctamente.', 'success');
+        persistState(); closeEditModal(); renderBoard(); drawConnections(); updateAnalyticsPanel(); showToast('Materia guardada correctamente.', 'success');
     }
 
     window.updateSumFromSelect = function() {
-      const val = document.getElementById('edit-components').value;
-      const parts = val.split('/'); let sum = 0; parts.forEach(p => sum += parseFloat(p) || 0);
+      const val = document.getElementById('edit-components').value; const parts = val.split('/'); let sum = 0; parts.forEach(p => sum += parseFloat(p) || 0);
       document.getElementById('edit-sum').value = sum;
     };
 
     async function init() {
       const savedMemory = localStorage.getItem('malla_espol_autosave');
-      if (savedMemory) {
-        tempSavedState = savedMemory; document.getElementById('restore-modal-overlay').style.display = 'flex';
-      }
+      if (savedMemory) { tempSavedState = savedMemory; document.getElementById('restore-modal-overlay').style.display = 'flex'; }
       await loadCatalogo();
       if (!savedMemory) { finishInit(); }
     }
@@ -1967,75 +1478,34 @@
       if (tempSavedState) {
         try {
           const parsed = JSON.parse(tempSavedState);
-          if (parsed.stateData) { 
-              state = parsed.stateData; 
-              if(parsed.linePreference) lineType = parsed.linePreference; 
-          } else { 
-              state = parsed; 
-          }
-          
+          if (parsed.stateData) { state = parsed.stateData; if(parsed.linePreference) lineType = parsed.linePreference; } else { state = parsed; }
           if (!state || typeof state !== 'object') state = JSON.parse(JSON.stringify(initialData));
-          
           if (!state.config) state.config = JSON.parse(JSON.stringify(initialData.config));
-          state.config = { ...initialData.config, ...state.config };
-          state.config.semesters = parseInt(state.config.semesters) || 9;
-          
-          if (!state.levels || !Array.isArray(state.levels) || state.levels.length === 0) {
-              state.levels = JSON.parse(JSON.stringify(initialData.levels));
-          }
-          
+          state.config = { ...initialData.config, ...state.config }; state.config.semesters = parseInt(state.config.semesters) || 9;
+          if (!state.levels || !Array.isArray(state.levels) || state.levels.length === 0) { state.levels = JSON.parse(JSON.stringify(initialData.levels)); }
           if (!state.subjects || !Array.isArray(state.subjects)) state.subjects = [];
           state.subjects = state.subjects.map(s => {
-              return {
-                  ...s,
-                  id: s.id || 'CUSTOM_' + Math.floor(Math.random() * 10000),
-                  tipoMateria: String(s.tipoMateria || 'FORMACIÓN PROFESIONAL'),
-                  components: String(s.components || '3/1/5'),
-                  sum: Number(s.sum) || 9,
-                  level: String(s.level || 'L100-1'),
-                  col: Number(s.col) || 0
-              };
+              return { ...s, id: s.id || 'CUSTOM_' + Math.floor(Math.random() * 10000), tipoMateria: String(s.tipoMateria || 'FORMACIÓN PROFESIONAL'), components: String(s.components || '3/1/5'), sum: Number(s.sum) || 9, level: String(s.level || 'L100-1'), col: Number(s.col) || 0 };
           });
-
           if (!state.connections || !Array.isArray(state.connections)) state.connections = [];
-          
-        } catch(e) {
-          console.error("Error al restaurar caché:", e);
-          state = JSON.parse(JSON.stringify(initialData));
-        }
+        } catch(e) { console.error("Error al restaurar caché:", e); state = JSON.parse(JSON.stringify(initialData)); }
         tempSavedState = null;
       }
-      showToast('Trabajo anterior restaurado.', 'success');
-      finishInit();
+      showToast('Trabajo anterior restaurado.', 'success'); finishInit();
     }
 
     function discardPreviousSession() {
-      document.getElementById('restore-modal-overlay').style.display = 'none';
-      localStorage.removeItem('malla_espol_autosave'); tempSavedState = null;
-      state = JSON.parse(JSON.stringify(initialData));
-      finishInit();
+      document.getElementById('restore-modal-overlay').style.display = 'none'; localStorage.removeItem('malla_espol_autosave'); tempSavedState = null;
+      state = JSON.parse(JSON.stringify(initialData)); finishInit();
     }
 
     function finishInit() {
       if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config));
-      document.getElementById('conf-semesters').value = state.config.semesters;
-      document.getElementById('conf-min').value = state.config.minC;
-      document.getElementById('conf-max').value = state.config.maxC;
-      document.getElementById('conf-div').value = state.config.divC;
-      document.getElementById('conf-weeks').value = state.config.weeks;
-
-      updateSubtitleUI(); 
-      syncConfigUI(); 
-
-      if (state.baseCareer) { 
-          loadBaseCareerCodes(state.baseCareer); 
-      } else { 
-          renderBoard(); 
-          setTimeout(() => { drawConnections(); updateAnalyticsPanel(); }, 200); 
-      }
-      
-      window.addEventListener('resize', drawConnections); 
-      updateUndoRedoButtons();
+      document.getElementById('conf-semesters').value = state.config.semesters; document.getElementById('conf-min').value = state.config.minC;
+      document.getElementById('conf-max').value = state.config.maxC; document.getElementById('conf-div').value = state.config.divC; document.getElementById('conf-weeks').value = state.config.weeks;
+      updateSubtitleUI(); syncConfigUI(); 
+      if (state.baseCareer) { loadBaseCareerCodes(state.baseCareer); } else { renderBoard(); setTimeout(() => { drawConnections(); updateAnalyticsPanel(); }, 200); }
+      window.addEventListener('resize', drawConnections); updateUndoRedoButtons();
     }
 
     function renderBoard() {
@@ -2048,29 +1518,21 @@
       visibleLevels.forEach(level => {
         const row = document.createElement('div'); row.className = 'level-row';
         let subjectsInLevel = [];
-        if(state.subjects && Array.isArray(state.subjects)) {
-            subjectsInLevel = state.subjects.filter(s => s.level === level.id);
-        }
+        if(state.subjects && Array.isArray(state.subjects)) { subjectsInLevel = state.subjects.filter(s => s.level === level.id); }
         const totalCredits = subjectsInLevel.reduce((acc, curr) => acc + calculateCredits(curr), 0);
         
-        let totalACD = 0; let totalAPE = 0; let totalAA = 0;
-        let specialHours = 0;
-        
+        let totalACD = 0; let totalAPE = 0; let totalAA = 0; let specialHours = 0;
         const excludedTypes = ["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PROYECTO INTEGRADOR", "PRÁCTICAS EMPRESARIALES"];
 
         subjectsInLevel.forEach(subj => {
           if (!excludedTypes.includes(subj.tipoMateria)) {
-              const hours = parseHoursComponents(subj.components); 
-              totalACD += hours.acd; totalAPE += hours.ape; totalAA += hours.aa;
+              const hours = parseHoursComponents(subj.components); totalACD += hours.acd; totalAPE += hours.ape; totalAA += hours.aa;
           } else {
-              const creds = calculateCredits(subj);
-              specialHours += creds * state.config.divC * state.config.weeks;
+              const creds = calculateCredits(subj); specialHours += creds * state.config.divC * state.config.weeks;
           }
         });
         
-        let totalACDSem = totalACD * state.config.weeks;
-        let totalAPESem = totalAPE * state.config.weeks;
-        let totalAASem = totalAA * state.config.weeks;
+        let totalACDSem = totalACD * state.config.weeks; let totalAPESem = totalAPE * state.config.weeks; let totalAASem = totalAA * state.config.weeks;
         let totalHoursWeeklyRegular = totalACD + totalAPE + totalAA; 
         let totalHoursSemester = totalACDSem + totalAPESem + totalAASem + specialHours;
 
@@ -2093,20 +1555,14 @@
           
           cell.ondragover = (e) => { 
             e.preventDefault(); 
-            if (window.dragAction === 'connect') { 
-                cell.classList.add('drag-over-connect'); 
-            } else if (window.dragAction === 'move') { 
+            if (window.dragAction === 'connect') { cell.classList.add('drag-over-connect'); } 
+            else if (window.dragAction === 'move') { 
                 const isOccupiedByOther = subjectsInLevel.some(s => s.col === colIndex && s.id !== window.draggedId);
                 if (isOccupiedByOther) {
                     const draggedSubj = state.subjects.find(s => s.id === window.draggedId);
-                    if (draggedSubj && draggedSubj.level === level.id && draggedSubj.col < colIndex) {
-                        cell.classList.add('insert-indicator-right');
-                    } else {
-                        cell.classList.add('insert-indicator');
-                    }
-                } else {
-                    cell.classList.add('drag-over'); 
-                }
+                    if (draggedSubj && draggedSubj.level === level.id && draggedSubj.col < colIndex) { cell.classList.add('insert-indicator-right'); } 
+                    else { cell.classList.add('insert-indicator'); }
+                } else { cell.classList.add('drag-over'); }
             }
           };
           
@@ -2119,119 +1575,72 @@
         }
       });
       
-      const optL500 = document.getElementById('opt-l500');
-      if(optL500) optL500.style.display = state.config.semesters === 9 ? 'block' : 'none';
-      const optL500_2 = document.getElementById('opt-l500-2');
-      if(optL500_2) optL500_2.style.display = state.config.semesters === 9 ? 'block' : 'none';
+      const optL500 = document.getElementById('opt-l500'); if(optL500) optL500.style.display = state.config.semesters === 9 ? 'block' : 'none';
+      const optL500_2 = document.getElementById('opt-l500-2'); if(optL500_2) optL500_2.style.display = state.config.semesters === 9 ? 'block' : 'none';
     }
 
     function createSubjectCard(subj) {
-      const card = document.createElement('div'); const isPinned = (pinnedSubjectId === subj.id);
-      const tipoClase = getTypeClass(subj.tipoMateria);
-
+      const card = document.createElement('div'); const isPinned = (pinnedSubjectId === subj.id); const tipoClase = getTypeClass(subj.tipoMateria);
       card.className = `subject-card ${tipoClase} ${isPinned ? 'pinned' : ''}`; card.id = `card-${subj.id}`; card.draggable = true;
       const credits = calculateCredits(subj).toFixed(1).replace('.0', '');
       
-      const upperName = String(subj.name).toUpperCase();
-      const upperCode = String(subj.code).toUpperCase();
+      const upperName = String(subj.name).toUpperCase(); const upperCode = String(subj.code).toUpperCase();
       const currentLevelIdx = state.levels.findIndex(l => l.id === subj.level);
-      let warningMsg = '';
-      let fixAction = null;
+      let warningMsg = ''; let fixAction = null;
 
       if (upperName.includes('CIENCIAS DE LA SOSTENIBILIDAD')) {
-          fixAction = 'sostenibilidad';
-          warningMsg = 'Requiere actualización a "SOSTENIBILIDAD &20" (3/0/3) y tipo Edu. General.';
+          fixAction = 'sostenibilidad'; warningMsg = 'Requiere actualización a "SOSTENIBILIDAD &20" (3/0/3) y tipo Edu. General.';
       } else if (upperName.includes('SOSTENIBILIDAD') && currentLevelIdx < 4) {
-          fixAction = 'move_sostenibilidad';
-          warningMsg = 'Debe cursarse desde el nivel 300-I en adelante.';
+          fixAction = 'move_sostenibilidad'; warningMsg = 'Debe cursarse desde el nivel 300-I en adelante.';
       } else if (upperName.startsWith('EMPRENDIMIENTO E INNOVACI')) {
-          if (subj.components !== '4/0/5') {
-              fixAction = 'emprendimiento';
-              warningMsg = 'Créditos incorrectos. Debe ser 4/0/5 (3 CR).';
-          } else if (currentLevelIdx < 4) {
-              fixAction = 'move_emprendimiento';
-              warningMsg = 'Debe cursarse desde el nivel 300-I en adelante.';
-          }
+          if (subj.components !== '4/0/5') { fixAction = 'emprendimiento'; warningMsg = 'Créditos incorrectos. Debe ser 4/0/5 (3 CR).'; } 
+          else if (currentLevelIdx < 4) { fixAction = 'move_emprendimiento'; warningMsg = 'Debe cursarse desde el nivel 300-I en adelante.'; }
       } else if (upperCode === 'IDIG2012') {
-          if (subj.components !== '4/0/2') {
-              fixAction = 'comunicacion_comp';
-              warningMsg = 'Créditos incorrectos. Debe ser 4/0/2 (2 CR).';
-          } else if (currentLevelIdx !== 1 && currentLevelIdx !== 2) {
-              fixAction = 'move_comunicacion';
-              warningMsg = 'Solo puede ubicarse en niveles 100-II o 200-I.';
-          }
+          if (subj.components !== '4/0/2') { fixAction = 'comunicacion_comp'; warningMsg = 'Créditos incorrectos. Debe ser 4/0/2 (2 CR).'; } 
+          else if (currentLevelIdx !== 1 && currentLevelIdx !== 2) { fixAction = 'move_comunicacion'; warningMsg = 'Solo puede ubicarse en niveles 100-II o 200-I.'; }
       } else if (upperName.startsWith('FUNDAMENTOS DE PROGRAMACIÓN') || upperName.startsWith('FUNDAMENTOS DE PROGRAMACION')) {
-          if (subj.components !== '4/0/5') {
-              fixAction = 'fundamentos_comp';
-              warningMsg = 'Créditos incorrectos. Debe ser 4/0/5 (3 CR).';
-          } else if (currentLevelIdx > 2) {
-              fixAction = 'move_fundamentos';
-              warningMsg = 'Solo puede ubicarse en 100-I, 100-II o 200-I.';
-          }
+          if (subj.components !== '4/0/5') { fixAction = 'fundamentos_comp'; warningMsg = 'Créditos incorrectos. Debe ser 4/0/5 (3 CR).'; } 
+          else if (currentLevelIdx > 2) { fixAction = 'move_fundamentos'; warningMsg = 'Solo puede ubicarse en 100-I, 100-II o 200-I.'; }
       } else if (upperName.startsWith('ANÁLISIS Y RESOLUCIÓN DE PROBLEMAS') || upperName.startsWith('ANALISIS Y RESOLUCION DE PROBLEMAS')) {
           const hasPrereqs = state.connections.some(c => c.to === subj.id);
-          if (currentLevelIdx !== 0) {
-              fixAction = 'move_analisis';
-              warningMsg = 'Solo puede ubicarse en el nivel 100-I.';
-          } else if (hasPrereqs) {
-              fixAction = 'fix_analisis_req';
-              warningMsg = 'Esta materia no puede tener prerrequisitos.';
-          }
+          if (currentLevelIdx !== 0) { fixAction = 'move_analisis'; warningMsg = 'Solo puede ubicarse en el nivel 100-I.'; } 
+          else if (hasPrereqs) { fixAction = 'fix_analisis_req'; warningMsg = 'Esta materia no puede tener prerrequisitos.'; }
       } else if (upperName.match(/INGL[EÉ]S\s*(4|IV|5|V)\b/) && subj.components !== '1/1/1') {
-          fixAction = 'ingles';
-          warningMsg = 'Créditos incorrectos. Debe ser 1/1/1 (1 CR).';
+          fixAction = 'ingles'; warningMsg = 'Créditos incorrectos. Debe ser 1/1/1 (1 CR).';
       } else if (subj.tipoMateria === 'ITINERARIO' && subj.components !== '3/0/3') {
-          fixAction = 'itinerario';
-          warningMsg = 'Créditos incorrectos. Debe ser 3/0/3 (2 CR).';
+          fixAction = 'itinerario'; warningMsg = 'Créditos incorrectos. Debe ser 3/0/3 (2 CR).';
       } else if ((subj.tipoMateria === 'C. DE ARTE Y DEPORTES' || subj.tipoMateria === 'C. DE HUMANÍSTICA') && subj.components !== '2/0/1') {
-          fixAction = 'complementaria';
-          warningMsg = 'Créditos incorrectos. Debe ser 2/0/1 (1 CR).';
+          fixAction = 'complementaria'; warningMsg = 'Créditos incorrectos. Debe ser 2/0/1 (1 CR).';
       } else if (subj.tipoMateria === 'PRÁCTICAS COMUNITARIAS' && currentLevelIdx < 5) {
-          fixAction = 'move_comunitarias';
-          warningMsg = 'Debe cursarse desde el nivel 300-II en adelante.';
+          fixAction = 'move_comunitarias'; warningMsg = 'Debe cursarse desde el nivel 300-II en adelante.';
       } else if (["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES"].includes(subj.tipoMateria)) {
           const hours = parseHoursComponents(subj.components);
           if (hours.acd > 0 || hours.ape > 0 || !["0/0/3", "0/0/6", "0/0/9", "0/0/12", "0/0/15"].includes(subj.components)) {
-               fixAction = 'fix_practicas_format';
-               warningMsg = 'Formato de horas inválido.';
+               fixAction = 'fix_practicas_format'; warningMsg = 'Formato de horas inválido.';
           }
       } else if (subj.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR') {
            const hasPi = state.subjects.some(s => s.tipoMateria === 'PROYECTO INTEGRADOR');
-           if (!hasPi) {
-               fixAction = 'add_pi';
-               warningMsg = 'Falta generar el Proyecto Integrador correspondiente.';
-           }
+           if (!hasPi) { fixAction = 'add_pi'; warningMsg = 'Falta generar el Proyecto Integrador correspondiente.'; }
       }
 
-      if (!warningMsg && !isValidCombination(subj.components)) {
-          warningMsg = 'Distribución de horas no permitida. Debe editar la materia a una permitida.';
-      }
+      if (!warningMsg && !isValidCombination(subj.components)) { warningMsg = 'Distribución de horas no permitida. Debe editar la materia a una permitida.'; }
 
       const warningHTML = warningMsg ? `<span class="warning-icon">⚠️</span>` : '';
       let btnHtml = fixAction ? `<button class="btn-fix" onclick="fixSubject(event, '${subj.id}', '${fixAction}')">Corregir</button>` : '';
       const customTooltipHTML = warningMsg ? `<div class="custom-tooltip">${warningMsg}${btnHtml}</div>` : '';
 
       let isNew = (upperCode.startsWith('NUEVO-')) || (state.baseCareer && baseSubjectCodes.length > 0 && !baseSubjectCodes.includes(upperCode));
-      
-      if (["PRÁCTICAS LABORALES", "PROYECTO INTEGRADOR", "PRÁCTICAS COMUNITARIAS", "U DE INTEGRACIÓN CURRICULAR", "C. DE ARTE Y DEPORTES", "C. DE HUMANÍSTICA", "ITINERARIO"].includes(subj.tipoMateria)) {
-          isNew = false;
-      }
+      if (["PRÁCTICAS LABORALES", "PROYECTO INTEGRADOR", "PRÁCTICAS COMUNITARIAS", "U DE INTEGRACIÓN CURRICULAR", "C. DE ARTE Y DEPORTES", "C. DE HUMANÍSTICA", "ITINERARIO"].includes(subj.tipoMateria)) { isNew = false; }
       const newBadgeHTML = isNew ? `<div class="badge-new" title="Materia creada en esta versión de la malla">NUEVA</div>` : '';
 
       let displayComponents = subj.components;
       if (["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PROYECTO INTEGRADOR", "PRÁCTICAS EMPRESARIALES"].includes(subj.tipoMateria)) {
-          if (subj.components === "0/0/3") displayComponents = "48h";
-          else if (subj.components === "0/0/6") displayComponents = "96h";
-          else if (subj.components === "0/0/9") displayComponents = "144h";
-          else if (subj.components === "0/0/12") displayComponents = "192h";
-          else if (subj.components === "0/0/15") displayComponents = "240h";
+          if (subj.components === "0/0/3") displayComponents = "48h"; else if (subj.components === "0/0/6") displayComponents = "96h"; else if (subj.components === "0/0/9") displayComponents = "144h"; else if (subj.components === "0/0/12") displayComponents = "192h"; else if (subj.components === "0/0/15") displayComponents = "240h";
       }
 
       let displayCode = subj.code;
       const hideCodeTypes = ["ITINERARIO", "C. DE ARTE Y DEPORTES", "C. DE HUMANÍSTICA", "PRÁCTICAS LABORALES", "PRÁCTICAS COMUNITARIAS", "PROYECTO INTEGRADOR"];
-      if (hideCodeTypes.includes(subj.tipoMateria) || upperCode.startsWith('NUEVO-')) {
-          displayCode = '';
-      }
+      if (hideCodeTypes.includes(subj.tipoMateria) || upperCode.startsWith('NUEVO-')) { displayCode = ''; }
 
       card.innerHTML = `
         ${newBadgeHTML}
@@ -2263,10 +1672,7 @@
 
       const upperNameTo = String(subj2.name).toUpperCase();
       if (upperNameTo.startsWith('ANÁLISIS Y RESOLUCIÓN DE PROBLEMAS') || upperNameTo.startsWith('ANALISIS Y RESOLUCION DE PROBLEMAS')) {
-          if (dependentId === subj2.id) {
-              showToast('Análisis y Resolución de Problemas no puede tener prerrequisitos.', 'error');
-              return;
-          }
+          if (dependentId === subj2.id) { showToast('Análisis y Resolución de Problemas no puede tener prerrequisitos.', 'error'); return; }
       }
 
       const existingIdx = state.connections.findIndex(c => (c.from === prereqId && c.to === dependentId) || (c.from === dependentId && c.to === prereqId));
@@ -2279,59 +1685,31 @@
       const dataStr = e.dataTransfer.getData('text/plain'); if (!dataStr) return;
       
       try {
-          const data = JSON.parse(dataStr); 
-          const targetSubj = state.subjects.find(s => s.level === targetLevelId && s.col === targetCol);
+          const data = JSON.parse(dataStr); const targetSubj = state.subjects.find(s => s.level === targetLevelId && s.col === targetCol);
 
           if (data.action === 'move') { 
               const subject = state.subjects.find(s => s.id === data.id);
-              
-              const cfg = state.config || initialData.config;
-              const lastLevelId = state.levels[cfg.semesters - 1].id;
-              const targetLvlIdx = state.levels.findIndex(l => l.id === targetLevelId);
-              const upperName = String(subject.name).toUpperCase();
-              const upperCode = String(subject.code).toUpperCase();
+              const cfg = state.config || initialData.config; const lastLevelId = state.levels[cfg.semesters - 1].id;
+              const targetLvlIdx = state.levels.findIndex(l => l.id === targetLevelId); const upperName = String(subject.name).toUpperCase(); const upperCode = String(subject.code).toUpperCase();
 
-              if (subject.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR' && targetLevelId !== lastLevelId) {
-                  showToast('La Unidad de Integración Curricular debe permanecer en el último nivel.', 'error'); return;
-              }
-              if (subject.tipoMateria === 'PROYECTO INTEGRADOR' && targetLevelId !== lastLevelId) {
-                  showToast('El Proyecto Integrador debe permanecer en el último nivel.', 'error'); return;
-              }
-              if (upperCode === 'IDIG2012' && targetLvlIdx !== 1 && targetLvlIdx !== 2) {
-                  showToast('COMUNICACIÓN solo puede ir en 100-II o 200-I.', 'error'); return;
-              }
-              if ((upperName.startsWith('FUNDAMENTOS DE PROGRAMACIÓN') || upperName.startsWith('FUNDAMENTOS DE PROGRAMACION')) && targetLvlIdx > 2) {
-                  showToast('FUNDAMENTOS solo puede ir en niveles 100 y 200-I.', 'error'); return;
-              }
-              if ((upperName.startsWith('ANÁLISIS Y RESOLUCIÓN DE PROBLEMAS') || upperName.startsWith('ANALISIS Y RESOLUCION DE PROBLEMAS')) && targetLvlIdx !== 0) {
-                  showToast('ANÁLISIS Y RESOLUCIÓN solo puede ir en 100-I.', 'error'); return;
-              }
-              if (upperName.startsWith('EMPRENDIMIENTO E INNOVACI') && targetLvlIdx < 4) {
-                  showToast('EMPRENDIMIENTO debe ir en 300-I o superior.', 'error'); return;
-              }
-              if (upperName.includes('SOSTENIBILIDAD') && targetLvlIdx < 4) {
-                  showToast('SOSTENIBILIDAD debe ir en 300-I o superior.', 'error'); return;
-              }
-              if (subject.tipoMateria === 'PRÁCTICAS COMUNITARIAS' && targetLvlIdx < 5) {
-                  showToast('PRÁCTICAS COMUNITARIAS deben ir en 300-II o superior.', 'error'); return;
-              }
+              if (subject.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR' && targetLevelId !== lastLevelId) { showToast('La Unidad de Integración Curricular debe permanecer en el último nivel.', 'error'); return; }
+              if (subject.tipoMateria === 'PROYECTO INTEGRADOR' && targetLevelId !== lastLevelId) { showToast('El Proyecto Integrador debe permanecer en el último nivel.', 'error'); return; }
+              if (upperCode === 'IDIG2012' && targetLvlIdx !== 1 && targetLvlIdx !== 2) { showToast('COMUNICACIÓN solo puede ir en 100-II o 200-I.', 'error'); return; }
+              if ((upperName.startsWith('FUNDAMENTOS DE PROGRAMACIÓN') || upperName.startsWith('FUNDAMENTOS DE PROGRAMACION')) && targetLvlIdx > 2) { showToast('FUNDAMENTOS solo puede ir en niveles 100 y 200-I.', 'error'); return; }
+              if ((upperName.startsWith('ANÁLISIS Y RESOLUCIÓN DE PROBLEMAS') || upperName.startsWith('ANALISIS Y RESOLUCION DE PROBLEMAS')) && targetLvlIdx !== 0) { showToast('ANÁLISIS Y RESOLUCIÓN solo puede ir en 100-I.', 'error'); return; }
+              if (upperName.startsWith('EMPRENDIMIENTO E INNOVACI') && targetLvlIdx < 4) { showToast('EMPRENDIMIENTO debe ir en 300-I o superior.', 'error'); return; }
+              if (upperName.includes('SOSTENIBILIDAD') && targetLvlIdx < 4) { showToast('SOSTENIBILIDAD debe ir en 300-I o superior.', 'error'); return; }
+              if (subject.tipoMateria === 'PRÁCTICAS COMUNITARIAS' && targetLvlIdx < 5) { showToast('PRÁCTICAS COMUNITARIAS deben ir en 300-II o superior.', 'error'); return; }
 
               if (targetSubj && targetSubj.id !== data.id) {
                   if (subject.level !== targetLevelId) {
                       const hasItemAtEnd = state.subjects.some(s => s.level === targetLevelId && s.col === NUM_COLUMNS - 1);
-                      if (hasItemAtEnd) {
-                          showToast('No hay espacio en este nivel para insertar la materia.', 'error');
-                          return;
-                      }
+                      if (hasItemAtEnd) { showToast('No hay espacio en este nivel para insertar la materia.', 'error'); return; }
                   }
                   validateAndMove(data.id, targetLevelId, targetCol, true);
-              } else {
-                  validateAndMove(data.id, targetLevelId, targetCol, false); 
-              }
-          } 
-          else if (data.action === 'connect') { 
-              if (targetSubj) { createConnection(data.id, targetSubj.id); } 
-              else { showToast('Debes soltar el conector sobre una materia de destino.', 'error'); } 
+              } else { validateAndMove(data.id, targetLevelId, targetCol, false); }
+          } else if (data.action === 'connect') { 
+              if (targetSubj) { createConnection(data.id, targetSubj.id); } else { showToast('Debes soltar el conector sobre una materia de destino.', 'error'); } 
           }
       } catch (err) { console.error(err); }
       window.dragAction = null; window.draggedId = null;
@@ -2374,25 +1752,13 @@
 
         if (isInsert) {
             if (oldLevel === targetLevelId) {
-                if (oldCol < targetCol) {
-                    state.subjects.forEach(s => {
-                        if (s.level === targetLevelId && s.col > oldCol && s.col <= targetCol && s.id !== subject.id) s.col -= 1;
-                    });
-                } else {
-                    state.subjects.forEach(s => {
-                        if (s.level === targetLevelId && s.col >= targetCol && s.col < oldCol && s.id !== subject.id) s.col += 1;
-                    });
-                }
+                if (oldCol < targetCol) { state.subjects.forEach(s => { if (s.level === targetLevelId && s.col > oldCol && s.col <= targetCol && s.id !== subject.id) s.col -= 1; }); } 
+                else { state.subjects.forEach(s => { if (s.level === targetLevelId && s.col >= targetCol && s.col < oldCol && s.id !== subject.id) s.col += 1; }); }
             } else {
-                state.subjects.forEach(s => {
-                    if (s.level === targetLevelId && s.col >= targetCol && s.id !== subject.id) s.col += 1;
-                });
+                state.subjects.forEach(s => { if (s.level === targetLevelId && s.col >= targetCol && s.id !== subject.id) s.col += 1; });
             }
         }
-
-        subject.level = targetLevelId; 
-        subject.col = targetCol;
-
+        subject.level = targetLevelId; subject.col = targetCol;
         persistState(); closeMoveModals(); renderBoard(); setTimeout(drawConnections, 200); updateAnalyticsPanel(); if (pinnedSubjectId) highlightConnections(pinnedSubjectId); pendingMove = null;
     }
 
@@ -2404,73 +1770,38 @@
     }
 
     function drawConnections() {
-      const svg = document.getElementById('connections-layer'); 
-      const ghostSvg = document.getElementById('ghost-layer'); 
-      const wrapperEl = document.getElementById('board-wrapper');
-      
-      svg.innerHTML = ''; 
-      svg.style.width = '100%'; 
-      svg.style.height = '100%';
-      if (ghostSvg) { 
-          ghostSvg.style.width = '100%'; 
-          ghostSvg.style.height = '100%'; 
-      }
+      const svg = document.getElementById('connections-layer'); const ghostSvg = document.getElementById('ghost-layer'); const wrapperEl = document.getElementById('board-wrapper');
+      svg.innerHTML = ''; svg.style.width = '100%'; svg.style.height = '100%';
+      if (ghostSvg) { ghostSvg.style.width = '100%'; ghostSvg.style.height = '100%'; }
 
       state.connections.forEach((conn, index) => {
         const fromCard = document.getElementById(`card-${conn.from}`); const toCard = document.getElementById(`card-${conn.to}`); if (!fromCard || !toCard) return;
         const subjFrom = state.subjects.find(s => s.id === conn.from); const subjTo = state.subjects.find(s => s.id === conn.to);
-        
-        const levelFromIdx = state.levels.findIndex(l => l.id === subjFrom.level); 
-        const levelToIdx = state.levels.findIndex(l => l.id === subjTo.level);
-        const levelDistance = Math.abs(levelToIdx - levelFromIdx); 
-        const isSameLevel = (levelDistance === 0);
+        const levelFromIdx = state.levels.findIndex(l => l.id === subjFrom.level); const levelToIdx = state.levels.findIndex(l => l.id === subjTo.level);
+        const levelDistance = Math.abs(levelToIdx - levelFromIdx); const isSameLevel = (levelDistance === 0);
 
-        const fromPos = getRelativePos(fromCard, wrapperEl);
-        const toPos = getRelativePos(toCard, wrapperEl);
-
-        let x1 = fromPos.x + (fromCard.offsetWidth / 2); 
-        let x2 = toPos.x + (toCard.offsetWidth / 2); 
-        let pathData = "";
+        const fromPos = getRelativePos(fromCard, wrapperEl); const toPos = getRelativePos(toCard, wrapperEl);
+        let x1 = fromPos.x + (fromCard.offsetWidth / 2); let x2 = toPos.x + (toCard.offsetWidth / 2); let pathData = "";
 
         if (lineType === 'curved') {
           if (isSameLevel) {
-            const y1 = fromPos.y; 
-            const y2 = toPos.y; 
-            const distance = Math.abs(x2 - x1); 
-            const arcHeight = Math.min(Math.max(distance * 0.35, 25), 50);
+            const y1 = fromPos.y; const y2 = toPos.y; const distance = Math.abs(x2 - x1); const arcHeight = Math.min(Math.max(distance * 0.35, 25), 50);
             pathData = `M ${x1} ${y1} C ${x1} ${y1 - arcHeight}, ${x2} ${y2 - arcHeight}, ${x2} ${y2}`;
           } else {
-            const y1 = fromPos.y + fromCard.offsetHeight; 
-            const y2 = toPos.y; 
-            const offsetDirection = (index % 2 === 0) ? 1 : -1; 
-            const curveOffset = (levelDistance > 1) ? (levelDistance * 18 * offsetDirection) : 0;
-            const controlY1 = y1 + (Math.abs(y2 - y1) * 0.45); 
-            const controlY2 = y2 - (Math.abs(y2 - y1) * 0.45);
+            const y1 = fromPos.y + fromCard.offsetHeight; const y2 = toPos.y; const offsetDirection = (index % 2 === 0) ? 1 : -1; const curveOffset = (levelDistance > 1) ? (levelDistance * 18 * offsetDirection) : 0;
+            const controlY1 = y1 + (Math.abs(y2 - y1) * 0.45); const controlY2 = y2 - (Math.abs(y2 - y1) * 0.45);
             pathData = `M ${x1} ${y1} C ${x1 + curveOffset} ${controlY1}, ${x2 + curveOffset} ${controlY2}, ${x2} ${y2}`;
           }
         } else {
-          const xOffset1 = (index % 5) * 10 - 20; 
-          const xOffset2 = ((index + 2) % 5) * 10 - 20; 
-          x1 += xOffset1; 
-          x2 += xOffset2;
-          
+          const xOffset1 = (index % 5) * 10 - 20; const xOffset2 = ((index + 2) % 5) * 10 - 20; x1 += xOffset1; x2 += xOffset2;
           if (isSameLevel) {
-            const y1 = fromPos.y; 
-            const y2 = toPos.y; 
-            const upOffset = 15 + (index % 4) * 6;
+            const y1 = fromPos.y; const y2 = toPos.y; const upOffset = 15 + (index % 4) * 6;
             pathData = `M ${x1} ${y1} V ${y1 - upOffset} H ${x2} V ${y2}`;
           } else if (levelDistance === 1) {
-            const y1 = fromPos.y + fromCard.offsetHeight; 
-            const y2 = toPos.y; 
-            const midY = y1 + (y2 - y1) / 2; 
-            const offset = (index % 7) * 5 - 15;
+            const y1 = fromPos.y + fromCard.offsetHeight; const y2 = toPos.y; const midY = y1 + (y2 - y1) / 2; const offset = (index % 7) * 5 - 15;
             pathData = `M ${x1} ${y1} V ${midY + offset} H ${x2} V ${y2}`;
           } else {
-            const y1 = fromPos.y + fromCard.offsetHeight; 
-            const y2 = toPos.y; 
-            const y_pasillo1 = y1 + 15 + (index % 4) * 5;
-            const laneX = toPos.x - 7 + (index % 3) * 4 - 4; 
-            const y_pasillo2 = y2 - 15 - (index % 4) * 5;
+            const y1 = fromPos.y + fromCard.offsetHeight; const y2 = toPos.y; const y_pasillo1 = y1 + 15 + (index % 4) * 5; const laneX = toPos.x - 7 + (index % 3) * 4 - 4; const y_pasillo2 = y2 - 15 - (index % 4) * 5;
             pathData = `M ${x1} ${y1} V ${y_pasillo1} H ${laneX} V ${y_pasillo2} H ${x2} V ${y2}`;
           }
         }
@@ -2490,13 +1821,11 @@
     }
 
     function highlightConnections(id) {
-      clearHighlights();
-      if(!state.connections) return;
+      clearHighlights(); if(!state.connections) return;
       state.connections.forEach(c => {
         if (c.to === id) { const cardReq = document.getElementById('card-' + c.from); if (cardReq) cardReq.classList.add('highlight-req'); }
         if (c.from === id) { const cardNext = document.getElementById('card-' + c.to); if (cardNext) cardNext.classList.add('highlight-next'); }
       });
-
       document.querySelectorAll('path.connection.drawn').forEach(path => {
         if (path.dataset.to === id) { path.classList.add('highlight-req'); path.setAttribute('marker-end', 'url(#arrowhead-req)'); }
         if (path.dataset.from === id) { path.classList.add('highlight-next'); path.setAttribute('marker-end', 'url(#arrowhead-next)'); }
@@ -2505,163 +1834,7 @@
 
     function clearHighlights() {
       document.querySelectorAll('.subject-card').forEach(el => { el.classList.remove('highlight-req', 'highlight-next'); });
-      document.querySelectorAll('path.connection.drawn').forEach(path => { 
-          path.classList.remove('highlight-req', 'highlight-next'); const isSameLevel = path.classList.contains('corequisite');
-          path.setAttribute('marker-end', isSameLevel ? 'url(#arrowhead-coreq)' : 'url(#arrowhead)');
-      });
-    }
-
-    function loadDataIntoBoard(importedData) {
-      if (state.subjects && state.subjects.length > 0) {
-          pendingLoadData = importedData;
-          document.getElementById('load-warning-modal-overlay').style.display = 'flex';
-          return;
-      }
-      executeLoadData(importedData);
-    }
-
-    function executeLoadData(importedData) {
-      if (importedData.levels && importedData.subjects && importedData.connections) {
-        importedData.levels = [
-          { "id": "L100-1", "name": "NIVEL 100 - I" }, { "id": "L100-2", "name": "NIVEL 100 - II" }, { "id": "L200-1", "name": "NIVEL 200 - I" }, { "id": "L200-2", "name": "NIVEL 200 - II" },
-          { "id": "L300-1", "name": "NIVEL 300 - I" }, { "id": "L300-2", "name": "NIVEL 300 - II" }, { "id": "L400-1", "name": "NIVEL 400 - I" }, { "id": "L400-2", "name": "NIVEL 400 - II" }, { "id": "L500-1", "name": "NIVEL 500 - I" }
-        ];
-        
-        if (!importedData.baseCareer) { pendingImportedData = importedData; openCareerModal(); return; }
-        applyLoadedData(importedData);
-      } else { showToast('El archivo JSON no tiene la estructura válida de una malla.', 'error'); }
-    }
-
-    function applyLoadedData(dataToApply) {
-      if (dataToApply.subjects) {
-          dataToApply.subjects.forEach(subj => {
-              if (!subj.tipoMateria) {
-                  subj.tipoMateria = (subj.isBasic || isBasicMathSubject(parseNameReq(subj.name).cleanName)) 
-                      ? 'MATEMÁTICAS Y CIENCIAS BÁSICAS' 
-                      : 'FORMACIÓN PROFESIONAL';
-              }
-          });
-      }
-
-      saveStateToHistory(); state = dataToApply; 
-      if(!state.config) state.config = JSON.parse(JSON.stringify(initialData.config));
-      if(!state.levels) state.levels = JSON.parse(JSON.stringify(initialData.levels));
-      
-      persistState(); pinnedSubjectId = null; updateSubtitleUI(); syncConfigUI();
-      
-      if (state.baseCareer) { 
-          loadBaseCareerCodes(state.baseCareer); 
-      } else { 
-          renderBoard(); 
-          setTimeout(() => { drawConnections(); updateAnalyticsPanel(); }, 200); 
-      }
-      showToast('Malla cargada con éxito.', 'success');
-    }
-
-    function triggerImportJSON() { closeAllDropdowns(); document.getElementById('import-file-input').click(); }
-
-    function importJSONFromFile(event) {
-      const file = event.target.files[0]; if (!file) return; const reader = new FileReader();
-      reader.onload = function(e) { try { const importedData = JSON.parse(e.target.result); loadDataIntoBoard(importedData); } catch (err) { showToast('Ocurrió un error al leer el archivo JSON.', 'error'); } };
-      reader.readAsText(file); event.target.value = '';
-    }
-
-    async function fetchAndLoadJSON(url, careerName) {
-      closeAllDropdowns();
-      try { const response = await fetch(url); if (!response.ok) throw new Error('Archivo no encontrado (' + response.status + ')'); const importedData = await response.json(); importedData.baseCareer = careerName; loadDataIntoBoard(importedData); } 
-      catch (err) { showToast('Error al cargar la carrera. Verifica el archivo en GitHub.', 'error'); console.error(err); }
-    }
-
-    function checkAndExportJSON() { if (!state.baseCareer) { pendingExportAction = 'json'; openCareerModal(); } else { exportJSON(); } }
-    
-    function checkAndProcessExcel() { 
-      const invalidSubjects = state.subjects.filter(s => !isValidCombination(s.components));
-      if (invalidSubjects.length > 0) {
-        const listEl = document.getElementById('invalid-subjects-list'); listEl.innerHTML = invalidSubjects.map(s => `<li><b>${s.name}</b></li>`).join('');
-        document.getElementById('invalid-export-modal-overlay').style.display = 'flex'; return;
-      }
-      if (!state.baseCareer) { pendingExportAction = 'excel'; openCareerModal(); } else { procesarYDescargarExcel(); } 
-    }
-
-    function closeInvalidModal() { document.getElementById('invalid-export-modal-overlay').style.display = 'none'; }
-
-    function closeLoadWarningModal() {
-        document.getElementById('load-warning-modal-overlay').style.display = 'none';
-        pendingLoadData = null;
-    }
-
-    function forceLoadWithoutSaving() {
-        const dataToLoad = pendingLoadData;
-        closeLoadWarningModal();
-        if (dataToLoad) executeLoadData(dataToLoad);
-    }
-
-    function saveAndThenLoad() {
-        checkAndExportJSON(); 
-        setTimeout(() => {
-            const dataToLoad = pendingLoadData;
-            closeLoadWarningModal();
-            if (dataToLoad) executeLoadData(dataToLoad);
-        }, 800); 
-    }
-
-    function resetLayout() {
-        if (!state.subjects || state.subjects.length === 0) {
-            showToast('La malla ya está vacía.', 'info');
-            return;
-        }
-        document.getElementById('reset-modal-overlay').style.display = 'flex';
-    }
-
-    function closeResetModal() {
-        document.getElementById('reset-modal-overlay').style.display = 'none';
-    }
-
-    function saveAndResetLayout() {
-        checkAndExportJSON(); 
-        setTimeout(() => {
-            confirmResetLayout();
-        }, 800); 
-    }
-
-    function confirmResetLayout() {
-        saveStateToHistory(); 
-        state = JSON.parse(JSON.stringify(initialData)); 
-        persistState();
-        baseSubjectCodes = []; pinnedSubjectId = null; updateSubtitleUI(); renderBoard(); drawConnections(); updateAnalyticsPanel(); 
-        closeResetModal();
-        showToast('Malla borrada exitosamente.', 'info');
-    }
-
-    function openCareerModal() {
-      const select = document.getElementById('modal-career-select'); select.innerHTML = '';
-      if (catalogoGlobal && catalogoGlobal.facultades) { catalogoGlobal.facultades.forEach(fac => { fac.carreras.forEach(car => { const opt = document.createElement('option'); opt.value = car.nombre; opt.textContent = `${car.nombre} (${fac.nombre})`; select.appendChild(opt); }); }); }
-      document.getElementById('career-modal-overlay').style.display = 'flex';
-    }
-
-    function closeCareerModal() { document.getElementById('career-modal-overlay').style.display = 'none'; }
-
-    function confirmCareerSelection() {
-      const select = document.getElementById('modal-career-select'); const chosen = select.value; if (!chosen) return;
-      const action = pendingExportAction; const dataToLoad = pendingImportedData; closeCareerModal(); pendingExportAction = null; pendingImportedData = null;
-
-      if (dataToLoad) { dataToLoad.baseCareer = chosen; applyLoadedData(dataToLoad); } 
-      else { state.baseCareer = chosen; persistState(); updateSubtitleUI(); loadBaseCareerCodes(chosen); if (action === 'json') { exportJSON(); } else if (action === 'excel') { procesarYDescargarExcel(); } }
-    }
-
-    function exportJSON() {
-      let fileName = "malla_espol_personalizada.json";
-      if (state.baseCareer && catalogoGlobal) {
-        let baseRuta = null;
-        catalogoGlobal.facultades.forEach(f => {
-          f.carreras.forEach(c => { if (c.nombre === state.baseCareer) { baseRuta = c.ruta; } });
-        });
-        if (baseRuta) { fileName = baseRuta.split('/').pop(); }
-      }
-
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
-      const downloadAnchor = document.createElement('a'); downloadAnchor.setAttribute("href", dataStr); downloadAnchor.setAttribute("download", fileName); document.body.appendChild(downloadAnchor); downloadAnchor.click(); downloadAnchor.remove();
-      showToast(`Archivo ${fileName} exportado correctamente.`, 'success');
+      document.querySelectorAll('path.connection.drawn').forEach(path => { path.classList.remove('highlight-req', 'highlight-next'); const isSameLevel = path.classList.contains('corequisite'); path.setAttribute('marker-end', isSameLevel ? 'url(#arrowhead-coreq)' : 'url(#arrowhead)'); });
     }
 
     async function procesarYDescargarExcel() {
@@ -2689,7 +1862,6 @@
             let changedLevel = (baseSubj.level !== webSubj.level);
             let baseParsed = parseNameReq(baseSubj.name); let webParsed = parseNameReq(webSubj.name);
             let changedName = (baseParsed.cleanName !== webParsed.cleanName); let changedReqNum = (baseParsed.reqNum !== webParsed.reqNum);
-
             let baseReqs = getConns(baseSubjects, originalData.connections, baseSubj.id); let webReqs = getConns(webSubjects, state.connections, webSubj.id);
             const sortReqs = r => r.slice().sort((a,b) => String(a.code).localeCompare(String(b.code))); let reqsChanged = JSON.stringify(sortReqs(baseReqs)) !== JSON.stringify(sortReqs(webReqs));
 
@@ -2723,8 +1895,7 @@
           if (!baseSubjects.find(s => s.code === webSubj.code)) {
             let webReqs = getConns(webSubjects, state.connections, webSubj.id);
             let pre = webReqs.filter(r => !r.isCoreq).map(r=>r.code).join(', '); let cor = webReqs.filter(r => r.isCoreq).map(r=>r.code).join(', ');
-            let webParsed = parseNameReq(webSubj.name);
-            let commentParts = [];
+            let webParsed = parseNameReq(webSubj.name); let commentParts = [];
             if (pre) commentParts.push(`Prerrequisitos: ${pre}.`); if (cor) commentParts.push(`Correquisitos: ${cor}.`);
             if (webParsed.reqNum) commentParts.push(`Requiere aprobar ${webParsed.reqNum} materias.`);
             modifications.push({ type: 'CREACIÓN', base: null, web: webSubj, comment: commentParts.join(' ').trim() });
@@ -2735,364 +1906,145 @@
         if (!response.ok) throw new Error(`No se pudo obtener el archivo base (${response.status})`);
         
         const arrayBuffer = await response.arrayBuffer(); const workbook = new ExcelJS.Workbook(); await workbook.xlsx.load(arrayBuffer);
-        
-        // --- 1. PESTAÑA 1: MALLA CURRICULAR ---
         const worksheet = workbook.getWorksheet('MALLA CURRICULAR');
         if (!worksheet) throw new Error('La pestaña MALLA CURRICULAR no existe en la plantilla.');
 
-        if (worksheet.views && worksheet.views.length > 0) {
-            worksheet.views.forEach(v => v.showGridLines = false);
-        } else {
-            worksheet.views = [{ showGridLines: false }];
-        }
+        if (worksheet.views && worksheet.views.length > 0) { worksheet.views.forEach(v => v.showGridLines = false); } else { worksheet.views = [{ showGridLines: false }]; }
 
-        const titleCell = worksheet.getCell('H1');
-        const careerName = state.baseCareer ? state.baseCareer.toUpperCase() : "";
-        titleCell.value = `MALLA CURRICULAR CARRERA ${careerName}`;
+        const titleCell = worksheet.getCell('H1'); const careerName = state.baseCareer ? state.baseCareer.toUpperCase() : ""; titleCell.value = `MALLA CURRICULAR CARRERA ${careerName}`;
 
-        let globalACD = 0, globalAPE = 0, globalAA = 0;
-        let pracEmp = 0, pracCom = 0, intCur = 0;
-        let globalCreds = 0;
-
-        const visibleLevels = state.levels.slice(0, state.config.semesters);
-        const divC = state.config.divC;
-        const weeks = state.config.weeks;
+        let globalACD = 0, globalAPE = 0, globalAA = 0; let pracEmp = 0, pracCom = 0, intCur = 0; let globalCreds = 0;
+        const visibleLevels = state.levels.slice(0, state.config.semesters); const divC = state.config.divC; const weeks = state.config.weeks;
 
         for (let lvlIdx = 0; lvlIdx < visibleLevels.length; lvlIdx++) {
-          const levelId = visibleLevels[lvlIdx].id; 
-          const baseRow = 9 + (lvlIdx * 5); 
-          const nameRow = baseRow; 
-          const hoursRow = baseRow + 2; 
-          const credRow = baseRow + 3;  
-
+          const levelId = visibleLevels[lvlIdx].id; const baseRow = 9 + (lvlIdx * 5); const nameRow = baseRow; const hoursRow = baseRow + 2; const credRow = baseRow + 3;  
           let levelACD = 0, levelAPE = 0, levelAA = 0, levelCreds = 0, levelSpecialHours = 0;
 
           for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
-            const startCol = 8 + (colIdx * 9); 
-            const subject = state.subjects.find(s => s.level === levelId && s.col === colIdx);
-            
-            const nameCell = worksheet.getCell(nameRow, startCol);
-            const credTextCell = worksheet.getCell(credRow, startCol + 6);
-            const credCell = worksheet.getCell(credRow, startCol + 7);
+            const startCol = 8 + (colIdx * 9); const subject = state.subjects.find(s => s.level === levelId && s.col === colIdx);
+            const nameCell = worksheet.getCell(nameRow, startCol); const credTextCell = worksheet.getCell(credRow, startCol + 6); const credCell = worksheet.getCell(credRow, startCol + 7);
 
-            try {
-                let cell = worksheet.getCell(hoursRow, startCol);
-                if (cell.isMerged) worksheet.unMergeCells(cell.master.address);
-            } catch(e) {}
+            try { let cell = worksheet.getCell(hoursRow, startCol); if (cell.isMerged) worksheet.unMergeCells(cell.master.address); } catch(e) {}
             try { worksheet.unMergeCells(hoursRow, startCol, hoursRow, startCol + 7); } catch(e) {}
 
             if (subject) { 
-                let targetHours = parseHoursComponents(subject.components); 
-                nameCell.value = subject.name;
-                
-                let currentAlign = nameCell.alignment || {};
-                nameCell.alignment = { ...currentAlign, wrapText: true, vertical: 'middle', horizontal: 'center' };
-                
+                let targetHours = parseHoursComponents(subject.components); nameCell.value = subject.name;
+                let currentAlign = nameCell.alignment || {}; nameCell.alignment = { ...currentAlign, wrapText: true, vertical: 'middle', horizontal: 'center' };
                 const isSpecialPracOrProj = ["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PRÁCTICAS EMPRESARIALES", "PROYECTO INTEGRADOR"].includes(subject.tipoMateria);
 
                 if (isSpecialPracOrProj) {
-                    let credsMateria = calculateCredits(subject); 
-                    let totalHorasMateria = credsMateria * divC * weeks;
-                    
-                    for(let c = startCol; c <= startCol + 7; c++) {
-                        worksheet.getCell(hoursRow, c).value = null;
-                    }
-
+                    let credsMateria = calculateCredits(subject); let totalHorasMateria = credsMateria * divC * weeks;
+                    for(let c = startCol; c <= startCol + 7; c++) { worksheet.getCell(hoursRow, c).value = null; }
                     worksheet.mergeCells(hoursRow, startCol, hoursRow, startCol + 7);
-                    const mergedHoursCell = worksheet.getCell(hoursRow, startCol);
-                    mergedHoursCell.value = totalHorasMateria;
-                    mergedHoursCell.alignment = { horizontal: 'center', vertical: 'middle' };
-                    
-                    credTextCell.value = "CRÉD.";
-                    credCell.value = credsMateria; 
+                    const mergedHoursCell = worksheet.getCell(hoursRow, startCol); mergedHoursCell.value = totalHorasMateria; mergedHoursCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    credTextCell.value = "CRÉD."; credCell.value = credsMateria; 
 
-                    levelCreds += credsMateria;
-                    globalCreds += credsMateria;
-                    levelSpecialHours += totalHorasMateria;
-                    
+                    levelCreds += credsMateria; globalCreds += credsMateria; levelSpecialHours += totalHorasMateria;
                     if (subject.tipoMateria === 'PRÁCTICAS LABORALES' || subject.tipoMateria === 'PRÁCTICAS EMPRESARIALES') pracEmp += totalHorasMateria;
                     else if (subject.tipoMateria === 'PRÁCTICAS COMUNITARIAS') pracCom += totalHorasMateria;
                     else if (subject.tipoMateria === 'PROYECTO INTEGRADOR') intCur += totalHorasMateria;
-
                 } else {
-                    worksheet.getCell(hoursRow, startCol).value = "ACD:";
-                    worksheet.getCell(hoursRow, startCol + 1).value = targetHours.acd;
-                    worksheet.getCell(hoursRow, startCol + 2).value = "APE:";
-                    worksheet.getCell(hoursRow, startCol + 3).value = targetHours.ape;
-                    worksheet.getCell(hoursRow, startCol + 4).value = "AA:";
-                    worksheet.getCell(hoursRow, startCol + 5).value = targetHours.aa;
-                    worksheet.getCell(hoursRow, startCol + 6).value = "Horas Totales:";
-                    worksheet.getCell(hoursRow, startCol + 7).value = (targetHours.acd + targetHours.ape + targetHours.aa) * weeks;
-
-                    for(let c = startCol; c <= startCol + 7; c++) {
-                        worksheet.getCell(hoursRow, c).alignment = { horizontal: 'center', vertical: 'middle' };
-                    }
-
+                    worksheet.getCell(hoursRow, startCol).value = "ACD:"; worksheet.getCell(hoursRow, startCol + 1).value = targetHours.acd;
+                    worksheet.getCell(hoursRow, startCol + 2).value = "APE:"; worksheet.getCell(hoursRow, startCol + 3).value = targetHours.ape;
+                    worksheet.getCell(hoursRow, startCol + 4).value = "AA:"; worksheet.getCell(hoursRow, startCol + 5).value = targetHours.aa;
+                    worksheet.getCell(hoursRow, startCol + 6).value = "Horas Totales:"; worksheet.getCell(hoursRow, startCol + 7).value = (targetHours.acd + targetHours.ape + targetHours.aa) * weeks;
+                    for(let c = startCol; c <= startCol + 7; c++) { worksheet.getCell(hoursRow, c).alignment = { horizontal: 'center', vertical: 'middle' }; }
                     credTextCell.value = "CRÉD.";
-                    
                     let creditosCalculados = (targetHours.acd + targetHours.ape + targetHours.aa) / divC;
-                    
-                    const colACD = worksheet.getColumn(startCol + 1).letter;
-                    const colAPE = worksheet.getColumn(startCol + 3).letter;
-                    const colAA = worksheet.getColumn(startCol + 5).letter;
-                    
-                    credCell.value = { 
-                        formula: `(${colACD}${hoursRow}+${colAPE}${hoursRow}+${colAA}${hoursRow})/${divC}`,
-                        result: creditosCalculados 
-                    };
+                    const colACD = worksheet.getColumn(startCol + 1).letter; const colAPE = worksheet.getColumn(startCol + 3).letter; const colAA = worksheet.getColumn(startCol + 5).letter;
+                    credCell.value = { formula: `(${colACD}${hoursRow}+${colAPE}${hoursRow}+${colAA}${hoursRow})/${divC}`, result: creditosCalculados };
 
-                    levelCreds += creditosCalculados;
-                    globalCreds += creditosCalculados;
-                    levelACD += targetHours.acd * weeks;
-                    levelAPE += targetHours.ape * weeks;
-                    levelAA += targetHours.aa * weeks;
-                    globalACD += targetHours.acd * weeks;
-                    globalAPE += targetHours.ape * weeks;
-                    globalAA += targetHours.aa * weeks;
+                    levelCreds += creditosCalculados; globalCreds += creditosCalculados; levelACD += targetHours.acd * weeks; levelAPE += targetHours.ape * weeks; levelAA += targetHours.aa * weeks;
+                    globalACD += targetHours.acd * weeks; globalAPE += targetHours.ape * weeks; globalAA += targetHours.aa * weeks;
                 }
 
-                let tipoMat = String(subject.tipoMateria || 'FORMACIÓN PROFESIONAL').trim().toUpperCase();
-                let argbBg = 'FFFBEFAE'; 
-                let argbFont = 'FF000000'; 
-                let isDarkTheme = false;
-
+                let tipoMat = String(subject.tipoMateria || 'FORMACIÓN PROFESIONAL').trim().toUpperCase(); let argbBg = 'FFFBEFAE'; let argbFont = 'FF000000'; let isDarkTheme = false;
                 tipoMat = tipoMat.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
                 switch (tipoMat) {
-                    case 'MATEMATICAS Y CIENCIAS BASICAS': argbBg = 'FFFFFFFF'; break;
-                    case 'EDUCACION GENERAL': argbBg = 'FFD6DFE6'; break;
-                    case 'FORMACION PROFESIONAL': argbBg = 'FFFBEFAE'; break;
-                    case 'C. DE ARTE Y DEPORTES': argbBg = 'FFF8C1A0'; break;
-                    case 'C. DE HUMANISTICA': argbBg = 'FF93D0CC'; break;
-                    case 'ITINERARIO': argbBg = 'FF7092BE'; break;
-                    case 'PRACTICAS COMUNITARIAS':
-                    case 'PRACTICAS LABORALES':
-                    case 'PRACTICAS EMPRESARIALES': argbBg = 'FFFCDC7D'; break;
-                    case 'U DE INTEGRACION CURRICULAR':
-                    case 'PROYECTO INTEGRADOR':
-                        argbBg = 'FF003566';
-                        argbFont = 'FFFFFFFF';
-                        isDarkTheme = true;
-                        break;
+                    case 'MATEMATICAS Y CIENCIAS BASICAS': argbBg = 'FFFFFFFF'; break; case 'EDUCACION GENERAL': argbBg = 'FFD6DFE6'; break; case 'FORMACION PROFESIONAL': argbBg = 'FFFBEFAE'; break; case 'C. DE ARTE Y DEPORTES': argbBg = 'FFF8C1A0'; break; case 'C. DE HUMANISTICA': argbBg = 'FF93D0CC'; break; case 'ITINERARIO': argbBg = 'FF7092BE'; break; case 'PRACTICAS COMUNITARIAS': case 'PRACTICAS LABORALES': case 'PRACTICAS EMPRESARIALES': argbBg = 'FFFCDC7D'; break;
+                    case 'U DE INTEGRACION CURRICULAR': case 'PROYECTO INTEGRADOR': argbBg = 'FF003566'; argbFont = 'FFFFFFFF'; isDarkTheme = true; break;
                 }
 
                 for (let r = nameRow; r <= hoursRow; r++) {
                     for (let c = startCol; c <= startCol + 7; c++) {
-                        let styledCell = worksheet.getCell(r, c);
-                        
-                        let currentBorder = styledCell.border ? JSON.parse(JSON.stringify(styledCell.border)) : {};
-                        let currentAlignment = styledCell.alignment ? JSON.parse(JSON.stringify(styledCell.alignment)) : {};
-                        let currentFont = styledCell.font ? JSON.parse(JSON.stringify(styledCell.font)) : {};
-
-                        let isTop = (r === nameRow);
-                        let isBottom = (r === hoursRow);
-                        let isLeft = (c === startCol);
-                        let isRight = (c === startCol + 7);
+                        let styledCell = worksheet.getCell(r, c); let currentBorder = styledCell.border ? JSON.parse(JSON.stringify(styledCell.border)) : {}; let currentAlignment = styledCell.alignment ? JSON.parse(JSON.stringify(styledCell.alignment)) : {}; let currentFont = styledCell.font ? JSON.parse(JSON.stringify(styledCell.font)) : {};
+                        let isTop = (r === nameRow); let isBottom = (r === hoursRow); let isLeft = (c === startCol); let isRight = (c === startCol + 7);
 
                         if (isDarkTheme) {
-                            if (currentBorder.top && !isTop) currentBorder.top.color = { argb: 'FFFFFFFF' };
-                            if (currentBorder.bottom && !isBottom) currentBorder.bottom.color = { argb: 'FFFFFFFF' };
-                            if (currentBorder.left && !isLeft) currentBorder.left.color = { argb: 'FFFFFFFF' };
-                            if (currentBorder.right && !isRight) currentBorder.right.color = { argb: 'FFFFFFFF' };
+                            if (currentBorder.top && !isTop) currentBorder.top.color = { argb: 'FFFFFFFF' }; if (currentBorder.bottom && !isBottom) currentBorder.bottom.color = { argb: 'FFFFFFFF' };
+                            if (currentBorder.left && !isLeft) currentBorder.left.color = { argb: 'FFFFFFFF' }; if (currentBorder.right && !isRight) currentBorder.right.color = { argb: 'FFFFFFFF' };
                         }
 
-                        if (isTop) currentBorder.top = { style: 'medium', color: { argb: 'FF000000' } };
-                        if (isBottom) currentBorder.bottom = { style: 'medium', color: { argb: 'FF000000' } };
-                        if (isLeft) currentBorder.left = { style: 'medium', color: { argb: 'FF000000' } };
-                        if (isRight) currentBorder.right = { style: 'medium', color: { argb: 'FF000000' } };
-
-                        styledCell.style = {
-                            border: currentBorder,
-                            alignment: currentAlignment,
-                            font: { ...currentFont, color: { argb: argbFont } },
-                            fill: {
-                                type: 'pattern',
-                                pattern: 'solid',
-                                fgColor: { argb: argbBg },
-                                bgColor: { argb: argbBg }
-                            }
-                        };
+                        if (isTop) currentBorder.top = { style: 'medium', color: { argb: 'FF000000' } }; if (isBottom) currentBorder.bottom = { style: 'medium', color: { argb: 'FF000000' } }; if (isLeft) currentBorder.left = { style: 'medium', color: { argb: 'FF000000' } }; if (isRight) currentBorder.right = { style: 'medium', color: { argb: 'FF000000' } };
+                        styledCell.style = { border: currentBorder, alignment: currentAlignment, font: { ...currentFont, color: { argb: argbFont } }, fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: argbBg }, bgColor: { argb: argbBg } } };
                     }
                 }
-
             } else { 
                 try { worksheet.unMergeCells(nameRow, startCol, nameRow + 1, startCol + 7); } catch(e) {}
-                
-                for (let r = nameRow; r <= hoursRow; r++) {
-                    for (let c = startCol; c <= startCol + 7; c++) {
-                        let emptyCell = worksheet.getCell(r, c);
-                        emptyCell.value = null;
-                        
-                        let currentAlignment = emptyCell.alignment ? JSON.parse(JSON.stringify(emptyCell.alignment)) : {};
-                        let currentFont = emptyCell.font ? JSON.parse(JSON.stringify(emptyCell.font)) : {};
-
-                        emptyCell.style = {
-                            alignment: currentAlignment,
-                            font: currentFont
-                        };
-                    }
-                }
-                
-                for(let c = startCol; c <= startCol + 7; c++) {
-                    worksheet.getCell(credRow, c).value = null;
-                }
+                for (let r = nameRow; r <= hoursRow; r++) { for (let c = startCol; c <= startCol + 7; c++) { let emptyCell = worksheet.getCell(r, c); emptyCell.value = null; let currentAlignment = emptyCell.alignment ? JSON.parse(JSON.stringify(emptyCell.alignment)) : {}; let currentFont = emptyCell.font ? JSON.parse(JSON.stringify(emptyCell.font)) : {}; emptyCell.style = { alignment: currentAlignment, font: currentFont }; } }
+                for(let c = startCol; c <= startCol + 7; c++) { worksheet.getCell(credRow, c).value = null; }
             }
           }
 
-          setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 81).address, levelACD);
-          setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 83).address, levelAPE);
-          setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 85).address, levelAA);
-          setCachedResult(worksheet, worksheet.getCell(baseRow + 2, 83).address, levelACD + levelAPE + levelAA + levelSpecialHours);
+          setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 81).address, levelACD); setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 83).address, levelAPE);
+          setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 85).address, levelAA); setCachedResult(worksheet, worksheet.getCell(baseRow + 2, 83).address, levelACD + levelAPE + levelAA + levelSpecialHours);
           setCachedResult(worksheet, worksheet.getCell(baseRow + 3, 83).address, levelCreds);
         }
 
-        setCachedResult(worksheet, 'CG56', globalACD);
-        setCachedResult(worksheet, 'CG57', globalAPE);
-        setCachedResult(worksheet, 'CG58', globalAA);
-        setCachedResult(worksheet, 'CG59', pracEmp);
-        setCachedResult(worksheet, 'CG60', pracCom);
-        setCachedResult(worksheet, 'CG61', intCur);
-        setCachedResult(worksheet, 'CG62', globalACD + globalAPE + globalAA + pracEmp + pracCom + intCur);
-        setCachedResult(worksheet, 'CG63', globalCreds);
+        setCachedResult(worksheet, 'CG56', globalACD); setCachedResult(worksheet, 'CG57', globalAPE); setCachedResult(worksheet, 'CG58', globalAA);
+        setCachedResult(worksheet, 'CG59', pracEmp); setCachedResult(worksheet, 'CG60', pracCom); setCachedResult(worksheet, 'CG61', intCur);
+        setCachedResult(worksheet, 'CG62', globalACD + globalAPE + globalAA + pracEmp + pracCom + intCur); setCachedResult(worksheet, 'CG63', globalCreds);
 
         const maxTemplateSemesters = 9; 
-        if (state.config.semesters < maxTemplateSemesters) {
-            const startRowHide = 9 + (state.config.semesters * 5);
-            const numRowsToHide = (maxTemplateSemesters - state.config.semesters) * 5;
-            for (let r = startRowHide; r < startRowHide + numRowsToHide; r++) {
-                worksheet.getRow(r).hidden = true;
-            }
-        }
+        if (state.config.semesters < maxTemplateSemesters) { const startRowHide = 9 + (state.config.semesters * 5); const numRowsToHide = (maxTemplateSemesters - state.config.semesters) * 5; for (let r = startRowHide; r < startRowHide + numRowsToHide; r++) { worksheet.getRow(r).hidden = true; } }
 
         const visibleLevelIds = visibleLevels.map(l => l.id);
         for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
             const isEmptyColumn = !state.subjects.some(s => s.col === colIdx && visibleLevelIds.includes(s.level));
-            if (isEmptyColumn) {
-                const startExcelCol = 8 + (colIdx * 9);
-                for (let c = startExcelCol; c < startExcelCol + 9; c++) {
-                    worksheet.getColumn(c).hidden = true;
-                }
-            }
+            if (isEmptyColumn) { const startExcelCol = 8 + (colIdx * 9); for (let c = startExcelCol; c < startExcelCol + 9; c++) { worksheet.getColumn(c).hidden = true; } }
         }
 
-        const sheet1 = workbook.getWorksheet('MODIFICACIONES EN ASIGNATURAS'); 
-        if (!sheet1) throw new Error('La pestaña MODIFICACIONES EN ASIGNATURAS no existe en la plantilla.');
-
-        if (sheet1.views && sheet1.views.length > 0) {
-            sheet1.views.forEach(v => v.showGridLines = false);
-        } else {
-            sheet1.views = [{ showGridLines: false }];
-        }
+        const sheet1 = workbook.getWorksheet('MODIFICACIONES EN ASIGNATURAS'); if (!sheet1) throw new Error('La pestaña MODIFICACIONES EN ASIGNATURAS no existe en la plantilla.');
+        if (sheet1.views && sheet1.views.length > 0) { sheet1.views.forEach(v => v.showGridLines = false); } else { sheet1.views = [{ showGridLines: false }]; }
 
         for (let i = 1; i < modifications.length; i++) {
           let destStartRow = 4 + (i * 4); 
           for (let offset = 0; offset < 4; offset++) {
-            const srcRow = sheet1.getRow(4 + offset); 
-            const destRow = sheet1.getRow(destStartRow + offset); 
-            destRow.height = srcRow.height;
+            const srcRow = sheet1.getRow(4 + offset); const destRow = sheet1.getRow(destStartRow + offset); destRow.height = srcRow.height;
             for (let col = 1; col <= 14; col++) {
-              const srcCell = srcRow.getCell(col); 
-              const destCell = destRow.getCell(col);
-              
-              if (srcCell.style) {
-                  destCell.style = JSON.parse(JSON.stringify(srcCell.style));
-              }
-
-              if (srcCell.type !== 1 && srcCell.type !== 6 && srcCell.value !== null) { 
-                  destCell.value = srcCell.value; 
-              }
+              const srcCell = srcRow.getCell(col); const destCell = destRow.getCell(col);
+              if (srcCell.style) { destCell.style = JSON.parse(JSON.stringify(srcCell.style)); }
+              if (srcCell.type !== 1 && srcCell.type !== 6 && srcCell.value !== null) { destCell.value = srcCell.value; }
             }
           }
-          sheet1.mergeCells(`A${destStartRow}:A${destStartRow+3}`); sheet1.mergeCells(`B${destStartRow}:B${destStartRow+3}`);
-          sheet1.mergeCells(`C${destStartRow}:C${destStartRow+3}`); sheet1.mergeCells(`F${destStartRow}:G${destStartRow}`);
-          sheet1.mergeCells(`J${destStartRow}:K${destStartRow}`); sheet1.mergeCells(`H${destStartRow+1}:H${destStartRow+3}`);
-          sheet1.mergeCells(`I${destStartRow+1}:I${destStartRow+3}`); sheet1.mergeCells(`L${destStartRow+1}:L${destStartRow+3}`);
-          sheet1.mergeCells(`M${destStartRow+1}:M${destStartRow+3}`); sheet1.mergeCells(`N${destStartRow+1}:N${destStartRow+3}`);
-
-          sheet1.getCell(`H${destStartRow+1}`).value = { formula: `=(G${destStartRow+1}+G${destStartRow+2}+G${destStartRow+3})*16` };
-          sheet1.getCell(`I${destStartRow+1}`).value = { formula: `=H${destStartRow+1}/48` };
-          sheet1.getCell(`L${destStartRow+1}`).value = { formula: `=(K${destStartRow+1}+K${destStartRow+2}+K${destStartRow+3})*16` };
-          sheet1.getCell(`M${destStartRow+1}`).value = { formula: `=L${destStartRow+1}/48` };
+          sheet1.mergeCells(`A${destStartRow}:A${destStartRow+3}`); sheet1.mergeCells(`B${destStartRow}:B${destStartRow+3}`); sheet1.mergeCells(`C${destStartRow}:C${destStartRow+3}`); sheet1.mergeCells(`F${destStartRow}:G${destStartRow}`); sheet1.mergeCells(`J${destStartRow}:K${destStartRow}`); sheet1.mergeCells(`H${destStartRow+1}:H${destStartRow+3}`); sheet1.mergeCells(`I${destStartRow+1}:I${destStartRow+3}`); sheet1.mergeCells(`L${destStartRow+1}:L${destStartRow+3}`); sheet1.mergeCells(`M${destStartRow+1}:M${destStartRow+3}`); sheet1.mergeCells(`N${destStartRow+1}:N${destStartRow+3}`);
+          sheet1.getCell(`H${destStartRow+1}`).value = { formula: `=(G${destStartRow+1}+G${destStartRow+2}+G${destStartRow+3})*16` }; sheet1.getCell(`I${destStartRow+1}`).value = { formula: `=H${destStartRow+1}/48` }; sheet1.getCell(`L${destStartRow+1}`).value = { formula: `=(K${destStartRow+1}+K${destStartRow+2}+K${destStartRow+3})*16` }; sheet1.getCell(`M${destStartRow+1}`).value = { formula: `=L${destStartRow+1}/48` };
         }
 
         if (modifications.length === 0) {
-            let startRow = 4; sheet1.getCell(`A${startRow}`).value = null; sheet1.getCell(`B${startRow}`).value = null;
-            sheet1.getCell(`C${startRow}`).value = null; sheet1.getCell(`N${startRow+1}`).value = null;
-            for(let i=0; i<4; i++) sheet1.getCell(`E${startRow+i}`).value = null;
-            sheet1.getCell(`G${startRow+1}`).value = 0; sheet1.getCell(`G${startRow+2}`).value = 0; sheet1.getCell(`G${startRow+3}`).value = 0;
-            sheet1.getCell(`K${startRow+1}`).value = 0; sheet1.getCell(`K${startRow+2}`).value = 0; sheet1.getCell(`K${startRow+3}`).value = 0;
-            setCachedResult(sheet1, `H${startRow+1}`, 0); setCachedResult(sheet1, `I${startRow+1}`, 0);
-            setCachedResult(sheet1, `L${startRow+1}`, 0); setCachedResult(sheet1, `M${startRow+1}`, 0);
+            let startRow = 4; sheet1.getCell(`A${startRow}`).value = null; sheet1.getCell(`B${startRow}`).value = null; sheet1.getCell(`C${startRow}`).value = null; sheet1.getCell(`N${startRow+1}`).value = null; for(let i=0; i<4; i++) sheet1.getCell(`E${startRow+i}`).value = null;
+            sheet1.getCell(`G${startRow+1}`).value = 0; sheet1.getCell(`G${startRow+2}`).value = 0; sheet1.getCell(`G${startRow+3}`).value = 0; sheet1.getCell(`K${startRow+1}`).value = 0; sheet1.getCell(`K${startRow+2}`).value = 0; sheet1.getCell(`K${startRow+3}`).value = 0;
+            setCachedResult(sheet1, `H${startRow+1}`, 0); setCachedResult(sheet1, `I${startRow+1}`, 0); setCachedResult(sheet1, `L${startRow+1}`, 0); setCachedResult(sheet1, `M${startRow+1}`, 0);
         } else {
             modifications.forEach((mod, index) => {
-              let startRow = 4 + (index * 4);
-              let targetSubj = mod.web || mod.base;
-              sheet1.getCell(`A${startRow}`).value = null; sheet1.getCell(`B${startRow}`).value = null;
-              sheet1.getCell(`C${startRow}`).value = null; sheet1.getCell(`N${startRow+1}`).value = null;
-              for(let i=0; i<4; i++) sheet1.getCell(`E${startRow+i}`).value = null;
+              let startRow = 4 + (index * 4); let targetSubj = mod.web || mod.base;
+              sheet1.getCell(`A${startRow}`).value = null; sheet1.getCell(`B${startRow}`).value = null; sheet1.getCell(`C${startRow}`).value = null; sheet1.getCell(`N${startRow+1}`).value = null; for(let i=0; i<4; i++) sheet1.getCell(`E${startRow+i}`).value = null;
+              sheet1.getCell(`A${startRow}`).value = targetSubj.code; sheet1.getCell(`B${startRow}`).value = formatLevel(targetSubj.level); sheet1.getCell(`C${startRow}`).value = targetSubj.name; sheet1.getCell(`N${startRow+1}`).value = mod.comment || null;
 
-              sheet1.getCell(`A${startRow}`).value = targetSubj.code; sheet1.getCell(`B${startRow}`).value = formatLevel(targetSubj.level); 
-              sheet1.getCell(`C${startRow}`).value = targetSubj.name; sheet1.getCell(`N${startRow+1}`).value = mod.comment || null;
+              if (mod.type === 'CAMBIO') sheet1.getCell(`E${startRow}`).value = 'X'; if (mod.type === 'ELIMINACIÓN') sheet1.getCell(`E${startRow+1}`).value = 'X'; if (mod.type === 'CREACIÓN') sheet1.getCell(`E${startRow+2}`).value = 'X'; if (mod.type === 'OTRO') sheet1.getCell(`E${startRow+3}`).value = 'X';
 
-              if (mod.type === 'CAMBIO') sheet1.getCell(`E${startRow}`).value = 'X';
-              if (mod.type === 'ELIMINACIÓN') sheet1.getCell(`E${startRow+1}`).value = 'X';
-              if (mod.type === 'CREACIÓN') sheet1.getCell(`E${startRow+2}`).value = 'X';
-              if (mod.type === 'OTRO') sheet1.getCell(`E${startRow+3}`).value = 'X';
+              if (mod.base) { let h = parseHoursComponents(mod.base.components); sheet1.getCell(`G${startRow+1}`).value = h.acd; sheet1.getCell(`G${startRow+2}`).value = h.ape; sheet1.getCell(`G${startRow+3}`).value = h.aa; let sumHBase = (h.acd + h.ape + h.aa) * 16; setCachedResult(sheet1, `H${startRow+1}`, sumHBase); setCachedResult(sheet1, `I${startRow+1}`, sumHBase / 48); } 
+              else { sheet1.getCell(`G${startRow+1}`).value = 0; sheet1.getCell(`G${startRow+2}`).value = 0; sheet1.getCell(`G${startRow+3}`).value = 0; setCachedResult(sheet1, `H${startRow+1}`, 0); setCachedResult(sheet1, `I${startRow+1}`, 0); }
 
-              if (mod.base) {
-                let h = parseHoursComponents(mod.base.components);
-                sheet1.getCell(`G${startRow+1}`).value = h.acd; sheet1.getCell(`G${startRow+2}`).value = h.ape; sheet1.getCell(`G${startRow+3}`).value = h.aa;
-                let sumHBase = (h.acd + h.ape + h.aa) * 16; setCachedResult(sheet1, `H${startRow+1}`, sumHBase); setCachedResult(sheet1, `I${startRow+1}`, sumHBase / 48);
-              } else {
-                sheet1.getCell(`G${startRow+1}`).value = 0; sheet1.getCell(`G${startRow+2}`).value = 0; sheet1.getCell(`G${startRow+3}`).value = 0;
-                setCachedResult(sheet1, `H${startRow+1}`, 0); setCachedResult(sheet1, `I${startRow+1}`, 0);
-              }
-
-              if (mod.web) {
-                let h = parseHoursComponents(mod.web.components);
-                sheet1.getCell(`K${startRow+1}`).value = h.acd; sheet1.getCell(`K${startRow+2}`).value = h.ape; sheet1.getCell(`K${startRow+3}`).value = h.aa;
-                let sumHWeb = (h.acd + h.ape + h.aa) * 16; setCachedResult(sheet1, `L${startRow+1}`, sumHWeb); setCachedResult(sheet1, `M${startRow+1}`, sumHWeb / 48);
-              } else {
-                sheet1.getCell(`K${startRow+1}`).value = 0; sheet1.getCell(`K${startRow+2}`).value = 0; sheet1.getCell(`K${startRow+3}`).value = 0;
-                setCachedResult(sheet1, `L${startRow+1}`, 0); setCachedResult(sheet1, `M${startRow+1}`, 0);
-              }
+              if (mod.web) { let h = parseHoursComponents(mod.web.components); sheet1.getCell(`K${startRow+1}`).value = h.acd; sheet1.getCell(`K${startRow+2}`).value = h.ape; sheet1.getCell(`K${startRow+3}`).value = h.aa; let sumHWeb = (h.acd + h.ape + h.aa) * 16; setCachedResult(sheet1, `L${startRow+1}`, sumHWeb); setCachedResult(sheet1, `M${startRow+1}`, sumHWeb / 48); } 
+              else { sheet1.getCell(`K${startRow+1}`).value = 0; sheet1.getCell(`K${startRow+2}`).value = 0; sheet1.getCell(`K${startRow+3}`).value = 0; setCachedResult(sheet1, `L${startRow+1}`, 0); setCachedResult(sheet1, `M${startRow+1}`, 0); }
             });
         }
         
-        const buffer = await workbook.xlsx.writeBuffer(); 
-        const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }); 
-        
-        saveAs(blob, "Malla Formato CES.xlsx");
-        
-        showToast('Malla exportada a Excel con éxito.', 'success');
+        const buffer = await workbook.xlsx.writeBuffer(); const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }); 
+        saveAs(blob, "Malla Formato CES.xlsx"); showToast('Malla exportada a Excel con éxito.', 'success');
       } catch (error) { console.error("Error al generar el Excel:", error); showToast('Error al generar la malla. Revisa la consola.', 'error'); }
-    }
-
-    function deleteSubject() {
-      const id = document.getElementById('edit-id').value; if (!id) return;
-      saveStateToHistory(); 
-      const subj = state.subjects.find(s => s.id === id);
-      
-      if (subj.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR') {
-          const pi = state.subjects.find(s => s.tipoMateria === 'PROYECTO INTEGRADOR' && s.level === subj.level);
-          if (pi) {
-               state.subjects = state.subjects.filter(s => s.id !== pi.id);
-               state.connections = state.connections.filter(c => c.from !== pi.id && c.to !== pi.id);
-          }
-      }
-
-      if (subj.tipoMateria === 'PRÁCTICAS LABORALES') {
-          const laborales = state.subjects.filter(s => s.tipoMateria === 'PRÁCTICAS LABORALES');
-          laborales.forEach(lab => {
-              state.subjects = state.subjects.filter(s => s.id !== lab.id);
-              state.connections = state.connections.filter(c => c.from !== lab.id && c.to !== lab.id);
-          });
-      } else {
-          state.subjects = state.subjects.filter(s => s.id !== id); 
-          state.connections = state.connections.filter(c => c.from !== id && c.to !== id); 
-      }
-
-      persistState(); pinnedSubjectId = null; closeEditModal(); renderBoard(); drawConnections(); updateAnalyticsPanel(); showToast('Materia(s) eliminada(s).', 'info');
     }
 
     window.onload = init;
