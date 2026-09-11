@@ -438,20 +438,20 @@
        </label>
        <label class="config-label">Créditos mínimos objetivo <input type="number" id="conf-min" value="14" onchange="updateConfig()"></label>
        <label class="config-label">Créditos máximos objetivo <input type="number" id="conf-max" value="16" onchange="updateConfig()"></label>
-       <label class="config-label">Divisor de créditos <input type="number" id="conf-div" value="3" onchange="updateConfig()"></label>
-       <label class="config-label">Semanas / semestre <input type="number" id="conf-weeks" value="16" onchange="updateConfig()"></label>
+       <label class="config-label">Divisor de créditos <input type="number" id="conf-div" value="3" readonly style="background-color: #e2e8f0; cursor: not-allowed; color: #64748b;"></label>
+       <label class="config-label">Semanas / semestre <input type="number" id="conf-weeks" value="16" readonly style="background-color: #e2e8f0; cursor: not-allowed; color: #64748b;"></label>
     </div>
 
     <!-- Tipos de Relaciones -->
     <div class="panel-section">
-       <h3>Relaciones (Requisitos)</h3>
+       <h3>Requisitos</h3>
        <div class="type-row" style="justify-content: flex-start; gap: 15px;">
           <div class="legend-line legend-prereq"></div>
-          <span class="type-name">Prerrequisito (Entre distintos niveles)</span>
+          <span class="type-name">Prerrequisito</span>
        </div>
        <div class="type-row" style="justify-content: flex-start; gap: 15px; border-bottom: none;">
           <div class="legend-coreq"></div>
-          <span class="type-name">Correquisito (En el mismo nivel)</span>
+          <span class="type-name">Correquisito</span>
        </div>
     </div>
 
@@ -633,11 +633,12 @@
     <div class="modal" onclick="event.stopPropagation()">
       <h2 style="color: #dc2626; margin-top: 0;">🗑️ Borrar Malla</h2>
       <p style="font-size: 0.9em; color: #475569; line-height: 1.4;">
-        ¿Estás seguro de que deseas vaciar la malla y borrar todo el contenido? Esta acción no se puede deshacer.
+        ¿Deseas descargar tu trabajo actual antes de vaciar la malla y borrar todo el contenido?
       </p>
       <div class="modal-actions" style="margin-top: 25px;">
         <button onclick="closeResetModal()">Cancelar</button>
-        <button onclick="confirmResetLayout()" style="background-color: #dc2626; color: white;">Sí, borrar todo</button>
+        <button onclick="confirmResetLayout()" style="color: #dc2626; background: #fef2f2; border-color: #fca5a5;">Borrar directamente</button>
+        <button onclick="saveAndResetLayout()" style="background-color: var(--accent-color); color: white;">Guardar y Borrar</button>
       </div>
     </div>
   </div>
@@ -2611,11 +2612,22 @@
     }
 
     function resetLayout() {
+        if (!state.subjects || state.subjects.length === 0) {
+            showToast('La malla ya está vacía.', 'info');
+            return;
+        }
         document.getElementById('reset-modal-overlay').style.display = 'flex';
     }
 
     function closeResetModal() {
         document.getElementById('reset-modal-overlay').style.display = 'none';
+    }
+
+    function saveAndResetLayout() {
+        checkAndExportJSON(); 
+        setTimeout(() => {
+            confirmResetLayout();
+        }, 800); 
     }
 
     function confirmResetLayout() {
@@ -2759,7 +2771,7 @@
           const hoursRow = baseRow + 2; 
           const credRow = baseRow + 3;  
 
-          let levelACD = 0, levelAPE = 0, levelAA = 0, levelCreds = 0;
+          let levelACD = 0, levelAPE = 0, levelAA = 0, levelCreds = 0, levelSpecialHours = 0;
 
           for (let colIdx = 0; colIdx < NUM_COLUMNS; colIdx++) {
             const startCol = 8 + (colIdx * 9); 
@@ -2802,6 +2814,7 @@
 
                     levelCreds += credsMateria;
                     globalCreds += credsMateria;
+                    levelSpecialHours += totalHorasMateria;
                     if (subject.tipoMateria === 'PRÁCTICAS LABORALES' || subject.tipoMateria === 'PRÁCTICAS EMPRESARIALES') pracEmp += totalHorasMateria;
                     else if (subject.tipoMateria === 'PRÁCTICAS COMUNITARIAS') pracCom += totalHorasMateria;
                     else if (subject.tipoMateria === 'PROYECTO INTEGRADOR') intCur += totalHorasMateria;
@@ -2934,7 +2947,7 @@
           setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 81).address, levelACD);
           setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 83).address, levelAPE);
           setCachedResult(worksheet, worksheet.getCell(baseRow + 1, 85).address, levelAA);
-          setCachedResult(worksheet, worksheet.getCell(baseRow + 2, 83).address, levelACD + levelAPE + levelAA);
+          setCachedResult(worksheet, worksheet.getCell(baseRow + 2, 83).address, levelACD + levelAPE + levelAA + levelSpecialHours);
           setCachedResult(worksheet, worksheet.getCell(baseRow + 3, 83).address, levelCreds);
         }
 
@@ -3062,31 +3075,29 @@
 
     function deleteSubject() {
       const id = document.getElementById('edit-id').value; if (!id) return;
-      if (confirm('¿Seguro que deseas eliminar esta materia?')) { 
-        saveStateToHistory(); 
-        const subj = state.subjects.find(s => s.id === id);
-        
-        if (subj.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR') {
-            const pi = state.subjects.find(s => s.tipoMateria === 'PROYECTO INTEGRADOR' && s.level === subj.level);
-            if (pi) {
-                 state.subjects = state.subjects.filter(s => s.id !== pi.id);
-                 state.connections = state.connections.filter(c => c.from !== pi.id && c.to !== pi.id);
-            }
-        }
-
-        if (subj.tipoMateria === 'PRÁCTICAS LABORALES') {
-            const laborales = state.subjects.filter(s => s.tipoMateria === 'PRÁCTICAS LABORALES');
-            laborales.forEach(lab => {
-                state.subjects = state.subjects.filter(s => s.id !== lab.id);
-                state.connections = state.connections.filter(c => c.from !== lab.id && c.to !== lab.id);
-            });
-        } else {
-            state.subjects = state.subjects.filter(s => s.id !== id); 
-            state.connections = state.connections.filter(c => c.from !== id && c.to !== id); 
-        }
-
-        persistState(); pinnedSubjectId = null; closeEditModal(); renderBoard(); drawConnections(); updateAnalyticsPanel(); showToast('Materia(s) eliminada(s).', 'info');
+      saveStateToHistory(); 
+      const subj = state.subjects.find(s => s.id === id);
+      
+      if (subj.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR') {
+          const pi = state.subjects.find(s => s.tipoMateria === 'PROYECTO INTEGRADOR' && s.level === subj.level);
+          if (pi) {
+               state.subjects = state.subjects.filter(s => s.id !== pi.id);
+               state.connections = state.connections.filter(c => c.from !== pi.id && c.to !== pi.id);
+          }
       }
+
+      if (subj.tipoMateria === 'PRÁCTICAS LABORALES') {
+          const laborales = state.subjects.filter(s => s.tipoMateria === 'PRÁCTICAS LABORALES');
+          laborales.forEach(lab => {
+              state.subjects = state.subjects.filter(s => s.id !== lab.id);
+              state.connections = state.connections.filter(c => c.from !== lab.id && c.to !== lab.id);
+          });
+      } else {
+          state.subjects = state.subjects.filter(s => s.id !== id); 
+          state.connections = state.connections.filter(c => c.from !== id && c.to !== id); 
+      }
+
+      persistState(); pinnedSubjectId = null; closeEditModal(); renderBoard(); drawConnections(); updateAnalyticsPanel(); showToast('Materia(s) eliminada(s).', 'info');
     }
 
     window.onload = init;
