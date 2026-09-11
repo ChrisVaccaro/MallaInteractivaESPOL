@@ -3063,6 +3063,130 @@
               }
             });
         }
+        // --- 3. PESTAÑA 3: AJUSTE CURRICULAR DAR ---
+        const sheetDar = workbook.getWorksheet('AJUSTE CURRICULAR DAR'); 
+        if (sheetDar) {
+            // Ocultar líneas de cuadrícula de fondo
+            if (sheetDar.views && sheetDar.views.length > 0) {
+                sheetDar.views.forEach(v => v.showGridLines = false);
+            } else {
+                sheetDar.views = [{ showGridLines: false }];
+            }
+
+            let allDarSubjects = [];
+            
+            // 1. Agregar todas las materias de la malla propuesta
+            webSubjects.forEach(webSubj => {
+                let baseSubj = baseSubjects.find(s => s.code === webSubj.code);
+                allDarSubjects.push({ web: webSubj, base: baseSubj });
+            });
+
+            // 2. Agregar materias eliminadas (existen en la base, pero no en la propuesta)
+            baseSubjects.forEach(baseSubj => {
+                let isDeleted = !webSubjects.some(s => s.code === baseSubj.code);
+                if (isDeleted) {
+                    allDarSubjects.push({ web: null, base: baseSubj });
+                }
+            });
+
+            let currentRow3 = 13;
+
+            allDarSubjects.forEach(item => {
+                if (currentRow3 > 82) return; // Límite de seguridad de la plantilla
+
+                let web = item.web;
+                let base = item.base;
+
+                let descripcion = "";
+                let codCurso = "";
+                let cursoName = "";
+
+                // Evaluación estricta de Descripción Interna (Solo Nivel y Horas)
+                if (!base && web) {
+                    descripcion = "Nueva materia";
+                    codCurso = (String(web.code).toUpperCase().startsWith('NUEVO-')) ? "" : web.code;
+                    cursoName = parseNameReq(web.name).cleanName;
+                } else if (base && !web) {
+                    descripcion = "Eliminación de materia";
+                    codCurso = base.code;
+                    cursoName = parseNameReq(base.name).cleanName;
+                } else if (base && web) {
+                    let hBase = parseHoursComponents(base.components);
+                    let hWeb = parseHoursComponents(web.components);
+                    let changedHours = (hBase.acd !== hWeb.acd || hBase.ape !== hWeb.ape || hBase.aa !== hWeb.aa || base.sum !== web.sum);
+                    let changedLevel = (base.level !== web.level);
+
+                    if (changedHours && changedLevel) descripcion = "Cambio de componente de aprendizaje y de nivel de malla";
+                    else if (changedHours && !changedLevel) descripcion = "Cambio de componentes de aprendizaje";
+                    else if (!changedHours && changedLevel) descripcion = "Cambio de nivel de la materia en la malla";
+                    else descripcion = "Se mantiene";
+
+                    codCurso = (String(web.code).toUpperCase().startsWith('NUEVO-')) ? "" : web.code;
+                    cursoName = parseNameReq(web.name).cleanName;
+                }
+
+                let row = sheetDar.getRow(currentRow3);
+
+                // Columna A: Descripción Interna (Con Ajuste de texto)
+                let cellA = row.getCell(1);
+                cellA.value = descripcion;
+                let alignA = cellA.alignment || {};
+                cellA.alignment = { ...alignA, wrapText: true, vertical: 'middle' };
+
+                // Columna B: Cód. Curso
+                row.getCell(2).value = codCurso;
+
+                // Columna C: Curso (Sin el &, con Ajuste de texto)
+                let cellC = row.getCell(3);
+                cellC.value = cursoName;
+                let alignC = cellC.alignment || {};
+                cellC.alignment = { ...alignC, wrapText: true, vertical: 'middle' };
+
+                // Columna D: Clasificación (En blanco)
+                row.getCell(4).value = null;
+
+                // MALLA ACTUAL (E - I) -> Multiplicado por las semanas configuradas (16 por defecto)
+                if (base) {
+                    let hBase = parseHoursComponents(base.components);
+                    row.getCell(5).value = formatLevel(base.level);
+                    row.getCell(6).value = hBase.acd * weeks;
+                    row.getCell(7).value = hBase.ape * weeks;
+                    row.getCell(8).value = hBase.aa * weeks;
+                    let credsBase = calculateCredits(base);
+                    setCachedResult(sheetDar, row.getCell(9).address, credsBase);
+                } else {
+                    row.getCell(5).value = null; row.getCell(6).value = null; row.getCell(7).value = null; row.getCell(8).value = null;
+                    setCachedResult(sheetDar, row.getCell(9).address, 0);
+                }
+
+                // MALLA PROPUESTA (J - N)
+                if (web) {
+                    let hWeb = parseHoursComponents(web.components);
+                    row.getCell(10).value = formatLevel(web.level);
+                    row.getCell(11).value = hWeb.acd * weeks;
+                    row.getCell(12).value = hWeb.ape * weeks;
+                    row.getCell(13).value = hWeb.aa * weeks;
+                    let credsWeb = calculateCredits(web);
+                    setCachedResult(sheetDar, row.getCell(14).address, credsWeb);
+                } else {
+                    row.getCell(10).value = null; row.getCell(11).value = null; row.getCell(12).value = null; row.getCell(13).value = null;
+                    setCachedResult(sheetDar, row.getCell(14).address, 0);
+                }
+
+                currentRow3++;
+            });
+
+            // Ocultar filas sobrantes y limpiar datos viejos para que no afecten los sumatorios de la plantilla
+            for (let r = currentRow3; r <= 82; r++) {
+                let row = sheetDar.getRow(r);
+                row.hidden = true;
+                row.getCell(1).value = null; row.getCell(2).value = null; row.getCell(3).value = null; row.getCell(4).value = null;
+                row.getCell(5).value = null; row.getCell(6).value = null; row.getCell(7).value = null; row.getCell(8).value = null;
+                setCachedResult(sheetDar, row.getCell(9).address, 0);
+                row.getCell(10).value = null; row.getCell(11).value = null; row.getCell(12).value = null; row.getCell(13).value = null;
+                setCachedResult(sheetDar, row.getCell(14).address, 0);
+            }
+        }
         
         const buffer = await workbook.xlsx.writeBuffer(); 
         const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }); 
