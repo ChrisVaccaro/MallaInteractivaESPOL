@@ -3145,13 +3145,13 @@
                 // Columna D: Clasificación (En blanco)
                 row.getCell(4).value = null;
 
-                // MALLA ACTUAL (E - I) -> Multiplicado por las semanas configuradas (16 por defecto)
+                // MALLA ACTUAL (E - I) -> Horas semanales
                 if (base) {
                     let hBase = parseHoursComponents(base.components);
                     row.getCell(5).value = formatLevel(base.level);
-                    row.getCell(6).value = hBase.acd * weeks;
-                    row.getCell(7).value = hBase.ape * weeks;
-                    row.getCell(8).value = hBase.aa * weeks;
+                    row.getCell(6).value = hBase.acd; // Sin multiplicar
+                    row.getCell(7).value = hBase.ape; // Sin multiplicar
+                    row.getCell(8).value = hBase.aa;  // Sin multiplicar
                     let credsBase = calculateCredits(base);
                     setCachedResult(sheetDar, row.getCell(9).address, credsBase);
                 } else {
@@ -3159,20 +3159,19 @@
                     setCachedResult(sheetDar, row.getCell(9).address, 0);
                 }
 
-                // MALLA PROPUESTA (J - N)
+                // MALLA PROPUESTA (J - N) -> Horas semanales
                 if (web) {
                     let hWeb = parseHoursComponents(web.components);
                     row.getCell(10).value = formatLevel(web.level);
-                    row.getCell(11).value = hWeb.acd * weeks;
-                    row.getCell(12).value = hWeb.ape * weeks;
-                    row.getCell(13).value = hWeb.aa * weeks;
+                    row.getCell(11).value = hWeb.acd; // Sin multiplicar
+                    row.getCell(12).value = hWeb.ape; // Sin multiplicar
+                    row.getCell(13).value = hWeb.aa;  // Sin multiplicar
                     let credsWeb = calculateCredits(web);
                     setCachedResult(sheetDar, row.getCell(14).address, credsWeb);
                 } else {
                     row.getCell(10).value = null; row.getCell(11).value = null; row.getCell(12).value = null; row.getCell(13).value = null;
                     setCachedResult(sheetDar, row.getCell(14).address, 0);
                 }
-
                 currentRow3++;
             });
 
