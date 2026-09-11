@@ -664,6 +664,7 @@
           <option value="PRÁCTICAS COMUNITARIAS">PRÁCTICAS DE SERVICIO COMUNITARIO</option>
           <option value="PRÁCTICAS LABORALES">PRÁCTICAS LABORALES</option>
           <option value="U DE INTEGRACIÓN CURRICULAR">UNIDAD DE INTEGRACIÓN CURRICULAR</option>
+          <option value="PROYECTO INTEGRADOR" style="display:none;">PROYECTO INTEGRADOR</option>
         </select>
       </div>
       
@@ -1655,98 +1656,47 @@
     }
 
     function handleTipoChange(isInit = false) {
-        const fromInit = isInit === true; 
-        const tipo = document.getElementById('edit-tipo-materia').value;
-        const compGroup = document.getElementById('group-components');
-        const compSelect = document.getElementById('edit-components');
-        const splitGroup = document.getElementById('group-laborales-split');
-        const lvl2Group = document.getElementById('level-select-group-2');
-        const msgInt = document.getElementById('group-integracion-msg');
-        const msgCom = document.getElementById('group-comunitaria-msg');
-        const sumGroup = document.getElementById('group-sum');
-        const levelSelect = document.getElementById('edit-level');
-        const nameInput = document.getElementById('edit-name');
-        const codeInput = document.getElementById('edit-code');
-        const codeGroup = document.getElementById('group-code');
-        const isEdit = !!document.getElementById('edit-id').value;
-        const cfg = state.config || initialData.config;
-        const lastLevelId = state.levels[cfg.semesters - 1].id;
+        const fromInit = isInit === true; const tipo = document.getElementById('edit-tipo-materia').value;
+        const compGroup = document.getElementById('group-components'); const compSelect = document.getElementById('edit-components');
+        const splitGroup = document.getElementById('group-laborales-split'); const lvl2Group = document.getElementById('level-select-group-2');
+        const msgInt = document.getElementById('group-integracion-msg'); const msgCom = document.getElementById('group-comunitaria-msg');
+        const sumGroup = document.getElementById('group-sum'); const levelSelect = document.getElementById('edit-level');
+        const nameInput = document.getElementById('edit-name'); const codeInput = document.getElementById('edit-code');
+        const codeGroup = document.getElementById('group-code'); const isEdit = !!document.getElementById('edit-id').value;
+        const isNewCb = document.getElementById('edit-is-new');
+        const tipoMateriaContainer = document.getElementById('edit-tipo-materia').parentElement;
+        const cfg = state.config || initialData.config; const lastLevelId = state.levels[cfg.semesters - 1].id;
 
-        const revertToDefaultType = () => {
-            setTimeout(() => {
-                document.getElementById('edit-tipo-materia').value = 'FORMACIÓN PROFESIONAL';
-                handleTipoChange();
-            }, 10);
-        };
+        const revertToDefaultType = () => { setTimeout(() => { document.getElementById('edit-tipo-materia').value = 'FORMACIÓN PROFESIONAL'; handleTipoChange(); }, 10); };
 
         if (tipo === 'U DE INTEGRACIÓN CURRICULAR') {
-            let existing = null;
-            if (state.subjects && Array.isArray(state.subjects)) {
-                existing = state.subjects.find(s => s.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR');
-            }
-            if (existing && (!isEdit || existing.id !== document.getElementById('edit-id').value)) {
-                showToast('Solo puede existir una Unidad de Integración Curricular por malla.', 'error');
-                revertToDefaultType();
-                return;
-            }
+            let existing = null; if (state.subjects && Array.isArray(state.subjects)) { existing = state.subjects.find(s => s.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR'); }
+            if (existing && (!isEdit || existing.id !== document.getElementById('edit-id').value)) { showToast('Solo puede existir una Unidad de Integración Curricular por malla.', 'error'); revertToDefaultType(); return; }
         } else if (tipo === 'PRÁCTICAS LABORALES') {
-            let isEditingLaboral = false;
-            let existingLab = null;
-            if (state.subjects && Array.isArray(state.subjects)) {
-                isEditingLaboral = isEdit && state.subjects.find(s => s.id === document.getElementById('edit-id').value)?.tipoMateria === 'PRÁCTICAS LABORALES';
-                existingLab = state.subjects.find(s => s.tipoMateria === 'PRÁCTICAS LABORALES');
-            }
-            if (existingLab && !isEditingLaboral) {
-                showToast('Ya existen Prácticas Laborales en la malla.', 'error');
-                revertToDefaultType();
-                return;
-            }
+            let isEditingLaboral = false; let existingLab = null;
+            if (state.subjects && Array.isArray(state.subjects)) { isEditingLaboral = isEdit && state.subjects.find(s => s.id === document.getElementById('edit-id').value)?.tipoMateria === 'PRÁCTICAS LABORALES'; existingLab = state.subjects.find(s => s.tipoMateria === 'PRÁCTICAS LABORALES'); }
+            if (existingLab && !isEditingLaboral) { showToast('Ya existen Prácticas Laborales en la malla.', 'error'); revertToDefaultType(); return; }
         } else if (tipo === 'PRÁCTICAS COMUNITARIAS') {
-            let isEditingComunitaria = false;
-            let existingCom = null;
-            if (state.subjects && Array.isArray(state.subjects)) {
-                isEditingComunitaria = isEdit && state.subjects.find(s => s.id === document.getElementById('edit-id').value)?.tipoMateria === 'PRÁCTICAS COMUNITARIAS';
-                existingCom = state.subjects.find(s => s.tipoMateria === 'PRÁCTICAS COMUNITARIAS');
-            }
-            if (existingCom && !isEditingComunitaria) {
-                 showToast('Ya existen Prácticas de Servicio Comunitario en la malla.', 'error');
-                 revertToDefaultType();
-                 return;
-            }
+            let isEditingComunitaria = false; let existingCom = null;
+            if (state.subjects && Array.isArray(state.subjects)) { isEditingComunitaria = isEdit && state.subjects.find(s => s.id === document.getElementById('edit-id').value)?.tipoMateria === 'PRÁCTICAS COMUNITARIAS'; existingCom = state.subjects.find(s => s.tipoMateria === 'PRÁCTICAS COMUNITARIAS'); }
+            if (existingCom && !isEditingComunitaria) { showToast('Ya existen Prácticas de Servicio Comunitario en la malla.', 'error'); revertToDefaultType(); return; }
         } else if (tipo === 'C. DE ARTE Y DEPORTES') {
             let isEditing = isEdit && state.subjects.find(s => s.id === document.getElementById('edit-id').value)?.tipoMateria === 'C. DE ARTE Y DEPORTES';
             let existing = state.subjects.find(s => s.tipoMateria === 'C. DE ARTE Y DEPORTES');
-            if (existing && !isEditing) {
-                showToast('Solo se permite una Complementaria de Artes, Deportes e Idiomas.', 'error');
-                revertToDefaultType();
-                return;
-            }
+            if (existing && !isEditing) { showToast('Solo se permite una Complementaria de Artes, Deportes e Idiomas.', 'error'); revertToDefaultType(); return; }
         } else if (tipo === 'C. DE HUMANÍSTICA') {
             let isEditing = isEdit && state.subjects.find(s => s.id === document.getElementById('edit-id').value)?.tipoMateria === 'C. DE HUMANÍSTICA';
             let existing = state.subjects.find(s => s.tipoMateria === 'C. DE HUMANÍSTICA');
-            if (existing && !isEditing) {
-                showToast('Solo se permite una Complementaria de Humanística.', 'error');
-                revertToDefaultType();
-                return;
-            }
+            if (existing && !isEditing) { showToast('Solo se permite una Complementaria de Humanística.', 'error'); revertToDefaultType(); return; }
         }
 
-        compSelect.disabled = false;
-        levelSelect.disabled = false;
-        nameInput.disabled = false; 
+        // RESET DE BLOQUEOS (Por si el usuario estaba viendo el Proyecto Integrador)
+        tipoMateriaContainer.style.display = 'block';
+        compSelect.disabled = false; levelSelect.disabled = false; nameInput.disabled = false; isNewCb.disabled = false;
+        if (!isNewCb.checked) { codeInput.disabled = false; }
         
-        const isNewCb = document.getElementById('edit-is-new');
-        if (!isNewCb.checked) {
-            codeInput.disabled = false;
-        }
-        
-        codeGroup.style.display = 'block';
-        splitGroup.style.display = 'none';
-        lvl2Group.style.display = 'none';
-        msgInt.style.display = 'none';
-        msgCom.style.display = 'none';
-        compGroup.style.display = 'block';
-        sumGroup.style.display = 'block';
+        codeGroup.style.display = 'block'; splitGroup.style.display = 'none'; lvl2Group.style.display = 'none';
+        msgInt.style.display = 'none'; msgCom.style.display = 'none'; compGroup.style.display = 'block'; sumGroup.style.display = 'block';
         document.getElementById('btn-save').style.display = 'inline-block';
         
         Array.from(document.getElementById('edit-level').options).forEach(opt => opt.disabled = false);
@@ -1756,77 +1706,49 @@
         const isStandard = ["MATEMÁTICAS Y CIENCIAS BÁSICAS", "EDUCACIÓN GENERAL", "FORMACIÓN PROFESIONAL"].includes(tipo);
 
         Array.from(compSelect.options).forEach(opt => {
-            if (restrictedComps.includes(opt.value)) {
-                opt.style.display = isStandard ? 'none' : 'block';
-                opt.disabled = isStandard;
-            } else {
-                opt.style.display = 'block';
-                opt.disabled = false;
-            }
+            if (restrictedComps.includes(opt.value)) { opt.style.display = isStandard ? 'none' : 'block'; opt.disabled = isStandard; } 
+            else { opt.style.display = 'block'; opt.disabled = false; }
         });
 
-        if (isStandard && restrictedComps.includes(compSelect.value)) {
-            compSelect.value = '3/1/5';
-        }
+        if (isStandard && restrictedComps.includes(compSelect.value)) { compSelect.value = '3/1/5'; }
 
         if (!isEdit && tipo !== 'PRÁCTICAS COMUNITARIAS' && tipo !== 'PRÁCTICAS LABORALES') {
-            if (nameInput.value === 'PRÁCTICAS DE SERVICIO COMUNITARIO' || nameInput.value === 'PRÁCTICAS LABORALES') {
-                nameInput.value = '';
-                codeInput.value = '';
-            }
+            if (nameInput.value === 'PRÁCTICAS DE SERVICIO COMUNITARIO' || nameInput.value === 'PRÁCTICAS LABORALES') { nameInput.value = ''; codeInput.value = ''; }
         }
 
-        if (tipo === 'ITINERARIO') {
-            compSelect.value = '3/0/3';
-            compSelect.disabled = true;
-            codeGroup.style.display = 'none';
-            if (!fromInit || nameInput.value.trim() === '') {
-                nameInput.value = 'ITINERARIO';
-            }
-        } else if (tipo === 'C. DE ARTE Y DEPORTES' || tipo === 'C. DE HUMANÍSTICA') {
-            compSelect.value = '2/0/1';
-            compSelect.disabled = true;
-            codeGroup.style.display = 'none';
-            if (!fromInit || nameInput.value.trim() === '') {
-                nameInput.value = tipo === 'C. DE ARTE Y DEPORTES' 
-                    ? 'COMPLEMENTARIAS DE ARTES, DEPORTES E IDIOMAS' 
-                    : 'COMPLEMENTARIAS DE HUMANÍSTICAS';
-            }
-        } else if (tipo === 'PRÁCTICAS COMUNITARIAS') {
-            compSelect.value = '0/0/6';
-            compGroup.style.display = 'none';
-            sumGroup.style.display = 'none';
-            msgCom.style.display = 'block';
-            nameInput.value = 'PRÁCTICAS DE SERVICIO COMUNITARIO';
+        // LÓGICA DE VISIBILIDADES Y BLOQUEOS
+        if (tipo === 'PROYECTO INTEGRADOR') {
+            tipoMateriaContainer.style.display = 'none'; // Oculta el combo de "Tipo de Materia"
+            compGroup.style.display = 'none'; // Oculta los Componentes
+            sumGroup.style.display = 'none'; // Oculta las Horas
+            
+            // Bloquea los demás campos
             nameInput.disabled = true;
-            codeGroup.style.display = 'none';
+            codeInput.disabled = true;
+            isNewCb.disabled = true;
+            levelSelect.disabled = true;
+            
+            document.getElementById('btn-save').style.display = 'none'; // Oculta el botón Guardar
+        } else if (tipo === 'ITINERARIO') {
+            compSelect.value = '3/0/3'; compSelect.disabled = true; codeGroup.style.display = 'none';
+            if (!fromInit || nameInput.value.trim() === '') { nameInput.value = 'ITINERARIO'; }
+        } else if (tipo === 'C. DE ARTE Y DEPORTES' || tipo === 'C. DE HUMANÍSTICA') {
+            compSelect.value = '2/0/1'; compSelect.disabled = true; codeGroup.style.display = 'none';
+            if (!fromInit || nameInput.value.trim() === '') { nameInput.value = tipo === 'C. DE ARTE Y DEPORTES' ? 'COMPLEMENTARIAS DE ARTES, DEPORTES E IDIOMAS' : 'COMPLEMENTARIAS DE HUMANÍSTICAS'; }
+        } else if (tipo === 'PRÁCTICAS COMUNITARIAS') {
+            compSelect.value = '0/0/6'; compGroup.style.display = 'none'; sumGroup.style.display = 'none'; msgCom.style.display = 'block';
+            nameInput.value = 'PRÁCTICAS DE SERVICIO COMUNITARIO'; nameInput.disabled = true; codeGroup.style.display = 'none';
         } else if (tipo === 'PRÁCTICAS LABORALES') {
             if (isEdit) {
-                let subj = null;
-                if (state.subjects && Array.isArray(state.subjects)) {
-                    subj = state.subjects.find(s => s.id === document.getElementById('edit-id').value);
-                }
+                let subj = null; if (state.subjects && Array.isArray(state.subjects)) { subj = state.subjects.find(s => s.id === document.getElementById('edit-id').value); }
                 nameInput.value = 'PRÁCTICAS LABORALES'; 
-            } else {
-                nameInput.value = 'PRÁCTICAS LABORALES'; 
-                splitGroup.style.display = 'block';
-                handleSplitChange(); 
-            }
-            compSelect.value = '0/0/15'; 
-            compGroup.style.display = 'none';
-            sumGroup.style.display = 'none';
-            nameInput.disabled = true;
-            codeGroup.style.display = 'none';
+            } else { nameInput.value = 'PRÁCTICAS LABORALES'; splitGroup.style.display = 'block'; handleSplitChange(); }
+            compSelect.value = '0/0/15'; compGroup.style.display = 'none'; sumGroup.style.display = 'none'; nameInput.disabled = true; codeGroup.style.display = 'none';
         } else if (tipo === 'U DE INTEGRACIÓN CURRICULAR') {
-            compSelect.value = '3/0/6';
-            compSelect.disabled = true;
-            levelSelect.value = lastLevelId;
-            levelSelect.disabled = true;
-            msgInt.style.display = 'block';
+            compSelect.value = '3/0/6'; compSelect.disabled = true; levelSelect.value = lastLevelId; levelSelect.disabled = true; msgInt.style.display = 'block';
         }
 
-        updateSumFromSelect();
-        updateLevelOptions();
+        updateSumFromSelect(); updateLevelOptions();
     }
 
     function handleSplitChange() {
