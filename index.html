@@ -1052,9 +1052,15 @@
                 else if(subj.sum == 12) subj.components = '0/0/12';
                 else { subj.components = '0/0/15'; subj.sum = 15; }
             }
+        } else if (fixType === 'update_components') {
+            const correctComps = getCorrectComponents(subj);
+            if (correctComps) {
+                subj.components = correctComps.comp;
+                subj.sum = correctComps.sum;
+            }
         }
         
-        persistState(); 
+        persistState();
         renderBoard(); 
         updateAnalyticsPanel();
         setTimeout(drawConnections, 200); 
@@ -1170,8 +1176,11 @@
                const hasMateriaInt = subjs.some(s => s.tipoMateria === 'U DE INTEGRACIÓN CURRICULAR');
                const hasProjInt = subjs.some(s => s.tipoMateria === 'PROYECTO INTEGRADOR');
 
-               if (hasMateriaInt && hasProjInt) {
-                   iconHtml = `<div class="status-icon status-star" title="Último Nivel (Libre de restricciones)">⭐</div>`;
+               if (lvlCreds > 15) {
+                   hasWarnings = true;
+                   iconHtml = `<div class="status-icon status-warn" title="Excede el límite máximo de 15 créditos para el último nivel">⚠️</div>`;
+               } else if (hasMateriaInt && hasProjInt) {
+                   iconHtml = `<div class="status-icon status-star" title="Último Nivel (Dentro del límite de 15 créditos)">⭐</div>`;
                } else if (!hasMateriaInt && !hasProjInt) {
                    hasWarnings = true;
                    iconHtml = `<div class="status-icon status-warn" title="Falta Materia Integradora y Proyecto">⚠️</div>`;
@@ -1326,6 +1335,30 @@
       return keywords.some(kw => n.includes(kw));
     }
 
+    window.getCorrectComponents = function(subj) {
+        if (!subj || !subj.name) return null;
+        // Limpiamos todo: sin tildes, sin espacios, sin signos de puntuación, todo a mayúsculas
+        const cleanName = String(subj.name).toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]/g, "");
+        const code = String(subj.code).toUpperCase();
+
+        // 5/0/7 (4 cr)
+        if (cleanName.startsWith("CALCULODEUNAVARIABLE") || (cleanName.startsWith("MATEMATICAS") && (code === "MATG2007" || code === "MATG2009"))) return { comp: "5/0/7", sum: 12 };
+        // 4/0/8 (4 cr)
+        if (cleanName.startsWith("ALGEBRALINEAL")) return { comp: "4/0/8", sum: 12 };
+        // 4/1/7 (4 cr)
+        if (cleanName.includes("FISICAMECANICA") || cleanName.includes("FISICAFLUIDOS") || cleanName.includes("FISICAELECTRICIDAD")) return { comp: "4/1/7", sum: 12 };
+        // 4/0/5 (3 cr)
+        if ((cleanName.startsWith("ESTADISTICA") && code === "ESTG1034") || cleanName.startsWith("BIOESTADISTICA") || cleanName === "ESTADISTICAI" || cleanName === "ESTADISTICAII" || cleanName.startsWith("ECUACIONESDIFERENCIALES") || cleanName.startsWith("CALCULODEVARIASVARIABLES") || cleanName.startsWith("CALCULOVECTORIAL") || cleanName.startsWith("MATEMATICASDISCRETAS") || cleanName.startsWith("MATEMATICASAPLICADAS") || cleanName.startsWith("MATEMATICASAVANZADAS") || cleanName.startsWith("MATEMATICASSUPERIORES") || cleanName.startsWith("METODOSNUMERICOS")) return { comp: "4/0/5", sum: 9 };
+        // 3/0/6 (3 cr)
+        if (cleanName.startsWith("ESTADISTICA") && code === "ESTG2004") return { comp: "3/0/6", sum: 9 };
+        // 4/1/4 (3 cr)
+        if (cleanName.startsWith("QUIMICAGENERAL")) return { comp: "4/1/4", sum: 9 };
+        // 3/2/4 (3 cr)
+        if (cleanName.startsWith("QUIMICAORGANICA")) return { comp: "3/2/4", sum: 9 };
+
+        return null;
+    }
+    
     function getTypeClass(tipo) {
         if (!tipo) return 'type-formacion-profesional';
         return 'type-' + String(tipo).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
@@ -2137,6 +2170,24 @@
                fixAction = 'add_pi';
                warningMsg = 'Falta generar el Proyecto Integrador correspondiente.';
            }
+      }
+
+      // --- REGLA: Prerrequisito para Física Mecánica ---
+      if (upperCode === 'FISG1005') {
+          const hasMathReq = state.connections.some(c => c.to === subj.id && (state.subjects.find(s => s.id === c.from)?.code.toUpperCase() === 'MATG1045' || state.subjects.find(s => s.id === c.from)?.code.toUpperCase() === 'MATG1063'));
+          if (!hasMathReq) {
+              warningMsg = 'Requiere obligatoriamente "Cálculo de una variable" (MATG1045) o "Cálculo I" (MATG1063) como prerrequisito.';
+              fixAction = null; // Lo dejamos en null para que NO salga el botón de corregir
+          }
+      }
+
+      // --- REGLA: Componentes de Ciencias Básicas ---
+      if (!warningMsg) {
+          const correctComps = getCorrectComponents(subj);
+          if (correctComps && subj.components !== correctComps.comp) {
+              warningMsg = `Componentes incorrectos. Deben ser ${correctComps.comp}.`;
+              fixAction = 'update_components';
+          }
       }
 
       if (!warningMsg && !isValidCombination(subj.components)) {
