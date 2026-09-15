@@ -1337,26 +1337,25 @@
 
     window.getCorrectComponents = function(subj) {
         if (!subj || !subj.name) return null;
-        // Limpiamos todo: sin tildes, sin espacios, sin signos de puntuación, todo a mayúsculas
-        const cleanName = String(subj.name).toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]/g, "");
-        const code = String(subj.code).toUpperCase();
+        const name = String(subj.name).trim().toUpperCase();
+        const code = String(subj.code).trim().toUpperCase();
 
-        // 4/0/2 (2 cr) - Inglés I, II, III
-        if (code === "IDIG1007" || code === "IDIG1008" || code === "IDIG1009") return { comp: "4/0/2", sum: 6 };
+        // 4/0/2 (2 cr)
+        if (["IDIG1006", "IDIG1007", "IDIG1008"].includes(code)) return { comp: "4/0/2", sum: 6 };
         // 5/0/7 (4 cr)
-        if (cleanName.startsWith("CALCULODEUNAVARIABLE") || (cleanName.startsWith("MATEMATICAS") && (code === "MATG2007" || code === "MATG2009"))) return { comp: "5/0/7", sum: 12 };
+        if (name === "CÁLCULO DE UNA VARIABLE" || code === "MATG2007" || code === "MATG2009") return { comp: "5/0/7", sum: 12 };
         // 4/0/8 (4 cr)
-        if (cleanName.startsWith("ALGEBRALINEAL")) return { comp: "4/0/8", sum: 12 };
+        if (name === "ÁLGEBRA LINEAL") return { comp: "4/0/8", sum: 12 };
         // 4/1/7 (4 cr)
-        if (cleanName.includes("FISICAMECANICA") || cleanName.includes("FISICAFLUIDOS") || cleanName.includes("FISICAELECTRICIDAD")) return { comp: "4/1/7", sum: 12 };
+        if (name === "FÍSICA: MECÁNICA" || name === "FÍSICA MECÁNICA" || name === "FÍSICA: FLUIDOS, ONDAS Y TERMODINÁMICA" || name === "FÍSICA ELECTRICIDAD Y MAGNETISMO") return { comp: "4/1/7", sum: 12 };
         // 4/0/5 (3 cr)
-        if ((cleanName.startsWith("ESTADISTICA") && code === "ESTG1034") || cleanName.startsWith("BIOESTADISTICA") || cleanName === "ESTADISTICAI" || cleanName === "ESTADISTICAII" || cleanName.startsWith("ECUACIONESDIFERENCIALES") || cleanName.startsWith("CALCULODEVARIASVARIABLES") || cleanName.startsWith("CALCULOVECTORIAL") || cleanName.startsWith("MATEMATICASDISCRETAS") || cleanName.startsWith("MATEMATICASAPLICADAS") || cleanName.startsWith("MATEMATICASAVANZADAS") || cleanName.startsWith("MATEMATICASSUPERIORES") || cleanName.startsWith("METODOSNUMERICOS")) return { comp: "4/0/5", sum: 9 };
+        if (code === "ESTG1034" || name === "BIOESTADÍSTICA" || name === "ESTADÍSTICA I" || name === "ESTADÍSTICA II" || name === "ECUACIONES DIFERENCIALES" || name === "ECUACIONES DIFERENCIALES Y ÁLGEBRA LINEAL" || name === "CÁLCULO DE VARIAS VARIABLES" || name === "CÁLCULO VECTORIAL" || name === "MATEMÁTICAS DISCRETAS" || name === "MATEMÁTICAS APLICADAS A LA INGENIERÍA" || name === "MATEMÁTICAS AVANZADAS" || name === "MATEMÁTICAS SUPERIORES" || name === "MÉTODOS NUMÉRICOS") return { comp: "4/0/5", sum: 9 };
         // 3/0/6 (3 cr)
-        if (cleanName.startsWith("ESTADISTICA") && code === "ESTG2004") return { comp: "3/0/6", sum: 9 };
+        if (code === "ESTG2004") return { comp: "3/0/6", sum: 9 };
         // 4/1/4 (3 cr)
-        if (cleanName.startsWith("QUIMICAGENERAL")) return { comp: "4/1/4", sum: 9 };
+        if (name === "QUÍMICA GENERAL") return { comp: "4/1/4", sum: 9 };
         // 3/2/4 (3 cr)
-        if (cleanName.startsWith("QUIMICAORGANICA")) return { comp: "3/2/4", sum: 9 };
+        if (name === "QUÍMICA ORGÁNICA" || name === "QUÍMICA ORGÁNICA I" || name === "QUÍMICA ORGÁNICA II") return { comp: "3/2/4", sum: 9 };
 
         return null;
     }
@@ -2186,21 +2185,25 @@
       // --- REGLA: Prerrequisito para Física Mecánica (Se apila a los demás warnings) ---
       let prereqWarning = '';
       if (upperCode === 'FISG1005') {
-          const hasMathReq = state.connections.some(c => c.to === subj.id && (state.subjects.find(s => s.id === c.from)?.code.toUpperCase() === 'MATG1045' || state.subjects.find(s => s.id === c.from)?.code.toUpperCase() === 'MATG1063'));
+          // Buscamos estrictamente por los códigos que la aprueban
+          const hasMathReq = state.connections.some(c => {
+              if (c.to !== subj.id) return false;
+              const reqSubj = state.subjects.find(s => s.id === c.from);
+              return reqSubj && (reqSubj.code.toUpperCase() === 'MATG1045' || reqSubj.code.toUpperCase() === 'MATG1063');
+          });
+          
           if (!hasMathReq) {
               prereqWarning = '⚠️ Falta prerrequisito: "Cálculo de una variable" (MATG1045) o "Cálculo I" (MATG1063).';
           }
       }
 
       if (prereqWarning) {
-          // Si ya había un mensaje de error (como el de los componentes), lo junta con el de prerrequisito.
           warningMsg = warningMsg ? (warningMsg + '<br><br>' + prereqWarning) : prereqWarning;
       }
 
       if (!warningMsg && !isValidCombination(subj.components)) {
           warningMsg = 'Distribución de horas no permitida. Debe editar la materia a una permitida.';
       }
-
       const warningHTML = warningMsg ? `<span class="warning-icon">⚠️</span>` : '';
       let btnHtml = fixAction ? `<button class="btn-fix" onclick="fixSubject(event, '${subj.id}', '${fixAction}')">Corregir</button>` : '';
       const customTooltipHTML = warningMsg ? `<div class="custom-tooltip">${warningMsg}${btnHtml}</div>` : '';
