@@ -1341,6 +1341,8 @@
         const cleanName = String(subj.name).toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]/g, "");
         const code = String(subj.code).toUpperCase();
 
+        // 4/0/2 (2 cr) - Inglés I, II, III
+        if (code === "IDIG1007" || code === "IDIG1008" || code === "IDIG1009") return { comp: "4/0/2", sum: 6 };
         // 5/0/7 (4 cr)
         if (cleanName.startsWith("CALCULODEUNAVARIABLE") || (cleanName.startsWith("MATEMATICAS") && (code === "MATG2007" || code === "MATG2009"))) return { comp: "5/0/7", sum: 12 };
         // 4/0/8 (4 cr)
@@ -2171,23 +2173,28 @@
                warningMsg = 'Falta generar el Proyecto Integrador correspondiente.';
            }
       }
-
-      // --- REGLA: Prerrequisito para Física Mecánica ---
-      if (upperCode === 'FISG1005') {
-          const hasMathReq = state.connections.some(c => c.to === subj.id && (state.subjects.find(s => s.id === c.from)?.code.toUpperCase() === 'MATG1045' || state.subjects.find(s => s.id === c.from)?.code.toUpperCase() === 'MATG1063'));
-          if (!hasMathReq) {
-              warningMsg = 'Requiere obligatoriamente "Cálculo de una variable" (MATG1045) o "Cálculo I" (MATG1063) como prerrequisito.';
-              fixAction = null; // Lo dejamos en null para que NO salga el botón de corregir
-          }
-      }
-
-      // --- REGLA: Componentes de Ciencias Básicas ---
+      
+      // --- REGLA: Componentes de Ciencias Básicas y Especiales ---
       if (!warningMsg) {
           const correctComps = getCorrectComponents(subj);
           if (correctComps && subj.components !== correctComps.comp) {
               warningMsg = `Componentes incorrectos. Deben ser ${correctComps.comp}.`;
               fixAction = 'update_components';
           }
+      }
+
+      // --- REGLA: Prerrequisito para Física Mecánica (Se apila a los demás warnings) ---
+      let prereqWarning = '';
+      if (upperCode === 'FISG1005') {
+          const hasMathReq = state.connections.some(c => c.to === subj.id && (state.subjects.find(s => s.id === c.from)?.code.toUpperCase() === 'MATG1045' || state.subjects.find(s => s.id === c.from)?.code.toUpperCase() === 'MATG1063'));
+          if (!hasMathReq) {
+              prereqWarning = '⚠️ Falta prerrequisito: "Cálculo de una variable" (MATG1045) o "Cálculo I" (MATG1063).';
+          }
+      }
+
+      if (prereqWarning) {
+          // Si ya había un mensaje de error (como el de los componentes), lo junta con el de prerrequisito.
+          warningMsg = warningMsg ? (warningMsg + '<br><br>' + prereqWarning) : prereqWarning;
       }
 
       if (!warningMsg && !isValidCombination(subj.components)) {
