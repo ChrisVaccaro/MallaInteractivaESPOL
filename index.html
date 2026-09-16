@@ -334,7 +334,7 @@
     /* TOOLTIP Y BOTÓN DE AUTOCORRECCIÓN */
     .custom-tooltip { 
         position: absolute; 
-        bottom: calc(100% + 5px); 
+        top: calc(100% + 5px); 
         left: 50%; 
         transform: translateX(-50%); 
         background: #1e293b; 
@@ -352,10 +352,10 @@
         box-shadow: 0 4px 6px rgba(0,0,0,0.15); 
     }
     .custom-tooltip::before {
-        content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 10px; background: transparent; 
+        content: ''; position: absolute; bottom: 100%; left: 0; width: 100%; height: 10px; background: transparent; 
     }
     .custom-tooltip::after { 
-        content: ''; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #1e293b transparent transparent transparent; 
+        content: ''; position: absolute; bottom: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: transparent transparent #1e293b transparent; 
     }
     .subject-card:hover .custom-tooltip { opacity: 1; visibility: visible; }
 
