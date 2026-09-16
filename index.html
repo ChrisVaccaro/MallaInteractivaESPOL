@@ -202,7 +202,7 @@
     .legend-coreq { background-color: transparent; border-top: 3px dashed var(--coreq-color); width: 40px; height: 0px; display: inline-block; }
 
     /* Contenedores de la malla */
-    .board-container { width: 100%; overflow-x: auto; overflow-y: visible; padding-top: 5px; padding-bottom: 25px; cursor: grab; }
+    .board-container { width: 100%; overflow-x: auto; overflow-y: visible; padding-top: 90px; padding-bottom: 25px; cursor: grab; }
     .board-container:active { cursor: grabbing; }
     .board-wrapper { 
         position: relative; 
@@ -2189,7 +2189,9 @@
           const hasMathReq = state.connections.some(c => {
               if (c.to !== subj.id) return false;
               const reqSubj = state.subjects.find(s => s.id === c.from);
-              return reqSubj && (reqSubj.code.toUpperCase() === 'MATG1045' || reqSubj.code.toUpperCase() === 'MATG1063');
+              return reqSubj && 
+                     (reqSubj.code.toUpperCase() === 'MATG1045' || reqSubj.code.toUpperCase() === 'MATG1063') && 
+                     reqSubj.level !== subj.level; 
           });
           
           if (!hasMathReq) {
