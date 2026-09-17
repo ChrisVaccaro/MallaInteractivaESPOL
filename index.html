@@ -388,6 +388,35 @@
     .form-group label { display: block; font-size: 0.85em; font-weight: 600; margin-bottom: 4px; }
     .form-group input[type="text"], .form-group input[type="number"], .form-group select { width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box; }
     .modal-actions { display: flex; justify-content: space-between; margin-top: 20px; }
+
+    /* --- MODO ACCESIBLE (PALETA OKABE-ITO PARA DALTONISMO) --- */
+    body.accessible-mode {
+        --highlight-req: #D55E00 !important; /* Naranja Bermellón (Reemplaza al rojo) */
+        --highlight-next: #0072B2 !important; /* Azul intenso (Reemplaza al verde) */
+    }
+    /* Alertas y Botones */
+    body.accessible-mode .toast.success { border-left-color: #0072B2; }
+    body.accessible-mode .toast.error { border-left-color: #D55E00; }
+    body.accessible-mode .btn-add { background-color: #0072B2; border-color: #0072B2; }
+    body.accessible-mode .btn-add:hover { background-color: #005f96; }
+    body.accessible-mode #btn-export-excel { color: #0072B2 !important; border-color: #0072B2 !important; }
+    body.accessible-mode .badge-new { background-color: #0072B2; border-color: #005f96; }
+    
+    /* Panel Analítico */
+    body.accessible-mode .status-ok { background: #e0f2fe; color: #0072B2; }
+    body.accessible-mode .status-warn { background: #ffe4cc; color: #D55E00; }
+    body.accessible-mode #floating-warning-badge { background-color: #D55E00; }
+    body.accessible-mode .invalid-opt, body.accessible-mode .type-warn { color: #D55E00; }
+    
+    /* Recalibración de fondos para las tarjetas */
+    body.accessible-mode .type-educacion-general { background-color: #CC79A7 !important; color: white !important; }
+    body.accessible-mode .type-educacion-general * { color: white !important; }
+    body.accessible-mode .type-c-de-arte-y-deportes { background-color: #56B4E9 !important; }
+    body.accessible-mode .type-c-de-humanistica { background-color: #009E73 !important; color: white !important; }
+    body.accessible-mode .type-c-de-humanistica * { color: white !important; }
+    body.accessible-mode .type-itinerario { background-color: #E69F00 !important; color: white !important; }
+    body.accessible-mode .type-itinerario * { color: white !important; }
+    
   </style>
 </head>
 <body>
@@ -397,8 +426,8 @@
     <defs>
       <marker id="arrowhead" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" /></marker>
       <marker id="arrowhead-coreq" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8b5cf6" /></marker>
-      <marker id="arrowhead-req" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" /></marker>
-      <marker id="arrowhead-next" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" /></marker>
+      <marker id="arrowhead-req" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" style="fill: var(--highlight-req, #ef4444);" /></marker>
+      <marker id="arrowhead-next" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" style="fill: var(--highlight-next, #10b981);" /></marker>
     </defs>
   </svg>
 
@@ -522,6 +551,10 @@
       <div class="toolbar-divider"></div>
 
       <div class="toolbar-group">
+        <label style="display:flex; align-items:center; gap:6px; font-size:0.85em; font-weight:700; color:#475569; cursor:pointer; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: #f8fafc; transition: all 0.2s;">
+            <input type="checkbox" id="cb-accessible" onchange="toggleAccessibleMode()" style="margin:0; cursor:pointer; width: 14px; height: 14px;">
+            Colores accesibles
+        </label>
         <button class="btn-help" onclick="startTour()" style="color: #8b5cf6; border-color: #c4b5fd;">🚀 Tour</button>
         <button class="btn-help" onclick="openHelpModal()">❓ Ayuda</button>
       </div>
@@ -2007,6 +2040,12 @@
       if (!localStorage.getItem('malla_espol_tour_seen')) {
           setTimeout(() => startTour(), 1000);
       }
+
+      // Recuperar preferencia de accesibilidad
+      if (localStorage.getItem('malla_espol_accessible') === 'true') {
+          document.getElementById('cb-accessible').checked = true;
+          document.body.classList.add('accessible-mode');
+      }
     }
 
     function renderBoard() {
@@ -3411,6 +3450,17 @@
       });
       driverObj.drive();
     }
+    window.toggleAccessibleMode = function() {
+        const isAccessible = document.getElementById('cb-accessible').checked;
+        if (isAccessible) {
+            document.body.classList.add('accessible-mode');
+            localStorage.setItem('malla_espol_accessible', 'true');
+        } else {
+            document.body.classList.remove('accessible-mode');
+            localStorage.removeItem('malla_espol_accessible');
+        }
+    };
+    
     window.onload = init;
   </script>
 </body>
