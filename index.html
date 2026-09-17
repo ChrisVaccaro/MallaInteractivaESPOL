@@ -885,14 +885,14 @@
     window.draggedId = null; 
 
     function getRelativePos(el, container) {
-        const elRect = el.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-        const z = currentZoom || 1;
-        
-        return {
-            x: (elRect.left - containerRect.left) / z,
-            y: (elRect.top - containerRect.top) / z
-        };
+        let x = 0;
+        let y = 0;
+        while (el && el !== container && el.nodeName !== 'BODY') {
+            x += el.offsetLeft;
+            y += el.offsetTop;
+            el = el.offsetParent;
+        }
+        return { x, y };
     }
 
     function changeZoom(delta) {
