@@ -2714,8 +2714,9 @@
 
       const jsonStr = JSON.stringify(state, null, 2);
       const blob = new Blob([jsonStr], { type: "application/json" });
-
-      try {
+      saveAs(blob, fileName);
+      showToast(`Archivo ${fileName} exportado correctamente.`, 'success');
+      /*try {
         if (window.showSaveFilePicker) {
             const handle = await window.showSaveFilePicker({
                 suggestedName: fileName,
@@ -2739,7 +2740,7 @@
             console.error("Error guardando el JSON:", error);
             showToast('Error al guardar el archivo.', 'error');
         }
-      }
+      }*/
     }
 
     async function procesarYDescargarExcel() {
@@ -3371,8 +3372,11 @@
         
         const buffer = await workbook.xlsx.writeBuffer(); 
         const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }); 
+
+        saveAs(blob, "Malla Curricular propuesta.xlsx");
+        showToast('Malla exportada a Excel con éxito.', 'success');
         
-        try {
+        /*try {
             if (window.showSaveFilePicker) {
                 const handle = await window.showSaveFilePicker({
                     suggestedName: "Malla Curricular propuesta.xlsx",
@@ -3394,7 +3398,7 @@
                 console.error("Error guardando el Excel:", saveError);
                 showToast('Error al guardar el archivo Excel.', 'error');
             }
-        }
+        }*/
         
       } catch (error) { console.error("Error al generar el Excel:", error); showToast('Error al generar la malla. Revisa la consola.', 'error'); }
     }
