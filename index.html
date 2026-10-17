@@ -1625,11 +1625,20 @@
             document.body.classList.remove('accessible-mode');
         }
 
-        // 5. Ocultar todas las etiquetas de "NUEVO" de las materias
+        // 5. Ocultar todas las etiquetas de "NUEVO" de las materias y los escudos de los headers para el PDF
         const newBadges = document.querySelectorAll('.badge-new');
         newBadges.forEach(badge => {
             badge.style.display = 'none';
         });
+
+        // CREAR ESTILO TEMPORAL PARA OCULTAR LOS ESCUDOS Y LOS RECUADROS VACÍOS EN EL PDF
+        const tempStyle = document.createElement('style');
+        tempStyle.id = 'temp-pdf-shield-fix';
+        tempStyle.innerHTML = `
+            .level-header::after { display: none !important; }
+            .grid-cell:empty { border: none !important; background: transparent !important; }
+        `;
+        document.head.appendChild(tempStyle);
 
         // 6. LIMPIEZA DE SELECCIÓN: Quitar el pin y los colores de requisitos (rojo/verde)
         pinnedSubjectId = null;
@@ -1669,15 +1678,9 @@
 
         // Si hay columnas vacías al final, encogemos el tablero temporalmente
         if (columnsToShow < NUM_COLUMNS) {
-            // Leer la variable de CSS dinámicamente
-            const rootStyles = getComputedStyle(document.documentElement);
-            const currentGap = parseInt(rootStyles.getPropertyValue('--grid-gap')) || 30;
-
-            // Calcular el nuevo ancho exacto usando la variable
-            const gaps = columnsToShow > 0 ? columnsToShow - 1 : 0;
-            const newMinWidth = 220 + 32 + (columnsToShow * 200) + (gaps * currentGap);
-            wrapper.style.minWidth = `${newMinWidth}px`;
-
+            // Ya no calculamos el ancho manualmente. Gracias al min-width: max-content del CSS,
+            // el contenedor se abrazará perfectamente a las columnas visibles (incluyendo sus bordes).
+            
             grids.forEach(g => {
                 originalGridsStyle.push(g.style.gridTemplateColumns);
                 g.style.gridTemplateColumns = `repeat(${columnsToShow}, 200px)`;
@@ -1759,6 +1762,10 @@
             newBadges.forEach(badge => {
                 badge.style.display = ''; 
             });
+
+            // REMOVER EL ESTILO TEMPORAL DE LOS ESCUDOS
+            const shieldFix = document.getElementById('temp-pdf-shield-fix');
+            if (shieldFix) shieldFix.remove();
 
             if (clonedDefs) {
                 clonedDefs.remove();
