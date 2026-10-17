@@ -456,7 +456,7 @@
     <div class="panel-section" style="margin-top: 30px;">
        <h3>Resumen del programa</h3>
        <div class="stats-grid">
-          <div class="stat-box"><b id="stat-subjs">0</b><span>Asignaturas</span></div>
+          <div class="stat-box"><b id="stat-subjs">0</b><span>Asignaturas <span id="info-subjs" style="cursor:help; font-size:1.1em; color:var(--accent-color);">ℹ️</span></span></div>
           <div class="stat-box"><b id="stat-creds">0</b><span>Créditos</span></div>
           <div class="stat-box"><b id="stat-hsem">0</b><span>Horas en semestres</span></div>
           <div class="stat-box"><b id="stat-hprog">0</b><span>Horas del programa <span title="Total de horas declaradas en el CES" style="cursor:help; font-size:1.1em; color:var(--accent-color);">ℹ️</span></span></div>
@@ -1111,6 +1111,11 @@
        const cfg = state.config;
        
        let totalSubjects = 0;
+       // Nuevas variables para el desglose
+       let countRegulares = 0;
+       let countPracticas = 0;
+       let countPI = 0;
+
        let totalCredits = 0;
        let acd = 0, ape = 0, aa = 0;
        
@@ -1132,6 +1137,16 @@
               if(!visibleLevelIds.includes(s.level)) return;
               
               totalSubjects++;
+
+              // --- NUEVA LÓGICA DE DESGLOSE ---
+              if (s.tipoMateria === 'PROYECTO INTEGRADOR') {
+                  countPI++;
+              } else if (["PRÁCTICAS COMUNITARIAS", "PRÁCTICAS LABORALES", "PRÁCTICAS EMPRESARIALES"].includes(s.tipoMateria)) {
+                  countPracticas++;
+              } else {
+                  countRegulares++; // Incluye la "U de Integración Curricular" y el resto
+              }
+              
               const creds = calculateCredits(s);
               totalCredits += creds;
               
@@ -1153,7 +1168,24 @@
            });
        }
        
+       // --- INYECCIÓN DEL ÍCONO Y TOOLTIP ---
+       let tooltipParts = [];
+       if (countRegulares > 0) tooltipParts.push(`Asignaturas: ${countRegulares}`);
+       if (countPracticas > 0) tooltipParts.push(`Prácticas: ${countPracticas}`);
+       if (countPI > 0) tooltipParts.push(`Proyecto Integrador: ${countPI}`);
+
+       const tooltipSubjs = tooltipParts.join('\n');
+       const infoIcon = document.getElementById('info-subjs');
+       
+       if (tooltipParts.length > 0) {
+           infoIcon.style.display = 'inline-block';
+           infoIcon.title = tooltipSubjs; 
+       } else {
+           infoIcon.style.display = 'none';
+       }
+
        document.getElementById('stat-subjs').innerText = totalSubjects;
+       
        document.getElementById('stat-creds').innerText = totalCredits.toFixed(1).replace('.0','');
        
        const horasSemestres = totalCredits * cfg.divC * cfg.weeks;
