@@ -216,7 +216,7 @@
     .board-wrapper { 
         position: relative; 
         min-width: max-content; 
-        transition: zoom 0.2s ease-out;
+        /*transition: zoom 0.2s ease-out;*/
     }
 
     svg#connections-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5 !important; }
@@ -918,7 +918,9 @@
     function applyZoom() {
         document.getElementById('zoom-level').innerText = Math.round(currentZoom * 100) + '%';
         document.getElementById('board-wrapper').style.zoom = currentZoom;
-        drawConnections(); 
+        setTimeout(() => {
+            drawConnections(); 
+        }, 50); 
     }
 
     function toggleAnalyticsPanel() {
@@ -1617,7 +1619,9 @@
         // 3. Restaurar zoom a 100% temporalmente para asegurar buena calidad y alineación
         const originalZoom = currentZoom;
         currentZoom = 1.0;
-        applyZoom();
+        document.getElementById('zoom-level').innerText = '100%';
+        document.getElementById('board-wrapper').style.zoom = 1.0;
+        drawConnections(); // Redibujado forzado e inmediato con los defs integrados
 
         // 4. Detectar y desactivar temporalmente el modo de colores accesibles
         const isAccessibleMode = document.body.classList.contains('accessible-mode');
@@ -1637,6 +1641,7 @@
         tempStyle.innerHTML = `
             .level-header::after { display: none !important; }
             .grid-cell:empty { border: none !important; background: transparent !important; }
+            .warning-icon { display: none !important; }
         `;
         document.head.appendChild(tempStyle);
 
@@ -1694,14 +1699,15 @@
             });
         }
 
-        // Pequeña pausa para asegurar que el navegador repinte el DOM con todos los cambios, sin hover y sin scroll
+        // Pausa optimizada al límite seguro de 350ms
         await new Promise(r => setTimeout(r, 350));
 
         try {
             const canvas = await html2canvas(wrapper, {
                 scale: 2, // Escala doble para mayor nitidez
                 useCORS: true,
-                backgroundColor: '#ffffff'
+                backgroundColor: '#ffffff',
+                logging: false
             });
 
             const imgData = canvas.toDataURL('image/png');
@@ -2696,116 +2702,500 @@
     }
 
     function drawConnections() {
-      const svg = document.getElementById('connections-layer'); 
-      const ghostSvg = document.getElementById('ghost-layer'); 
-      const wrapperEl = document.getElementById('board-wrapper');
-      
-      svg.innerHTML = ''; 
-      svg.style.width = '100%'; 
-      svg.style.height = '100%';
-      if (ghostSvg) { 
-          ghostSvg.style.width = '100%'; 
-          ghostSvg.style.height = '100%'; 
-      }
-
-      state.connections.forEach((conn, index) => {
-        const fromCard = document.getElementById(`card-${conn.from}`); const toCard = document.getElementById(`card-${conn.to}`); if (!fromCard || !toCard) return;
-        const subjFrom = state.subjects.find(s => s.id === conn.from); const subjTo = state.subjects.find(s => s.id === conn.to);
+        const svg = document.getElementById('connections-layer'); 
+        const ghostSvg = document.getElementById('ghost-layer'); 
+        const wrapperEl = document.getElementById('board-wrapper');
         
-        const levelFromIdx = state.levels.findIndex(l => l.id === subjFrom.level); 
-        const levelToIdx = state.levels.findIndex(l => l.id === subjTo.level);
-        const levelDistance = Math.abs(levelToIdx - levelFromIdx); 
-        const isSameLevel = (levelDistance === 0);
+        svg.innerHTML = ''; 
+        svg.style.width = '100%'; 
+        svg.style.height = '100%';
+        if (ghostSvg) { 
+            ghostSvg.innerHTML = ''; 
+            ghostSvg.style.width = '100%'; 
+            ghostSvg.style.height = '100%'; 
+        }
 
-        const fromPos = getRelativePos(fromCard, wrapperEl);
-        const toPos = getRelativePos(toCard, wrapperEl);
+        // Mochila fija de marcadores para asegurar su presencia ante cualquier exportación
+        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        defs.innerHTML = `
+            <marker id="arrowhead" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" /></marker>
+            <marker id="arrowhead-coreq" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8b5cf6" /></marker>
+            <marker id="arrowhead-req" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" style="fill: var(--highlight-req, #ef4444);" /></marker>
+            <marker id="arrowhead-next" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" style="fill: var(--highlight-next, #10b981);" /></marker>
+        `;
+        svg.appendChild(defs);
 
-        let x1 = fromPos.x + (fromCard.offsetWidth / 2); 
-        let x2 = toPos.x + (toCard.offsetWidth / 2); 
-        let pathData = "";
+        const cfg = state.config || (typeof initialData !== 'undefined' ? initialData.config : { semesters: 10 });
+        const visibleLevels = state.levels.slice(0, cfg.semesters);
+        
+        // --- 0. MOTOR DE COORDENADAS ANTI-ZOOM ---
+        const z = typeof currentZoom !== 'undefined' ? currentZoom : 1;
+        const wrapperRect = wrapperEl.getBoundingClientRect();
 
-        if (lineType === 'curved') {
-          if (isSameLevel) {
-            const y1 = fromPos.y; 
-            const y2 = toPos.y; 
-            const distance = Math.abs(x2 - x1); 
-            const arcHeight = Math.min(Math.max(distance * 0.35, 25), 50);
-            pathData = `M ${x1} ${y1} C ${x1} ${y1 - arcHeight}, ${x2} ${y2 - arcHeight}, ${x2} ${y2}`;
-          } else {
-            const y1 = fromPos.y + fromCard.offsetHeight; 
-            const y2 = toPos.y; 
-            const offsetDirection = (index % 2 === 0) ? 1 : -1; 
-            const curveOffset = (levelDistance > 1) ? (levelDistance * 18 * offsetDirection) : 0;
-            const controlY1 = y1 + (Math.abs(y2 - y1) * 0.45); 
-            const controlY2 = y2 - (Math.abs(y2 - y1) * 0.45);
-            pathData = `M ${x1} ${y1} C ${x1 + curveOffset} ${controlY1}, ${x2 + curveOffset} ${controlY2}, ${x2} ${y2}`;
-          }
-        } else {
-          // --- NUEVA REGLA: CORREQUISITOS (Líneas laterales) ---
-          if (isSameLevel) {
-            const isFromLeft = subjFrom.col < subjTo.col;
-            
-            // Puntos de salida y entrada laterales (mitad de altura de la tarjeta)
-            const startX = isFromLeft ? (fromPos.x + fromCard.offsetWidth) : fromPos.x;
-            const endX = isFromLeft ? toPos.x : (toPos.x + toCard.offsetWidth);
-            const yCenter = fromPos.y + (fromCard.offsetHeight / 2);
-
-            if (Math.abs(subjFrom.col - subjTo.col) === 1) {
-              // Si son contiguas: Línea recta horizontal perfecta
-              pathData = `M ${startX} ${yCenter} H ${endX}`;
-            } else {
-              // Si están separadas: Salir un poco, subir al techo de la fila, cruzar y bajar
-              const dirOffset = isFromLeft ? 15 : -15; // Tramo corto hacia afuera
-              const upOffset = (fromCard.offsetHeight / 2) + 15 + (index % 4) * 6; // Subir sobre la tarjeta
-              const routeY = yCenter - upOffset;
-              
-              pathData = `M ${startX} ${yCenter} H ${startX + dirOffset} V ${routeY} H ${endX - dirOffset} V ${yCenter} H ${endX}`;
-            }
-            
-          } 
-          // --- NUEVA REGLA: PRERREQUISITOS VERTICALES CONTIGUOS ---
-          else if (subjFrom.col === subjTo.col && levelDistance === 1) {
-            const y1 = fromPos.y + fromCard.offsetHeight; 
-            const y2 = toPos.y; 
-            pathData = `M ${x1} ${y1} V ${y2}`; // Línea perfectamente vertical
-            
-          } 
-          // --- PRERREQUISITOS NORMALES CON SALTO O DIAGONAL ---
-          else {
-            const xOffset1 = (index % 5) * 10 - 20; 
-            const xOffset2 = ((index + 2) % 5) * 10 - 20; 
-            x1 += xOffset1; 
-            x2 += xOffset2;
-            
-            if (levelDistance === 1) {
-              const y1 = fromPos.y + fromCard.offsetHeight; 
-              const y2 = toPos.y; 
-              const midY = y1 + (y2 - y1) / 2; 
-              const offset = (index % 7) * 5 - 15;
-              pathData = `M ${x1} ${y1} V ${midY + offset} H ${x2} V ${y2}`;
-            } else {
-              const y1 = fromPos.y + fromCard.offsetHeight; 
-              const y2 = toPos.y; 
-              const y_pasillo1 = y1 + 15 + (index % 4) * 5;
-              const laneX = toPos.x - 7 + (index % 3) * 4 - 4; 
-              const y_pasillo2 = y2 - 15 - (index % 4) * 5;
-              pathData = `M ${x1} ${y1} V ${y_pasillo1} H ${laneX} V ${y_pasillo2} H ${x2} V ${y2}`;
-            }
-          }
+        function getZoomedPos(el) {
+            const rect = el.getBoundingClientRect();
+            return {
+                x: (rect.left - wrapperRect.left) / z,
+                y: (rect.top - wrapperRect.top) / z,
+                right: (rect.right - wrapperRect.left) / z,
+                bottom: (rect.bottom - wrapperRect.top) / z,
+                width: rect.width / z,
+                height: rect.height / z
+            };
         }
         
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('d', pathData); path.setAttribute('class', `connection drawn ${isSameLevel ? 'corequisite' : ''}`); 
-        path.style.strokeLinejoin = "round"; path.style.strokeLinecap = "round"; path.dataset.from = conn.from; path.dataset.to = conn.to;
-        path.setAttribute('marker-end', isSameLevel ? 'url(#arrowhead-coreq)' : 'url(#arrowhead)');
+        // --- 1. MAPA ESPACIAL ABSOLUTO ---
+        const occupied = {}; 
+        const levelBoundsY = {}; 
+        const levelTopY = {}; 
+        let maxCol = 0;
+
+        visibleLevels.forEach(l => occupied[l.id] = {});
         
-        path.onmouseenter = (e) => { const tooltip = document.getElementById('conn-delete-tooltip'); tooltip.classList.add('visible'); tooltip.style.left = (e.clientX + 15) + 'px'; tooltip.style.top = (e.clientY + 15) + 'px'; };
-        path.onmousemove = (e) => { const tooltip = document.getElementById('conn-delete-tooltip'); tooltip.style.left = (e.clientX + 15) + 'px'; tooltip.style.top = (e.clientY + 15) + 'px'; };
-        path.onmouseleave = () => { document.getElementById('conn-delete-tooltip').classList.remove('visible'); };
-        path.ondblclick = (e) => { e.stopPropagation(); document.getElementById('conn-delete-tooltip').classList.remove('visible'); openDeleteConnModal(conn.from, conn.to, subjFrom.name, subjTo.name); };
-        svg.appendChild(path);
-      });
-      if (pinnedSubjectId) { highlightConnections(pinnedSubjectId); }
+        state.subjects.forEach(s => {
+            if (occupied[s.level] !== undefined) {
+                occupied[s.level][s.col] = true;
+                if (s.col > maxCol) maxCol = s.col;
+                
+                if (!levelBoundsY[s.level]) {
+                    const cardEl = document.getElementById(`card-${s.id}`);
+                    if (cardEl) {
+                        const rowEl = cardEl.closest('.level-content-grid') || cardEl.closest('.level-row');
+                        if (rowEl) {
+                            const rowPos = getZoomedPos(rowEl);
+                            levelBoundsY[s.level] = rowPos.bottom; 
+                            levelTopY[s.level] = rowPos.y; 
+                        }
+                    }
+                }
+            }
+        });
+
+        visibleLevels.forEach((l, i) => {
+            if (!levelBoundsY[l.id]) {
+                const prevLvl = i > 0 ? visibleLevels[i-1].id : null;
+                levelTopY[l.id] = prevLvl && levelBoundsY[prevLvl] ? levelBoundsY[prevLvl] + 32 : 0;
+                levelBoundsY[l.id] = levelTopY[l.id] + 135; 
+            }
+        });
+
+        // --- 2. PRE-CÁLCULO DE RUTAS ---
+        let connRoutes = state.connections.map(c => {
+            const sFrom = state.subjects.find(s => s.id === c.from);
+            const sTo = state.subjects.find(s => s.id === c.to);
+            if(!sFrom || !sTo) return null;
+
+            const lvlFromIdx = state.levels.findIndex(l => l.id === sFrom.level);
+            const lvlToIdx = state.levels.findIndex(l => l.id === sTo.level);
+            const lvlDistance = Math.abs(lvlToIdx - lvlFromIdx); 
+
+            let isStraight = false;
+            let vColRoute = -1;
+
+            if (sFrom.col === sTo.col && lvlDistance > 0) {
+                let empty = true;
+                const minLvl = Math.min(lvlFromIdx, lvlToIdx);
+                const maxLvl = Math.max(lvlFromIdx, lvlToIdx);
+                for (let l = minLvl + 1; l < maxLvl; l++) {
+                    if (occupied[state.levels[l].id] && occupied[state.levels[l].id][sFrom.col]) {
+                        empty = false; break;
+                    }
+                }
+                if (empty) isStraight = true; 
+            }
+
+            if (!isStraight && lvlDistance > 0) {
+                vColRoute = Math.min(sFrom.col, sTo.col);
+                if (vColRoute >= maxCol && maxCol > 0) vColRoute = maxCol - 1;
+                if (vColRoute < 0) vColRoute = 0;
+            }
+
+            return { 
+                connId: `${c.from}-${c.to}`, from: c.from, to: c.to, 
+                sFrom, sTo, lvlFromIdx, lvlToIdx, lvlDistance, isStraight, vColRoute 
+            };
+        }).filter(Boolean);
+
+        // LA BARREDORA DE NIEVE: Ordenamos por nivel de origen (de abajo hacia arriba).
+        // Si nacen del mismo nivel, procesamos primero la ruta más larga (mayor distancia).
+        connRoutes.sort((a, b) => {
+            if (b.lvlFromIdx !== a.lvlFromIdx) return b.lvlFromIdx - a.lvlFromIdx;
+            return b.lvlDistance - a.lvlDistance; 
+        });
+
+        function getDynamicCardX(colIdx) {
+            const refSubj = state.subjects.find(s => s.col === colIdx);
+            if (refSubj) {
+                const refCard = document.getElementById(`card-${refSubj.id}`);
+                if (refCard) return getZoomedPos(refCard).x;
+            }
+            return 236 + (colIdx * 250);
+        }
+
+        function getDynamicGapX(colIdx) {
+            const refSubj = state.subjects.find(s => s.col === colIdx);
+            if (refSubj) {
+                const refCard = document.getElementById(`card-${refSubj.id}`);
+                if (refCard) return getZoomedPos(refCard).right;
+            }
+            return 236 + (colIdx * 250) + 200;
+        }
+
+        // --- 3. GESTOR DINÁMICO DE PUERTOS ---
+        const incomingPortsUsed = {};
+        
+        connRoutes.forEach(r => {
+            if (r.isStraight) {
+                if (!incomingPortsUsed[r.to]) incomingPortsUsed[r.to] = [];
+                incomingPortsUsed[r.to].push(100);
+            }
+        });
+
+        function getIncomingPort(route, laneX) {
+            if (!incomingPortsUsed[route.to]) incomingPortsUsed[route.to] = [];
+            const used = incomingPortsUsed[route.to];
+
+            if (route.isStraight) return 100; 
+
+            let shadowBlocked = false;
+            for (let l = route.lvlToIdx - 1; l >= 0; l--) {
+                const levelAboveId = state.levels[l].id;
+                const subjAbove = state.subjects.find(s => s.level === levelAboveId && s.col === route.sTo.col);
+                
+                if (subjAbove) {
+                    if (subjAbove.id !== route.from) {
+                        const aboveHasOut = connRoutes.some(r => r.from === subjAbove.id);
+                        const aboveGoesToMyDest = connRoutes.some(r => r.from === subjAbove.id && r.to === route.to);
+                        if (aboveHasOut && !aboveGoesToMyDest) shadowBlocked = true;
+                    }
+                    break; 
+                }
+            }
+
+            const targetCenterX = getDynamicCardX(route.sTo.col) + 100;
+            let preferredPorts = [];
+            
+            if (shadowBlocked) {
+                preferredPorts = (laneX < targetCenterX) ? [75, 125] : [125, 75]; 
+            } else {
+                preferredPorts = [100, (laneX < targetCenterX) ? 75 : 125, (laneX < targetCenterX) ? 125 : 75];
+            }
+
+            for (let p of preferredPorts) {
+                if (!used.includes(p)) {
+                    used.push(p);
+                    return p;
+                }
+            }
+            
+            used.push(preferredPorts[0]);
+            return preferredPorts[0]; 
+        }
+
+        // --- 4. LA MATRIZ DE CARRILES ESTRICTA CON SEPARACIÓN DE PISOS ---
+        const hSegments = []; 
+        const vSegments = []; 
+        const ghostCentersOccupied = {}; 
+        
+        function getHTrack(levelId, startX, endX, sourceId, exactYBase, isCoreq, floorType = 'top') {
+            const priorities = isCoreq ? [32, 24] : [8, 16, 0, 12, 4, 20];
+            const minX = Math.min(startX, endX);
+            const maxX = Math.max(startX, endX);
+
+            const familySegs = hSegments.filter(seg => seg.level === levelId && seg.sourceId === sourceId && seg.isCoreq === isCoreq && seg.floorType === floorType);
+            if (familySegs.length > 0) return familySegs[0].y;
+
+            let familySpanMinX = minX;
+            let familySpanMaxX = maxX;
+            
+            if (!isCoreq) {
+                const familyRoutes = connRoutes.filter(r => r.from === sourceId && r.lvlDistance > 0 && !r.isStraight);
+                
+                if (floorType === 'top') {
+                    familyRoutes.forEach(fr => {
+                        const startPortX = getDynamicCardX(fr.sFrom.col) + 100;
+                        let endPortX = (fr.lvlDistance === 1) ? getDynamicCardX(fr.sTo.col) + 100 : getDynamicGapX(fr.vColRoute);
+                        familySpanMinX = Math.min(familySpanMinX, startPortX, endPortX);
+                        familySpanMaxX = Math.max(familySpanMaxX, startPortX, endPortX);
+                    });
+                } else if (floorType === 'bottom') {
+                    familyRoutes.forEach(fr => {
+                        const frTargetLvlIdIn = fr.lvlToIdx > 0 ? state.levels[fr.lvlToIdx - 1].id : fr.sTo.level;
+                        if (fr.lvlDistance > 1 && frTargetLvlIdIn === levelId) {
+                            const gapX = getDynamicGapX(fr.vColRoute);
+                            const destX = getDynamicCardX(fr.sTo.col) + 100;
+                            familySpanMinX = Math.min(familySpanMinX, gapX, destX);
+                            familySpanMaxX = Math.max(familySpanMaxX, gapX, destX);
+                        }
+                    });
+                }
+                
+                familySpanMinX -= 5;
+                familySpanMaxX += 5;
+            }
+
+            for (let p of priorities) {
+                const testY = exactYBase + p;
+                const collision = hSegments.find(seg => seg.level === levelId && seg.y === testY && !(familySpanMaxX < seg.minX || familySpanMinX > seg.maxX));
+                if (!collision) {
+                    hSegments.push({ level: levelId, track: p, minX: familySpanMinX, maxX: familySpanMaxX, sourceId, y: testY, isCoreq, floorType });
+                    return testY;
+                }
+            }
+
+            for (let p of priorities) {
+                const testY = exactYBase + p;
+                const collision = hSegments.find(seg => seg.level === levelId && seg.y === testY && !(maxX < seg.minX || minX > seg.maxX));
+                if (!collision) {
+                    hSegments.push({ level: levelId, track: p, minX: minX, maxX: maxX, sourceId, y: testY, isCoreq, floorType });
+                    return testY;
+                }
+            }
+            return exactYBase + priorities[0]; 
+        }
+
+        function getVTrack(colIdx, startY, endY, travelDirection, sourceId, exactXBase) {
+            let priorities = (travelDirection === 'right') ? [17, 25, 33, 9, 41] : [33, 25, 17, 41, 9];
+            const minY = Math.min(startY, endY);
+            const maxY = Math.max(startY, endY);
+
+            const familySegs = vSegments.filter(seg => seg.colIdx === colIdx && seg.sourceId === sourceId && seg.isGap);
+            if (familySegs.length > 0) {
+                const prefTrack = familySegs[0].track;
+                const coll = vSegments.find(seg => seg.colIdx === colIdx && seg.track === prefTrack && seg.sourceId !== sourceId && seg.isGap && !(maxY < seg.minY || minY > seg.maxY));
+                if (!coll) {
+                    vSegments.push({ colIdx, track: prefTrack, minY, maxY, sourceId, x: exactXBase + prefTrack, isGap: true });
+                    return prefTrack;
+                }
+            }
+
+            for (let p of priorities) {
+                const collision = vSegments.find(seg => seg.colIdx === colIdx && seg.track === p && seg.sourceId !== sourceId && seg.isGap && !(maxY < seg.minY || minY > seg.maxY));
+                if (!collision) {
+                    vSegments.push({ colIdx, track: p, minY, maxY, sourceId, x: exactXBase + p, isGap: true });
+                    return p;
+                }
+            }
+            return priorities[0]; 
+        }
+
+        // --- 5. PASADA 1: CALCULAR RUTAS Y REGISTRAR LÍNEAS VERTICALES ---
+        const computedRoutes = [];
+        const allVerticalLines = [];
+
+        function addVLine(x, yStart, yEnd, sourceId) {
+            allVerticalLines.push({ x, minY: Math.min(yStart, yEnd), maxY: Math.max(yStart, yEnd), sourceId });
+        }
+
+        connRoutes.forEach((route) => {
+            const fromCard = document.getElementById(`card-${route.from}`); 
+            const toCard = document.getElementById(`card-${route.to}`); 
+            if (!fromCard || !toCard) return;
+
+            const isSameLevel = (route.lvlDistance === 0);
+            const fromPos = getZoomedPos(fromCard);
+            const toPos = getZoomedPos(toCard);
+            
+            let canCrossHorizontal = false;
+            if (isSameLevel && Math.abs(route.sFrom.col - route.sTo.col) > 1) {
+                const minCol = Math.min(route.sFrom.col, route.sTo.col);
+                const maxColIter = Math.max(route.sFrom.col, route.sTo.col);
+                let empty = true;
+                for (let c = minCol + 1; c < maxColIter; c++) {
+                    if (occupied[route.sFrom.level][c]) { empty = false; break; }
+                }
+                canCrossHorizontal = empty;
+            }
+
+            let ghostCellCol = -1;
+            if (!isSameLevel && route.sFrom.col !== route.sTo.col && route.lvlDistance > 1) {
+                const checkCol = route.sTo.col; 
+                let empty = true;
+                const minLvl = Math.min(route.lvlFromIdx, route.lvlToIdx);
+                const maxLvl = Math.max(route.lvlFromIdx, route.lvlToIdx);
+                
+                for (let l = minLvl + 1; l < maxLvl; l++) {
+                    const levelId = state.levels[l].id;
+                    const subjectsInLvl = state.subjects.filter(s => s.level === levelId);
+                    
+                    for (let sub of subjectsInLvl) {
+                        const midCard = document.getElementById(`card-${sub.id}`);
+                        if (midCard) {
+                            const midPos = getZoomedPos(midCard);
+                            if (midPos.x < toPos.right && midPos.right > toPos.x) {
+                                empty = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (!empty) break;
+                }
+
+                if (empty && !ghostCentersOccupied[`${checkCol}-${route.lvlFromIdx}-${route.lvlToIdx}`]) {
+                    ghostCellCol = checkCol;
+                    ghostCentersOccupied[`${checkCol}-${route.lvlFromIdx}-${route.lvlToIdx}`] = true;
+                }
+            }
+
+            let routeInfo = { route, isSameLevel };
+
+            if (isSameLevel) {
+                const isFromLeft = route.sFrom.col < route.sTo.col;
+                const startX = isFromLeft ? fromPos.right : fromPos.x;
+                const endX = isFromLeft ? toPos.x : toPos.right;
+                const yCenter = fromPos.y + (fromPos.height / 2);
+
+                if (Math.abs(route.sFrom.col - route.sTo.col) === 1 || canCrossHorizontal) {
+                    routeInfo.type = 'coreq-direct';
+                    routeInfo.startX = startX; routeInfo.endX = endX; routeInfo.yCenter = yCenter;
+                } else {
+                    const dirOffset = isFromLeft ? 9 : -9;
+                    const levelAboveId = route.lvlFromIdx > 0 ? state.levels[route.lvlFromIdx - 1].id : null;
+                    const gapBaseY = levelAboveId ? levelBoundsY[levelAboveId] : (levelTopY[route.sFrom.level] - 32);
+                    
+                    const routeY = getHTrack((levelAboveId || 'top'), startX + dirOffset, endX - dirOffset, route.from, gapBaseY, true, 'top');
+                    
+                    routeInfo.type = 'coreq-roof';
+                    routeInfo.startX = startX; routeInfo.endX = endX; routeInfo.yCenter = yCenter;
+                    routeInfo.dirOffset = dirOffset; routeInfo.routeY = routeY;
+
+                    addVLine(startX + dirOffset, yCenter, routeY, route.from);
+                    addVLine(endX - dirOffset, routeY, yCenter, route.from);
+                }
+            } else {
+                const x1 = fromPos.x + 100;
+                const y1 = fromPos.bottom; 
+                const y2 = toPos.y; 
+
+                if (route.isStraight) {
+                    if (route.lvlDistance > 1) ghostCentersOccupied[`${route.sFrom.col}-${route.lvlFromIdx}-${route.lvlToIdx}`] = true;
+                    vSegments.push({ colIdx: route.sFrom.col, track: 100, minY: y1, maxY: y2, sourceId: route.from, x: x1, isGap: false });
+                    
+                    routeInfo.type = 'req-straight';
+                    routeInfo.x1 = x1; routeInfo.y1 = y1; routeInfo.y2 = y2;
+                    addVLine(x1, y1, y2, route.from);
+                } else {
+                    const baseYOut = levelBoundsY[route.sFrom.level] || (y1 + 16);
+                    const targetLvlIdIn = route.lvlToIdx > 0 ? state.levels[route.lvlToIdx - 1].id : route.sTo.level;
+                    const baseYIn = levelBoundsY[targetLvlIdIn] || (y2 - 32);
+
+                    if (ghostCellCol !== -1 && ghostCellCol === route.sTo.col) {
+                        const y_pasillo1 = getHTrack(route.sFrom.level, x1, getDynamicCardX(route.sTo.col) + 100, route.from, baseYOut, false, 'top');
+                        const portXIn = getIncomingPort(route, x1);
+                        const x2 = getDynamicCardX(route.sTo.col) + portXIn;
+                        
+                        routeInfo.type = 'req-ghost';
+                        routeInfo.x1 = x1; routeInfo.y1 = y1; routeInfo.x2 = x2; routeInfo.y2 = y2;
+                        routeInfo.y_pasillo1 = y_pasillo1;
+
+                        addVLine(x1, y1, y_pasillo1, route.from);
+                        addVLine(x2, y_pasillo1, y2, route.from);
+                    } else {
+                        const xRef = getDynamicGapX(route.vColRoute); 
+                        const travelDir = (route.sFrom.col <= route.vColRoute) ? 'right' : 'left';
+                        const trackOffset = getVTrack(route.vColRoute, baseYOut, baseYIn, travelDir, route.from, xRef);
+                        const laneX = xRef + trackOffset; 
+                        
+                        const portXIn = getIncomingPort(route, laneX);
+                        const x2 = getDynamicCardX(route.sTo.col) + portXIn;
+
+                        if (route.lvlDistance === 1) {
+                            const midY = getHTrack(route.sFrom.level, x1, x2, route.from, baseYOut, false, 'top'); 
+                            
+                            routeInfo.type = 'req-d1';
+                            routeInfo.x1 = x1; routeInfo.y1 = y1; routeInfo.x2 = x2; routeInfo.y2 = y2;
+                            routeInfo.midY = midY;
+
+                            addVLine(x1, y1, midY, route.from);
+                            addVLine(x2, midY, y2, route.from);
+                        } else {
+                            const y_pasillo1 = getHTrack(route.sFrom.level, x1, laneX, route.from, baseYOut, false, 'top');
+                            const y_pasillo2 = getHTrack(targetLvlIdIn, laneX, x2, route.from, baseYIn, false, 'bottom');
+                            
+                            routeInfo.type = 'req-long';
+                            routeInfo.x1 = x1; routeInfo.y1 = y1; routeInfo.x2 = x2; routeInfo.y2 = y2;
+                            routeInfo.laneX = laneX; routeInfo.y_pasillo1 = y_pasillo1; routeInfo.y_pasillo2 = y_pasillo2;
+
+                            addVLine(x1, y1, y_pasillo1, route.from);
+                            addVLine(laneX, y_pasillo1, y_pasillo2, route.from);
+                            addVLine(x2, y_pasillo2, y2, route.from);
+                        }
+                    }
+                }
+            }
+            computedRoutes.push(routeInfo);
+        });
+
+        // --- 6. PASADA 2: GENERADOR DE SALTOS Y RENDERIZADO DEFINITIVO ---
+        function drawHorizontalWithHops(startX, endX, y, currentSourceId) {
+            const minX = Math.min(startX, endX);
+            const maxX = Math.max(startX, endX);
+            const isGoingRight = startX < endX;
+            const hopRadius = 5; 
+            
+            const intersections = allVerticalLines
+                .filter(seg => seg.minY <= y + 0.5 && seg.maxY >= y - 0.5 && seg.x >= (minX + hopRadius + 1) && seg.x <= (maxX - hopRadius - 1) && seg.sourceId !== currentSourceId)
+                .map(seg => seg.x)
+                .sort((a, b) => isGoingRight ? a - b : b - a);
+
+            let d = `M ${startX} ${y}`;
+            let currentX = startX;
+
+            intersections.forEach(ix => {
+                if (Math.abs(currentX - ix) >= hopRadius + 1) {
+                    const startHopX = isGoingRight ? ix - hopRadius : ix + hopRadius;
+                    const endHopX = isGoingRight ? ix + hopRadius : ix - hopRadius;
+                    const sweep = isGoingRight ? 1 : 0; 
+                    d += ` L ${startHopX} ${y} A ${hopRadius} ${hopRadius} 0 0 ${sweep} ${endHopX} ${y}`;
+                    currentX = endHopX;
+                }
+            });
+            d += ` L ${endX} ${y}`;
+            
+            return d.replace(`M ${startX} ${y} `, ''); 
+        }
+
+        computedRoutes.forEach((info) => {
+            let pathData = "";
+            switch(info.type) {
+                case 'coreq-direct':
+                    pathData = `M ${info.startX} ${info.yCenter} ${drawHorizontalWithHops(info.startX, info.endX, info.yCenter, info.route.from)}`;
+                    break;
+                case 'coreq-roof':
+                    pathData = `M ${info.startX} ${info.yCenter} H ${info.startX + info.dirOffset} V ${info.routeY} ${drawHorizontalWithHops(info.startX + info.dirOffset, info.endX - info.dirOffset, info.routeY, info.route.from)} V ${info.yCenter} H ${info.endX}`;
+                    break;
+                case 'req-straight':
+                    pathData = `M ${info.x1} ${info.y1} V ${info.y2}`;
+                    break;
+                case 'req-ghost':
+                    pathData = `M ${info.x1} ${info.y1} V ${info.y_pasillo1} ${drawHorizontalWithHops(info.x1, info.x2, info.y_pasillo1, info.route.from)} V ${info.y2}`;
+                    break;
+                case 'req-d1':
+                    pathData = `M ${info.x1} ${info.y1} V ${info.midY} ${drawHorizontalWithHops(info.x1, info.x2, info.midY, info.route.from)} V ${info.y2}`;
+                    break;
+                case 'req-long':
+                    pathData = `M ${info.x1} ${info.y1} V ${info.y_pasillo1} ${drawHorizontalWithHops(info.x1, info.laneX, info.y_pasillo1, info.route.from)} V ${info.y_pasillo2} ${drawHorizontalWithHops(info.laneX, info.x2, info.y_pasillo2, info.route.from)} V ${info.y2}`;
+                    break;
+            }
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', pathData); 
+            path.setAttribute('class', `connection drawn ${info.isSameLevel ? 'corequisite' : ''}`); 
+            path.style.strokeLinejoin = "round"; 
+            path.style.strokeLinecap = "round"; 
+            path.style.fill = "none";
+            path.dataset.from = info.route.from; 
+            path.dataset.to = info.route.to;
+            path.setAttribute('marker-end', info.isSameLevel ? 'url(#arrowhead-coreq)' : 'url(#arrowhead)');
+            
+            path.onmouseenter = (e) => { const t = document.getElementById('conn-delete-tooltip'); t.classList.add('visible'); t.style.left = (e.clientX+15)+'px'; t.style.top = (e.clientY+15)+'px'; };
+            path.onmousemove = (e) => { const t = document.getElementById('conn-delete-tooltip'); t.style.left = (e.clientX+15)+'px'; t.style.top = (e.clientY+15)+'px'; };
+            path.onmouseleave = () => { document.getElementById('conn-delete-tooltip').classList.remove('visible'); };
+            path.ondblclick = (e) => { e.stopPropagation(); document.getElementById('conn-delete-tooltip').classList.remove('visible'); openDeleteConnModal(info.route.from, info.route.to, info.route.sFrom.name, info.route.sTo.name); };
+            svg.appendChild(path);
+        });
+
+        if (window.pinnedSubjectId) { highlightConnections(window.pinnedSubjectId); }
     }
 
     function highlightConnections(id) {
